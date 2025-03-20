@@ -389,6 +389,33 @@
             "lat": 34.9258,
             "lng": -117.9389,
             "ticketUrl": "https://wastelandweekend.com/"
+        },
+        {
+            "name": "What If",
+            "location": "Merritt, BC",
+            "date": "2025-07-31/2025-08-04",
+            "lat": 50.1123,
+            "lng": -120.7942,
+            "ticketUrl": "https://whatif.now",
+            "status": "verified"
+        },
+        {
+            "name": "Neotropolis",
+            "location": "Edwards, California",
+            "date": "2025-04-23/2025-04-27",
+            "lat": 35.087439,
+            "lng": -117.825400,
+            "ticketUrl": "https://www.neotropolis.com/home",
+            "status": "verified"
+        },
+        {
+            "name": "NamBurn",
+            "location": "Blumfelde, Namibia",
+            "date": "2025-05-15/2025-05-19",
+            "lat": -23.8333,
+            "lng": 17.0000,
+            "ticketUrl": "https://www.namibiaburn.org",
+            "status": "verified"
         }
     ]
 } 
