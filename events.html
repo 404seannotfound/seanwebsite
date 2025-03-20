@@ -11,19 +11,80 @@
             display: flex;
             font-family: Arial, sans-serif;
             margin: 0;
+            height: 100vh;
+            overflow: hidden;
         }
         #sidebar {
             width: 300px;
             height: 100vh;
-            overflow-y: auto;
+            overflow: hidden;
             background: #f4f4f4;
-            padding: 10px;
+            padding: 0;
+            border-right: 1px solid #ccc;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
         }
-        #map {
+        .main-content {
             flex: 1;
             height: 100vh;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+        .view-toggle {
+            padding: 10px;
+            background: #f4f4f4;
+            border-bottom: 1px solid #ccc;
+            display: flex;
+            gap: 10px;
+            z-index: 1;
+            position: relative;
+        }
+        .toggle-btn {
+            padding: 8px 16px;
+            cursor: pointer;
+            border: 1px solid #4CAF50;
+            background: white;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .toggle-btn.active {
+            background: #4CAF50;
+            color: white;
+        }
+        .map-view {
+            flex: 1;
+            position: relative;
+        }
+        #map {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            right: 0;
+            bottom: 0;
+        }
+        .calendar-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            display: none;
+        }
+        .month-divider {
+            grid-column: 1 / -1;
+            background: #4CAF50;
+            color: white;
+            padding: 8px;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 10px;
         }
         .event-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
             padding: 8px;
             cursor: pointer;
             border-bottom: 1px solid #ccc;
@@ -73,6 +134,31 @@
             max-height: 80vh;
             overflow-y: auto;
         }
+        .timeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .collapse-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .collapse-btn:hover {
+            background: #45a049;
+        }
+        .timeline-content {
+            transition: max-height 0.3s ease-out;
+            overflow: hidden;
+        }
+        .timeline-content.collapsed {
+            max-height: 0;
+        }
         .month-header {
             font-weight: bold;
             margin-top: 15px;
@@ -82,18 +168,18 @@
             padding-bottom: 5px;
         }
         .event-details {
-            margin-bottom: 15px;
-            padding: 10px;
-            background: #f8f8f8;
-            border-radius: 5px;
+            font-size: 12px;
+            color: #666;
         }
         .event-name {
+            font-size: 16px;
             font-weight: bold;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         .event-info {
-            margin: 5px 0;
-            font-size: 0.9em;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
         .travel-info {
             margin-top: 10px;
@@ -112,85 +198,225 @@
             margin: 0 0 10px 0;
             color: #4CAF50;
         }
+        .calendar-container {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            margin-bottom: 15px;
+            background: #ddd;
+            padding: 2px;
+            border-radius: 5px;
+        }
+        
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+        }
+        
+        .calendar-header {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 2px;
+            margin-bottom: 2px;
+        }
+        
+        .calendar-day {
+            background: white;
+            padding: 5px;
+            min-height: 80px;
+            font-size: 0.8em;
+        }
+        
+        .calendar-day-header {
+            background: #4CAF50;
+            color: white;
+            padding: 5px;
+            text-align: center;
+            font-weight: bold;
+        }
+        
+        .calendar-day.empty {
+            background: #f5f5f5;
+        }
+        
+        .calendar-event {
+            background: #e8f5e9;
+            margin: 2px 0;
+            padding: 3px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .calendar-event:hover {
+            background: #c8e6c9;
+        }
+        
+        .calendar-event.selected {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .calendar-event.selected:hover {
+            background: #45a049;
+        }
+        .calendar-day.today {
+            background: #fff3e0;  /* Light orange background */
+            border: 2px solid #ff9800;  /* Orange border */
+            box-sizing: border-box;
+            font-weight: bold;
+        }
+        .event-item.past {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        .calendar-view {
+            flex: 1;
+            overflow-y: auto;
+            display: none;
+        }
+        .sidebar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #4CAF50;
+            color: white;
+            font-weight: bold;
+            text-align: center;
+            border-bottom: 1px solid #45a049;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .zoom-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 8px;
+            display: none; /* Hidden by default */
+        }
+        .zoom-btn:hover {
+            background: #45a049;
+        }
+        .event-item.past .event-name,
+        .event-item.past .event-details {
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        .event-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+        .filter-btn {
+            background: white;
+            color: #4CAF50;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .filter-btn:hover {
+            background: #f0f0f0;
+        }
+        .event-item {
+            display: none; /* Hide by default */
+        }
+        .event-item.show {
+            display: flex; /* Show when has 'show' class */
+        }
     </style>
 </head>
 <body>
     <div id="sidebar">
-        <div class="month-nav"></div>
+        <div class="sidebar-header">
+            <span>Regional Events</span>
+            <button class="filter-btn" onclick="toggleEventFilter(this)">Show Selected</button>
+        </div>
+        <div class="event-list"></div>
+    </div>
+    <div class="main-content">
+        <div class="view-toggle">
+            <button class="toggle-btn active" data-view="map">Map View</button>
+            <button class="toggle-btn" data-view="calendar">Calendar View</button>
     </div>
     <div id="map"></div>
+        <div class="calendar-container">
+            <div class="calendar-header"></div>
+            <div class="calendar"></div>
+        </div>
+    </div>
     <div id="timeInfo" class="time-info"></div>
     
     <script>
         const events = [
             // U.S. Regional Burns
-            { name: "Burning Man", location: "Gerlach, Nevada", date: "Aug 24 - Sep 1, 2025", lat: 40.7864, lng: -119.2068, ticketUrl: "https://burningman.org/" },
-            { name: "SOAK", location: "Tyghe Valley, Oregon", date: "May 15-19, 2025", lat: 44.6167, lng: -121.1333, ticketUrl: "https://soakpdx.org/" },
-            { name: "Deep Playa Campout", location: "Granite Falls, Washington", date: "Sep 12-15, 2025", lat: 48.0832, lng: -121.9687, ticketUrl: "https://deepplayacampout.com/" },
-            { name: "Brunch", location: "Fremont, Washington", date: "Mar 22, 2025", lat: 47.6506, lng: -122.3507, ticketUrl: "https://suno.com/song/5bcde290-5f30-4f49-9978-efd1046ec5d2" },
-            { name: "Love Burn", location: "Miami, Florida", date: "Feb 13-17, 2025", lat: 25.7617, lng: -80.1918, ticketUrl: "https://theloveburn.com/" },
-            { name: "Saguaro Man", location: "Willcox, Arizona", date: "Apr 23-27, 2025", lat: 32.2523, lng: -109.8323, ticketUrl: "https://saguaroman.org/" },
-            { name: "BEquinox", location: "California City, California", date: "May 7-11, 2025", lat: 35.1258, lng: -117.9859, ticketUrl: "https://bequinox.org/" },
-            { name: "unSCruz", location: "Tres Pinos, California", date: "May 1-4, 2025", lat: 36.7822, lng: -121.3024, ticketUrl: "https://unscruz.org/" },
-            { name: "Burning Flipside", location: "Apache Pass, Texas", date: "Apr 24-28, 2025", lat: 30.4394, lng: -97.0715, ticketUrl: "https://burningflipside.com/" },
-            { name: "FreezerBurn", location: "Webberville, Texas", date: "Jan 15-19, 2026", lat: 30.2275, lng: -97.4627, ticketUrl: "https://freezerburn.org/" },
-            { name: "Burnt Soup", location: "Central Texas, Texas", date: "Aug 28 - Sep 1, 2025", lat: 30.2672, lng: -97.7431, ticketUrl: "https://burntsoup.org/" },
-            { name: "Myschievia", location: "Hughes Springs, Texas", date: "Oct 9-13, 2025", lat: 32.997, lng: -94.634, ticketUrl: "https://myschievia.org/" },
-            { name: "Ignite", location: "Stuart, Virginia", date: "May 23-26, 2025", lat: 36.6407, lng: -80.2653, ticketUrl: "https://igniteburn.org/" },
-            { name: "Playa del Fuego", location: "Tamaqua, Pennsylvania", date: "May 22-26, 2025", lat: 40.7973, lng: -75.9694, ticketUrl: "https://playadelfuego.org/" },
-            { name: "Summerisle Burn", location: "Pennsylvania", date: "Jun 15-19, 2025", lat: 40.0187, lng: -78.5039, ticketUrl: "https://summerisle.org/" },
-            { name: "Mosaic Experiment", location: "Rutland, Ohio", date: "Oct 15-19, 2025", lat: 39.0434, lng: -82.2657, ticketUrl: "https://mosaicexperiment.com/" },
-            { name: "InterFuse", location: "Laquey, Missouri", date: "May 15-18, 2025", lat: 37.8239, lng: -92.3335, ticketUrl: "https://interfuse.org/" },
-            { name: "Gateway Burn", location: "St. Louis area, Missouri", date: "Jun 20-24, 2025", lat: 38.6270, lng: -90.1994, ticketUrl: "https://gatewayburn.org/" },
-            { name: "Critical Northwest", location: "Granite Falls, Washington", date: "Jul 10-14, 2025", lat: 48.0832, lng: -121.9687, ticketUrl: "https://criticalnorthwest.org/" },
-            { name: "Element 11", location: "Stargazer Ranch, Utah", date: "Jun 18-22, 2025", lat: 40.7608, lng: -111.891, ticketUrl: "https://element11.org/" },
-            { name: "Frostburn", location: "Masontown, West Virginia", date: "Feb 13-16, 2026", lat: 39.5520, lng: -79.8006, ticketUrl: "https://frostburn.org/" },
-            { name: "NECTR", location: "Hartford, Connecticut", date: "Jun 25-29, 2025", lat: 41.7658, lng: -72.6734, ticketUrl: "https://nectr.org/" },
-            { name: "Reclaimation", location: "Irvine, Kentucky", date: "Jun 5-9, 2025", lat: 37.7006, lng: -84.0002, ticketUrl: "https://reclaimation.org/" },
-            { name: "HearthsOPhyre", location: "Des Moines, Iowa", date: "Jul 15-19, 2025", lat: 41.5868, lng: -93.6250, ticketUrl: "https://hearthsophyre.org/" },
-            { name: "B.U.R.N.", location: "Chicago, Illinois", date: "May 15-19, 2025", lat: 41.8781, lng: -87.6298, ticketUrl: "https://burnchicago.org/" },
-            { name: "Idaho Decompression", location: "Boise, Idaho", date: "Oct 20-24, 2025", lat: 43.6150, lng: -116.2023, ticketUrl: "https://idahodecompression.org/" },
-            { name: "Melting Man", location: "Grand Forks, North Dakota", date: "Feb 20-24, 2026", lat: 47.9253, lng: -97.0329, ticketUrl: "https://meltingman.org/" },
-            { name: "Firefly", location: "Bethel, Vermont", date: "Jul 1-6, 2025", lat: 43.8334, lng: -72.6023, ticketUrl: "https://fireflyartscollective.org/" },
-            { name: "Lakes of Fire", location: "Rothbury, Michigan", date: "Jul 16-20, 2025", lat: 43.491, lng: -86.091, ticketUrl: "https://lakesoffire.org/" },
-            { name: "Flaming Cheese Burn", location: "Driftless Area, Wisconsin", date: "Jun 5-8, 2025", lat: 43.7844, lng: -91.2521, ticketUrl: "https://flamingcheeseburn.org/" },
+            { name: "Burning Man", location: "Gerlach, Nevada", date: "2025-08-24/2025-09-01", lat: 40.7864, lng: -119.2068, ticketUrl: "https://burningman.org/" },
+            { name: "SOAK", location: "Tyghe Valley, Oregon", date: "2025-05-15/2025-05-19", lat: 44.6167, lng: -121.1333, ticketUrl: "https://soakpdx.org/" },
+            { name: "Deep Playa Campout", location: "Granite Falls, Washington", date: "2025-09-12/2025-09-15", lat: 48.0832, lng: -121.9687, ticketUrl: "https://deepplayacampout.com/" },
+            { name: "Brunch", location: "Fremont, Washington", date: "2025-03-22", lat: 47.6506, lng: -122.3507, ticketUrl: "https://suno.com/song/5bcde290-5f30-4f49-9978-efd1046ec5d2" },
+            { name: "Love Burn", location: "Miami, Florida", date: "2025-02-13/2025-02-17", lat: 25.7617, lng: -80.1918, ticketUrl: "https://theloveburn.com/" },
+            { name: "Saguaro Man", location: "Willcox, Arizona", date: "2025-04-23/2025-04-27", lat: 32.2523, lng: -109.8323, ticketUrl: "https://saguaroman.org/" },
+            { name: "BEquinox", location: "California City, California", date: "2025-05-07/2025-05-11", lat: 35.1258, lng: -117.9859, ticketUrl: "https://bequinox.org/" },
+            { name: "unSCruz", location: "Tres Pinos, California", date: "2025-05-01/2025-05-04", lat: 36.7822, lng: -121.3024, ticketUrl: "https://unscruz.org/" },
+            { name: "Burning Flipside", location: "Apache Pass, Texas", date: "2025-04-24/2025-04-28", lat: 30.4394, lng: -97.0715, ticketUrl: "https://burningflipside.com/" },
+            { name: "FreezerBurn", location: "Webberville, Texas", date: "2026-01-15/2026-01-19", lat: 30.2275, lng: -97.4627, ticketUrl: "https://freezerburn.org/" },
+            { name: "Burnt Soup", location: "Central Texas, Texas", date: "2025-08-28/2025-09-01", lat: 30.2672, lng: -97.7431, ticketUrl: "https://burntsoup.org/" },
+            { name: "Myschievia", location: "Hughes Springs, Texas", date: "2025-10-09/2025-10-13", lat: 32.997, lng: -94.634, ticketUrl: "https://myschievia.org/" },
+            { name: "Ignite", location: "Stuart, Virginia", date: "2025-05-23/2025-05-26", lat: 36.6407, lng: -80.2653, ticketUrl: "https://igniteburn.org/" },
+            { name: "Playa del Fuego", location: "Tamaqua, Pennsylvania", date: "2025-05-22/2025-05-26", lat: 40.7973, lng: -75.9694, ticketUrl: "https://playadelfuego.org/" },
+            { name: "Summerisle Burn", location: "Pennsylvania", date: "2025-06-15/2025-06-19", lat: 40.0187, lng: -78.5039, ticketUrl: "https://summerisle.org/" },
+            { name: "Mosaic Experiment", location: "Rutland, Ohio", date: "2025-10-15/2025-10-19", lat: 39.0434, lng: -82.2657, ticketUrl: "https://mosaicexperiment.com/" },
+            { name: "InterFuse", location: "Laquey, Missouri", date: "2025-05-15/2025-05-18", lat: 37.8239, lng: -92.3335, ticketUrl: "https://interfuse.org/" },
+            { name: "Gateway Burn", location: "St. Louis area, Missouri", date: "2025-06-20/2025-06-24", lat: 38.6270, lng: -90.1994, ticketUrl: "https://gatewayburn.org/" },
+            { name: "Critical Northwest", location: "Granite Falls, Washington", date: "2025-07-10/2025-07-14", lat: 48.0832, lng: -121.9687, ticketUrl: "https://criticalnorthwest.org/" },
+            { name: "Element 11", location: "Stargazer Ranch, Utah", date: "2025-06-18/2025-06-22", lat: 40.7608, lng: -111.891, ticketUrl: "https://element11.org/" },
+            { name: "Frostburn", location: "Masontown, West Virginia", date: "2026-02-13/2026-02-16", lat: 39.5520, lng: -79.8006, ticketUrl: "https://frostburn.org/" },
+            { name: "NECTR", location: "Hartford, Connecticut", date: "2025-06-25/2025-06-29", lat: 41.7658, lng: -72.6734, ticketUrl: "https://nectr.org/" },
+            { name: "Reclaimation", location: "Irvine, Kentucky", date: "2025-06-05/2025-06-09", lat: 37.7006, lng: -84.0002, ticketUrl: "https://reclaimation.org/" },
+            { name: "HearthsOPhyre", location: "Des Moines, Iowa", date: "2025-07-15/2025-07-19", lat: 41.5868, lng: -93.6250, ticketUrl: "https://hearthsophyre.org/" },
+            { name: "B.U.R.N.", location: "Chicago, Illinois", date: "2025-05-15/2025-05-19", lat: 41.8781, lng: -87.6298, ticketUrl: "https://burnchicago.org/" },
+            { name: "Idaho Decompression", location: "Boise, Idaho", date: "2025-10-20/2025-10-24", lat: 43.6150, lng: -116.2023, ticketUrl: "https://idahodecompression.org/" },
+            { name: "Melting Man", location: "Grand Forks, North Dakota", date: "2026-02-20/2026-02-24", lat: 47.9253, lng: -97.0329, ticketUrl: "https://meltingman.org/" },
+            { name: "Firefly", location: "Bethel, Vermont", date: "2025-07-01/2025-07-06", lat: 43.8334, lng: -72.6023, ticketUrl: "https://fireflyartscollective.org/" },
+            { name: "Lakes of Fire", location: "Rothbury, Michigan", date: "2025-07-16/2025-07-20", lat: 43.491, lng: -86.091, ticketUrl: "https://lakesoffire.org/" },
+            { name: "Flaming Cheese Burn", location: "Driftless Area, Wisconsin", date: "2025-06-05/2025-06-08", lat: 43.7844, lng: -91.2521, ticketUrl: "https://flamingcheeseburn.org/" },
 
             // International Regional Events
-            { name: "AfrikaBurn", location: "Tankwa Karoo, South Africa", date: "Apr 28 - May 4, 2025", lat: -32.339, lng: 19.753, ticketUrl: "https://afrikaburn.com/" },
-            { name: "Fuego Austral", location: "Argentina", date: "Feb 28 - Mar 4, 2025", lat: -34.6037, lng: -58.3816, ticketUrl: "https://fuegoaustral.org/" },
-            { name: "Blazing Swan", location: "Kulin, Western Australia", date: "Apr 16-22, 2025", lat: -32.6667, lng: 118.1667, ticketUrl: "https://blazingswan.com.au/" },
-            { name: "Burning Seed", location: "Matong, NSW, Australia", date: "Sep 25 - Oct 1, 2025", lat: -34.9285, lng: 148.3408, ticketUrl: "https://burningseed.com/" },
-            { name: "Modifyre", location: "Queensland, Australia", date: "Jul 10-14, 2025", lat: -27.4698, lng: 153.0251, ticketUrl: "https://modifyre.org/" },
-            { name: "The 3rd Degree", location: "NSW Central Coast, Australia", date: "Sep 15-19, 2025", lat: -33.4255, lng: 151.3420, ticketUrl: "https://3rddegree.org.au/" },
-            { name: "Kiwiburn", location: "Hunterville, New Zealand", date: "Jan 20-25, 2026", lat: -39.934, lng: 175.569, ticketUrl: "https://kiwiburn.com/" },
-            { name: "Nowhere", location: "Monegros Desert, Spain", date: "Jul 1-6, 2025", lat: 41.518, lng: -0.022, ticketUrl: "https://goingnowhere.org/" },
-            { name: "Where the Sheep Sleep", location: "Veluwe, Netherlands", date: "Jun 25-29, 2025", lat: 52.1326, lng: 5.2913, ticketUrl: "https://wherethesheepsleep.org/" },
-            { name: "Kiez Burn", location: "Brandenburg, Germany", date: "Jun 20-24, 2025", lat: 52.5200, lng: 13.4050, ticketUrl: "https://kiezburn.org/" },
-            { name: "The Borderland", location: "Böda, Sweden", date: "Jul 15-19, 2025", lat: 57.2567, lng: 17.0489, ticketUrl: "https://theborderland.se/" },
-            { name: "Burning Nest", location: "Devon, United Kingdom", date: "May 25-29, 2025", lat: 50.7184, lng: -3.5339, ticketUrl: "https://burningnest.co.uk/" },
-            { name: "MicroBurn", location: "Powys, Wales", date: "Sep 15-19, 2025", lat: 52.1307, lng: -3.7837, ticketUrl: "https://microburn.org/" },
-            { name: "Midburn", location: "Negev Desert, Israel", date: "Jun 20-24, 2025", lat: 30.7913, lng: 34.7789, ticketUrl: "https://midburn.org/" },
-            { name: "Burning Japan", location: "Japan", date: "Oct 15-19, 2025", lat: 35.6762, lng: 139.6503, ticketUrl: "https://burningjapan.org/" },
-            { name: "Wasteland Weekend", location: "Edwards, California", date: "Sep 24-28, 2025", lat: 34.9258, lng: -117.9389, ticketUrl: "https://wastelandweekend.com/" }
+            { name: "AfrikaBurn", location: "Tankwa Karoo, South Africa", date: "2025-04-28/2025-05-04", lat: -32.339, lng: 19.753, ticketUrl: "https://afrikaburn.com/" },
+            { name: "Fuego Austral", location: "Argentina", date: "2025-02-28/2025-03-04", lat: -34.6037, lng: -58.3816, ticketUrl: "https://fuegoaustral.org/" },
+            { name: "Blazing Swan", location: "Kulin, Western Australia", date: "2025-04-16/2025-04-22", lat: -32.6667, lng: 118.1667, ticketUrl: "https://blazingswan.com.au/" },
+            { name: "Burning Seed", location: "Matong, NSW, Australia", date: "2025-09-25/2025-10-01", lat: -34.9285, lng: 148.3408, ticketUrl: "https://burningseed.com/" },
+            { name: "Modifyre", location: "Queensland, Australia", date: "2025-07-10/2025-07-14", lat: -27.4698, lng: 153.0251, ticketUrl: "https://modifyre.org/" },
+            { name: "The 3rd Degree", location: "NSW Central Coast, Australia", date: "2025-09-15/2025-09-19", lat: -33.4255, lng: 151.3420, ticketUrl: "https://3rddegree.org.au/" },
+            { name: "Kiwiburn", location: "Hunterville, New Zealand", date: "2026-01-20/2026-01-25", lat: -39.934, lng: 175.569, ticketUrl: "https://kiwiburn.com/" },
+            { name: "Nowhere", location: "Monegros Desert, Spain", date: "2025-07-01/2025-07-06", lat: 41.518, lng: -0.022, ticketUrl: "https://goingnowhere.org/" },
+            { name: "Where the Sheep Sleep", location: "Veluwe, Netherlands", date: "2025-06-25/2025-06-29", lat: 52.1326, lng: 5.2913, ticketUrl: "https://wherethesheepsleep.org/" },
+            { name: "Kiez Burn", location: "Brandenburg, Germany", date: "2025-06-20/2025-06-24", lat: 52.5200, lng: 13.4050, ticketUrl: "https://kiezburn.org/" },
+            { name: "The Borderland", location: "Böda, Sweden", date: "2025-07-15/2025-07-19", lat: 57.2567, lng: 17.0489, ticketUrl: "https://theborderland.se/" },
+            { name: "Burning Nest", location: "Devon, United Kingdom", date: "2025-05-25/2025-05-29", lat: 50.7184, lng: -3.5339, ticketUrl: "https://burningnest.co.uk/" },
+            { name: "MicroBurn", location: "Powys, Wales", date: "2025-09-15/2025-09-19", lat: 52.1307, lng: -3.7837, ticketUrl: "https://microburn.org/" },
+            { name: "Midburn", location: "Negev Desert, Israel", date: "2025-06-20/2025-06-24", lat: 30.7913, lng: 34.7789, ticketUrl: "https://midburn.org/" },
+            { name: "Burning Japan", location: "Japan", date: "2025-10-15/2025-10-19", lat: 35.6762, lng: 139.6503, ticketUrl: "https://burningjapan.org/" },
+            { name: "Dragon Burn", location: "Ye Huan Yuan (野欢原自由王国), Tian Zi, Anji County, China", date: "2025-05-01/2025-05-05", lat: 30.6333, lng: 119.6833, ticketUrl: "https://dragonburn.org/" },
+            { name: "Wasteland Weekend", location: "Edwards, California", date: "2025-09-24/2025-09-28", lat: 34.9258, lng: -117.9389, ticketUrl: "https://wastelandweekend.com/" }
         ];
 
         document.addEventListener("DOMContentLoaded", function () {
-            const map = L.map('map').setView([20, 0], 2);
+            const map = L.map('map');
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(map);
             
             const sidebar = document.getElementById("sidebar");
-            const monthNav = document.querySelector(".month-nav");
-            
-            // Create month navigation buttons
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            months.forEach(month => {
-                const btn = document.createElement("button");
-                btn.className = "month-btn";
-                btn.textContent = month;
-                monthNav.appendChild(btn);
-            });
+            const calendar = document.querySelector(".calendar");
 
             // Store markers and event items
             const markers = [];
@@ -200,23 +426,18 @@
             const timeInfo = document.getElementById('timeInfo');
 
             // Function to calculate days between dates
-            function getDaysBetween(date1, date2) {
-                const parseDate = (event) => {
-                    const date = event.date.toLowerCase();
-                    const year = date.includes('2026') ? 2026 : 2025;
-                    const monthMap = {
-                        'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
-                        'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
-                    };
-                    
-                    const monthMatch = date.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i);
-                    if (monthMatch) {
-                        return new Date(year, monthMap[monthMatch[1].toLowerCase()], 1);
-                    }
-                    return new Date(year, 11, 31);
-                };
+            function getDaysBetween(event1, event2) {
+                // Get start dates of both events using our standardized YYYY-MM-DD format
+                const date1 = new Date(event1.date.split('/')[0]);
+                const date2 = new Date(event2.date.split('/')[0]);
                 
-                return Math.abs((parseDate(date2) - parseDate(date1)) / (1000 * 60 * 60 * 24));
+                // Get end date of first event (if it's a range)
+                const dates1 = event1.date.split('/');
+                const endDate1 = dates1[1] ? new Date(dates1[1]) : date1;
+                
+                // Calculate days between end of first event and start of second event
+                const diffTime = Math.abs(date2 - endDate1);
+                return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             }
 
             // Function to calculate distance between two points in miles
@@ -233,10 +454,11 @@
 
             // Function to get event duration in days
             function getEventDuration(event) {
-                const date = event.date.toLowerCase();
-                const match = date.match(/(\d+)(?:-|\s*-\s*)(\d+)/);
-                if (match) {
-                    return parseInt(match[2]) - parseInt(match[1]) + 1;
+                const dates = event.date.split('/');
+                if (dates.length === 2) {
+                    const startDate = new Date(dates[0]);
+                    const endDate = new Date(dates[1]);
+                    return Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1;
                 }
                 return 1;
             }
@@ -276,8 +498,15 @@
                     polyline = L.polyline(points, {color: '#4CAF50', weight: 3}).addTo(map);
                     map.fitBounds(polyline.getBounds());
 
+                    // Start with header including collapse button
+                    let timeHtml = `
+                        <div class="timeline-header">
+                            <h3 style="margin: 0;">Event Timeline:</h3>
+                            <button class="collapse-btn" onclick="toggleTimeline()">Collapse</button>
+                        </div>
+                        <div class="timeline-content">`;
+
                     // Calculate and display detailed timeline
-                    let timeHtml = '<h3>Event Timeline:</h3>';
                     let currentMonth = '';
                     let totalDistance = 0;
                     let totalDays = 0;
@@ -334,86 +563,360 @@
                             <div>Average Distance Between Events: ${Math.round(totalDistance / (selectedEvents.length - 1))} miles</div>
                         </div>`;
 
+                    // Close the timeline-content div
+                    timeHtml += '</div>';
+
                     timeInfo.innerHTML = timeHtml;
                 }
             }
 
-            // Sort events by date
-            events.sort((a, b) => {
-                const parseDate = (event) => {
-                    const date = event.date.toLowerCase();
-                    const year = date.includes('2026') ? 2026 : 2025;
-                    const monthMap = {
-                        'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
-                        'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
-                    };
-                    
-                    const monthMatch = date.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i);
-                    if (monthMatch) {
-                        return new Date(year, monthMap[monthMatch[1].toLowerCase()], 1);
+            // Function to select/deselect an event across all views
+            function selectEvent(event, selected) {
+                // Update calendar selections
+                const eventDivs = document.querySelectorAll(`.calendar-event[data-event="${event.name}"]`);
+                eventDivs.forEach(div => {
+                    div.classList.toggle('selected', selected);
+                });
+
+                // Update sidebar selection
+                const sidebarItem = eventItems.find(item => item.dataset.event === event.name);
+                if (sidebarItem) {
+                    sidebarItem.classList.toggle('selected', selected);
+                }
+
+                // Update selected events array
+                const index = selectedEvents.indexOf(event);
+                if (selected && index === -1) {
+                    selectedEvents.push(event);
+                    // Sort selected events by date whenever a new one is added
+                    selectedEvents.sort((a, b) => {
+                        const aDate = new Date(a.date.split('/')[0]);
+                        const bDate = new Date(b.date.split('/')[0]);
+                        return aDate - bDate;
+                    });
+                } else if (!selected && index !== -1) {
+                    selectedEvents.splice(index, 1);
+                }
+
+                // Update visibility if showing selected only
+                if (showingSelected) {
+                    const sidebarItem = eventItems.find(item => item.dataset.event === event.name);
+                    if (sidebarItem) {
+                        sidebarItem.classList.toggle('show', selected);
                     }
-                    return new Date(year, 11, 31);
-                };
+                }
+
+                updateSelection();
+            }
+
+            // Create and populate calendar
+            function createCalendar() {
+                const header = document.querySelector('.calendar-header');
+                const calendar = document.querySelector('.calendar');
                 
-                return parseDate(a) - parseDate(b);
+                // Clear existing content
+                header.innerHTML = '';
+                calendar.innerHTML = '';
+                
+                // Create header
+                const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                days.forEach(day => {
+                    const dayHeader = document.createElement('div');
+                    dayHeader.className = 'calendar-day-header';
+                    dayHeader.textContent = day;
+                    header.appendChild(dayHeader);
+                });
+
+                let currentMonth = -1;
+                const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                              'July', 'August', 'September', 'October', 'November', 'December'];
+
+                // Get first day of 2025
+                const firstDay = new Date(2025, 0, 1);
+                const startDay = firstDay.getDay();
+
+                // Add empty cells for days before the first day
+                for (let i = 0; i < startDay; i++) {
+                    const emptyDay = document.createElement('div');
+                    emptyDay.className = 'calendar-day empty';
+                    calendar.appendChild(emptyDay);
+                }
+
+                // Add days for the entire year
+                const daysInYear = 365;
+                const today = new Date();
+                const currentYear = today.getFullYear();
+                const isCurrentYear = currentYear === 2025;
+                
+                for (let i = 1; i <= daysInYear; i++) {
+                    const date = new Date(2025, 0, i);
+                    const month = date.getMonth();
+
+                    // Add month divider if month changed
+                    if (month !== currentMonth) {
+                        currentMonth = month;
+                        const monthDiv = document.createElement('div');
+                        monthDiv.className = 'month-divider';
+                        monthDiv.textContent = months[month] + ' 2025';
+                        calendar.appendChild(monthDiv);
+                    }
+
+                    const day = document.createElement('div');
+                    day.className = 'calendar-day';
+                    
+                    // Check if this is today
+                    if (isCurrentYear && 
+                        date.getDate() === today.getDate() && 
+                        date.getMonth() === today.getMonth()) {
+                        day.classList.add('today');
+                    }
+                    
+                    day.dataset.day = i;
+                    day.textContent = date.getDate(); // Add day number
+                    calendar.appendChild(day);
+                }
+            }
+
+            // Populate calendar with events
+            function populateCalendar() {
+                const days = document.querySelectorAll('.calendar-day:not(.empty)');
+                
+                events.forEach(event => {
+                    // Parse the standardized date format YYYY-MM-DD or YYYY-MM-DD/YYYY-MM-DD
+                    const dates = event.date.split('/');
+                    const startDate = new Date(dates[0]);
+                    const endDate = dates[1] ? new Date(dates[1]) : startDate;
+                    
+                    // Calculate day of year for start date (1-based)
+                    const startOfYear = new Date('2025-01-01');
+                    const dayOfYear = Math.floor((startDate - startOfYear) / (1000 * 60 * 60 * 24)) + 1;
+                    
+                    // Calculate duration (inclusive of both start and end dates)
+                    const duration = dates[1] ? 
+                        Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24)) + 1 : 1;
+
+                    for (let i = 0; i < duration; i++) {
+                        const dayIndex = dayOfYear + i - 1; // Subtract 1 here since calendar array is 0-based
+                        if (dayIndex >= 0 && dayIndex < days.length) {
+                            const day = days[dayIndex];
+                            const eventDiv = document.createElement('div');
+                            eventDiv.className = 'calendar-event';
+                            eventDiv.textContent = event.name;
+                            eventDiv.dataset.event = event.name;
+                            eventDiv.addEventListener('click', () => {
+                                const selected = !eventDiv.classList.contains('selected');
+                                selectEvent(event, selected);
+                            });
+                            day.appendChild(eventDiv);
+                        }
+                    }
+                });
+            }
+
+            // Helper function to calculate days in previous months
+            function getDaysInPreviousMonths(month, year) {
+                let days = 0;
+                for (let i = 0; i < month; i++) {
+                    days += new Date(year, i + 1, 0).getDate();
+                }
+                return days;
+            }
+
+            // Initialize calendar
+            createCalendar();
+            populateCalendar();
+
+            // Initialize sidebar with sorted events
+            const sortedEvents = [...events].sort((a, b) => {
+                const aDate = new Date(a.date.split('/')[0]);
+                const bDate = new Date(b.date.split('/')[0]);
+                return aDate - bDate;
             });
 
-            // Display events
-            events.forEach(event => {
+            // Create a bounds object to fit all markers
+            const bounds = L.latLngBounds();
+
+            // Function to check if event is in the past
+            function isEventPast(event) {
+                const now = new Date();
+                const dates = event.date.split('/');
+                const startDate = new Date(dates[0]);
+                return startDate < now;
+            }
+
+            let showingSelected = false;
+
+            window.toggleEventFilter = function(btn) {
+                showingSelected = !showingSelected;
+                btn.textContent = showingSelected ? "Show All" : "Show Selected";
+                
+                const eventItems = document.querySelectorAll('.event-item');
+                eventItems.forEach(item => {
+                    if (showingSelected) {
+                        // Only show selected items
+                        item.classList.toggle('show', item.classList.contains('selected'));
+                    } else {
+                        // Show all items
+                        item.classList.add('show');
+                    }
+                });
+
+                // Handle map markers visibility
+                markers.forEach((marker, index) => {
+                    if (showingSelected) {
+                        // Only show markers for selected events
+                        const isSelected = selectedEvents.some(event => 
+                            event.lat === marker.getLatLng().lat && 
+                            event.lng === marker.getLatLng().lng
+                        );
+                        if (isSelected) {
+                            marker.addTo(map);
+                        } else {
+                            map.removeLayer(marker);
+                        }
+                    } else {
+                        // Show all markers
+                        marker.addTo(map);
+                    }
+                });
+
+                // Update map bounds if showing selected
+                if (showingSelected && selectedEvents.length > 0) {
+                    const selectedBounds = L.latLngBounds(selectedEvents.map(event => [event.lat, event.lng]));
+                    map.fitBounds(selectedBounds);
+                } else {
+                    // Reset to default view
+                    map.fitBounds(usBounds, { maxZoom: 4 });
+                }
+            };
+
+            sortedEvents.forEach(event => {
                 const div = document.createElement("div");
-                div.className = "event-item";
-                div.innerHTML = `${event.date} - <a href="${event.ticketUrl}" target="_blank">${event.name}</a> (${event.location})`;
-                sidebar.appendChild(div);
+                div.className = "event-item show";
+                if (isEventPast(event)) {
+                    div.classList.add('past');
+                }
+                div.dataset.event = event.name;
+                
+                // Create container for event info
+                const eventInfo = document.createElement("div");
+                eventInfo.className = "event-info";
+                
+                // Create event name element
+                const eventName = document.createElement("div");
+                eventName.className = "event-name";
+                eventName.innerHTML = `<a href="${event.ticketUrl}" target="_blank">${event.name}</a>`;
+                
+                // Create event details element
+                const eventDetails = document.createElement("div");
+                eventDetails.className = "event-details";
+                
+                // Format the date
+                const dates = event.date.split('/');
+                const dateStr = dates[1] ? 
+                    `${dates[0]}/${dates[1]}` :
+                    dates[0];
+                
+                eventDetails.textContent = `${event.location} • ${dateStr}`;
+                
+                // Create zoom button
+                const zoomBtn = document.createElement("button");
+                zoomBtn.className = "zoom-btn";
+                zoomBtn.textContent = "🔍";
+                zoomBtn.style.display = "none";
+                
+                let isZoomed = false;
+                
+                // Assemble the elements
+                eventInfo.appendChild(eventName);
+                eventInfo.appendChild(eventDetails);
+                div.appendChild(eventInfo);
+                div.appendChild(zoomBtn);
+                
+                document.querySelector('.event-list').appendChild(div);
                 eventItems.push(div);
                 
                 const marker = L.marker([event.lat, event.lng]).addTo(map)
                     .bindPopup(`<b><a href="${event.ticketUrl}" target="_blank">${event.name}</a></b><br>${event.location}<br>${event.date}`);
                 markers.push(marker);
                 
+                // Extend bounds to include this marker
+                bounds.extend([event.lat, event.lng]);
+                
+                // Show zoom button on selection
                 div.addEventListener("click", () => {
-                    // Toggle selection
-                    const index = selectedEvents.indexOf(event);
-                    if (index === -1) {
-                        selectedEvents.push(event);
-                        div.classList.add('selected');
+                    const selected = !div.classList.contains('selected');
+                    selectEvent(event, selected);
+                    zoomBtn.style.display = selected ? "block" : "none";
+                });
+                
+                // Handle zoom button click
+                zoomBtn.addEventListener("click", (e) => {
+                    e.stopPropagation(); // Prevent triggering the div's click event
+                    if (isZoomed) {
+                        // Zoom out to show all selected events
+                        if (polyline) {
+                            map.fitBounds(polyline.getBounds());
+                        } else {
+                            map.fitBounds(usBounds, { maxZoom: 4 });
+                        }
+                        zoomBtn.textContent = "🔍";
                     } else {
-                        selectedEvents.splice(index, 1);
-                        div.classList.remove('selected');
+                        // Zoom in to this event
+                        map.setView([event.lat, event.lng], 12);
+                        zoomBtn.textContent = "🌎";
                     }
-
-                    // Update map view and popup
-                    map.setView([event.lat, event.lng], 6);
-                    marker.openPopup();
-
-                    // Update polyline and time info
-                    updateSelection();
+                    isZoomed = !isZoomed;
                 });
             });
 
-            // Handle month filtering
-            const monthBtns = document.querySelectorAll(".month-btn");
-            monthBtns.forEach((btn, index) => {
-                btn.addEventListener("click", () => {
-                    // Update button states
-                    monthBtns.forEach(b => b.classList.remove("active"));
-                    btn.classList.add("active");
+            // Set initial map view to show more of North America
+            const usBounds = L.latLngBounds([
+                [15, -140], // Southwest corner - includes more of Mexico and Pacific
+                [60, -50]   // Northeast corner - includes more of Canada and Atlantic
+            ]);
+            map.fitBounds(usBounds, { maxZoom: 4 }); // Reduced maxZoom to show more area
 
-                    // Get month name
-                    const month = months[index].toLowerCase();
+            // Add view toggle functionality
+            const toggleBtns = document.querySelectorAll('.toggle-btn');
+            const mapView = document.getElementById('map');
+            const calendarView = document.querySelector('.calendar-container');
+
+            toggleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    toggleBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
                     
-                    // Filter events
-                    events.forEach((event, i) => {
-                        const eventDate = event.date.toLowerCase();
-                        const isInMonth = eventDate.includes(month);
-                        
-                        // Show/hide markers based on month
-                        markers[i].setOpacity(isInMonth ? 1 : 0.3);
-                        
-                        // Update sidebar highlighting
-                        eventItems[i].classList.toggle("highlighted", isInMonth);
-                    });
+                    if (btn.dataset.view === 'map') {
+                        mapView.style.display = 'block';
+                        calendarView.style.display = 'none';
+                        map.invalidateSize(); // Refresh map size
+                    } else {
+                        mapView.style.display = 'none';
+                        calendarView.style.display = 'block';
+                    }
                 });
             });
+
+            // Initialize views
+            mapView.style.display = 'block';
+            calendarView.style.display = 'none';
+
+            // Add this function to handle timeline toggling
+            window.toggleTimeline = function() {
+                const content = document.querySelector('.timeline-content');
+                const button = document.querySelector('.collapse-btn');
+                
+                if (content.classList.contains('collapsed')) {
+                    content.classList.remove('collapsed');
+                    button.textContent = 'Collapse';
+                    content.style.maxHeight = content.scrollHeight + 'px';
+                } else {
+                    content.classList.add('collapsed');
+                    button.textContent = 'Expand';
+                    content.style.maxHeight = '0';
+                }
+            };
         });
     </script>
 </body>
