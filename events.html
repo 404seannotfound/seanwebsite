@@ -475,6 +475,22 @@
                 return 1;
             }
 
+            // Add this helper function for date formatting
+            function formatDateForDisplay(dateStr) {
+                const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                const dates = dateStr.split('/');
+                
+                function formatSingleDate(date) {
+                    const [year, month, day] = date.split('-');
+                    return `${months[parseInt(month) - 1]} ${parseInt(day)}`;
+                }
+                
+                if (dates.length === 2) {
+                    return `${formatSingleDate(dates[0])} - ${formatSingleDate(dates[1])}`;
+                }
+                return formatSingleDate(dates[0]);
+            }
+
             // Function to update the polyline and time info
             function updateSelection() {
                 // Remove existing polyline and decorators
@@ -551,13 +567,16 @@
 
                     for (let i = 0; i < selectedEvents.length; i++) {
                         const event = selectedEvents[i];
-                        const eventDate = new Date(event.date);
-                        const month = event.date.split(' ')[0];
+                        const eventDate = new Date(event.date.split('/')[0]);
+                        const monthIndex = eventDate.getMonth();
+                        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                                      'July', 'August', 'September', 'October', 'November', 'December'];
+                        const monthName = months[monthIndex];
                         
                         // Add month header if it's a new month
-                        if (month !== currentMonth) {
-                            timeHtml += `<div class="month-header">${month} 2025</div>`;
-                            currentMonth = month;
+                        if (monthName !== currentMonth) {
+                            timeHtml += `<div class="month-header">${monthName} 2025</div>`;
+                            currentMonth = monthName;
                         }
 
                         // Calculate event duration
@@ -569,7 +588,7 @@
                             <div class="event-details">
                                 <div class="event-name">${event.name}</div>
                                 <div class="event-info">
-                                    <div>📅 ${event.date}</div>
+                                    <div>📅 ${formatDateForDisplay(event.date)}</div>
                                     <div>📍 ${event.location}</div>
                                     <div>⏱️ ${duration} days</div>
                                 </div>`;
@@ -862,11 +881,8 @@
                 const eventDetails = document.createElement("div");
                 eventDetails.className = "event-details";
                 
-                // Format the date
-                const dates = event.date.split('/');
-                const dateStr = dates[1] ? 
-                    `${dates[0]}/${dates[1]}` :
-                    dates[0];
+                // Format the date for display
+                const dateStr = formatDateForDisplay(event.date);
                 
                 eventDetails.textContent = `${event.location} • ${dateStr}`;
                 
@@ -888,7 +904,7 @@
                 eventItems.push(div);
                 
                 const marker = L.marker([event.lat, event.lng]).addTo(map)
-                    .bindPopup(`<b><a href="${event.ticketUrl}" target="_blank">${event.name}</a></b><br>${event.location}<br>${event.date}`);
+                    .bindPopup(`<b><a href="${event.ticketUrl}" target="_blank">${event.name}</a></b><br>${event.location}<br>${dateStr}`);
                 markers.push(marker);
                 
                 // Extend bounds to include this marker
