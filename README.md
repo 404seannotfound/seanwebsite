@@ -15,10 +15,27 @@ This is my personal website, built with HTML, CSS, and JavaScript. It includes v
 - Includes beautiful imagery representing each principle
 - Mobile-responsive design
 
+### Events Page
+- A comprehensive listing of events and activities
+- Interactive calendar view
+- Detailed event information and descriptions
+- Dynamic content loading from JSON data
+
 ### Other Pages
 - [About Me](about.html)
 - [Projects](projects.html)
 - [Contact](contact.html)
+- [Contribute](contribute.html) - Information about how to contribute to the project
+
+## Project Structure
+
+The website consists of the following files:
+- `index.html` - The main landing page
+- `bmpi.html` - The Burning Man Principles Indicator quiz
+- `events.html` - The events listing page
+- `events.json` - Data file containing event information
+- `contribute.html` - Information about contributing to the project
+- Various other HTML pages for different sections of the website
 
 ## Technical Details
 
