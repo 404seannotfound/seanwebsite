@@ -581,10 +581,37 @@
                             totalDistance += distance;
                             const daysBetween = Math.round(getDaysBetween(event, nextEvent));
                             
+                            // Get the end date of current event and start date of next event
+                            const currentEventDates = event.date.split('/');
+                            const nextEventDates = nextEvent.date.split('/');
+                            const currentEventEnd = new Date(currentEventDates[1] || currentEventDates[0]);
+                            const nextEventStart = new Date(nextEventDates[0]);
+                            
+                            // Calculate if events overlap or have insufficient time
+                            const timeDiff = nextEventStart - currentEventEnd;
+                            const daysDiff = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+                            
+                            let travelMessage;
+                            if (daysDiff < 0) {
+                                // Events overlap
+                                const overlapDays = Math.abs(daysDiff);
+                                travelMessage = `⚠️ Warning: ${nextEvent.name} starts ${overlapDays} days before ${event.name} ends!`;
+                            } else if (daysDiff === 0) {
+                                // Events are back-to-back
+                                travelMessage = `⚠️ Warning: ${nextEvent.name} starts immediately after ${event.name} ends!`;
+                            } else {
+                                // Normal case with travel time
+                                travelMessage = `After ${event.name}, you'll travel ${distance} miles to ${nextEvent.name}`;
+                                if (daysDiff < 3) {
+                                    travelMessage += `\n⚠️ Warning: You only have ${daysDiff} days to make the journey!`;
+                                } else {
+                                    travelMessage += `\nYou have ${daysDiff} days to make the journey`;
+                                }
+                            }
+                            
                             timeHtml += `
                                 <div class="travel-info">
-                                    <div>After ${event.name}, you'll travel ${distance} miles to ${nextEvent.name}</div>
-                                    <div>You have ${daysBetween} days to make the journey</div>
+                                    <div>${travelMessage}</div>
                                 </div>`;
                         }
 
