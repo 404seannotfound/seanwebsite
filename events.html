@@ -53,6 +53,65 @@
         .event-item.highlighted:hover {
             background: #c8e6c9;
         }
+        .event-item.selected {
+            background: #4CAF50;
+            color: white;
+        }
+        .event-item.selected:hover {
+            background: #45a049;
+        }
+        .time-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.2);
+            z-index: 1000;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .month-header {
+            font-weight: bold;
+            margin-top: 15px;
+            margin-bottom: 10px;
+            color: #4CAF50;
+            border-bottom: 2px solid #4CAF50;
+            padding-bottom: 5px;
+        }
+        .event-details {
+            margin-bottom: 15px;
+            padding: 10px;
+            background: #f8f8f8;
+            border-radius: 5px;
+        }
+        .event-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .event-info {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+        .travel-info {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #ccc;
+            font-size: 0.9em;
+            color: #666;
+        }
+        .trip-summary {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 2px solid #4CAF50;
+            font-weight: bold;
+        }
+        .trip-summary h4 {
+            margin: 0 0 10px 0;
+            color: #4CAF50;
+        }
     </style>
 </head>
 <body>
@@ -60,10 +119,12 @@
         <div class="month-nav"></div>
     </div>
     <div id="map"></div>
+    <div id="timeInfo" class="time-info"></div>
     
     <script>
         const events = [
             // U.S. Regional Burns
+            { name: "Burning Man", location: "Gerlach, Nevada", date: "Aug 24 - Sep 1, 2025", lat: 40.7864, lng: -119.2068, ticketUrl: "https://burningman.org/" },
             { name: "Saguaro Man", location: "Willcox, Arizona", date: "Apr 23-27, 2025", lat: 32.2523, lng: -109.8323, ticketUrl: "https://saguaroman.org/" },
             { name: "BEquinox", location: "California City, California", date: "May 7-11, 2025", lat: 35.1258, lng: -117.9859, ticketUrl: "https://bequinox.org/" },
             { name: "unSCruz", location: "Tres Pinos, California", date: "May 1-4, 2025", lat: 36.7822, lng: -121.3024, ticketUrl: "https://unscruz.org/" },
@@ -130,10 +191,13 @@
             // Store markers and event items
             const markers = [];
             const eventItems = [];
+            let selectedEvents = [];
+            let polyline = null;
+            const timeInfo = document.getElementById('timeInfo');
 
-            // Sort events by date
-            events.sort((a, b) => {
-                const getDate = (event) => {
+            // Function to calculate days between dates
+            function getDaysBetween(date1, date2) {
+                const parseDate = (event) => {
                     const date = event.date.toLowerCase();
                     const year = date.includes('2026') ? 2026 : 2025;
                     const monthMap = {
@@ -141,15 +205,153 @@
                         'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
                     };
                     
-                    // Extract month from date string
                     const monthMatch = date.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i);
                     if (monthMatch) {
                         return new Date(year, monthMap[monthMatch[1].toLowerCase()], 1);
                     }
-                    return new Date(year, 11, 31); // Default to end of year
+                    return new Date(year, 11, 31);
                 };
                 
-                return getDate(a) - getDate(b);
+                return Math.abs((parseDate(date2) - parseDate(date1)) / (1000 * 60 * 60 * 24));
+            }
+
+            // Function to calculate distance between two points in miles
+            function calculateDistance(lat1, lon1, lat2, lon2) {
+                const R = 3959; // Earth's radius in miles
+                const dLat = (lat2 - lat1) * Math.PI / 180;
+                const dLon = (lon2 - lon1) * Math.PI / 180;
+                const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLon/2) * Math.sin(dLon/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                return Math.round(R * c);
+            }
+
+            // Function to get event duration in days
+            function getEventDuration(event) {
+                const date = event.date.toLowerCase();
+                const match = date.match(/(\d+)(?:-|\s*-\s*)(\d+)/);
+                if (match) {
+                    return parseInt(match[2]) - parseInt(match[1]) + 1;
+                }
+                return 1;
+            }
+
+            // Function to update the polyline and time info
+            function updateSelection() {
+                // Remove existing polyline
+                if (polyline) {
+                    map.removeLayer(polyline);
+                }
+
+                // Clear time info
+                timeInfo.innerHTML = '';
+
+                if (selectedEvents.length >= 2) {
+                    // Sort events by date
+                    selectedEvents.sort((a, b) => {
+                        const parseDate = (event) => {
+                            const date = event.date.toLowerCase();
+                            const year = date.includes('2026') ? 2026 : 2025;
+                            const monthMap = {
+                                'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+                                'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+                            };
+                            
+                            const monthMatch = date.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i);
+                            if (monthMatch) {
+                                return new Date(year, monthMap[monthMatch[1].toLowerCase()], 1);
+                            }
+                            return new Date(year, 11, 31);
+                        };
+                        return parseDate(a) - parseDate(b);
+                    });
+
+                    // Create points array for polyline
+                    const points = selectedEvents.map(event => [event.lat, event.lng]);
+                    polyline = L.polyline(points, {color: '#4CAF50', weight: 3}).addTo(map);
+                    map.fitBounds(polyline.getBounds());
+
+                    // Calculate and display detailed timeline
+                    let timeHtml = '<h3>Event Timeline:</h3>';
+                    let currentMonth = '';
+                    let totalDistance = 0;
+                    let totalDays = 0;
+
+                    for (let i = 0; i < selectedEvents.length; i++) {
+                        const event = selectedEvents[i];
+                        const eventDate = new Date(event.date);
+                        const month = event.date.split(' ')[0];
+                        
+                        // Add month header if it's a new month
+                        if (month !== currentMonth) {
+                            timeHtml += `<div class="month-header">${month} 2025</div>`;
+                            currentMonth = month;
+                        }
+
+                        // Calculate event duration
+                        const duration = getEventDuration(event);
+                        totalDays += duration;
+
+                        // Add event details
+                        timeHtml += `
+                            <div class="event-details">
+                                <div class="event-name">${event.name}</div>
+                                <div class="event-info">
+                                    <div>📅 ${event.date}</div>
+                                    <div>📍 ${event.location}</div>
+                                    <div>⏱️ ${duration} days</div>
+                                </div>`;
+
+                        // Add travel info if not the last event
+                        if (i < selectedEvents.length - 1) {
+                            const nextEvent = selectedEvents[i + 1];
+                            const distance = calculateDistance(event.lat, event.lng, nextEvent.lat, nextEvent.lng);
+                            totalDistance += distance;
+                            const daysBetween = Math.round(getDaysBetween(event, nextEvent));
+                            
+                            timeHtml += `
+                                <div class="travel-info">
+                                    <div>🚗 ${distance} miles to ${nextEvent.name}</div>
+                                    <div>⏱️ ${daysBetween} days until next event</div>
+                                </div>`;
+                        }
+
+                        timeHtml += '</div>';
+                    }
+
+                    // Add summary
+                    timeHtml += `
+                        <div class="trip-summary">
+                            <h4>Trip Summary</h4>
+                            <div>Total Events: ${selectedEvents.length}</div>
+                            <div>Total Distance: ${totalDistance} miles</div>
+                            <div>Total Event Days: ${totalDays} days</div>
+                            <div>Average Distance Between Events: ${Math.round(totalDistance / (selectedEvents.length - 1))} miles</div>
+                        </div>`;
+
+                    timeInfo.innerHTML = timeHtml;
+                }
+            }
+
+            // Sort events by date
+            events.sort((a, b) => {
+                const parseDate = (event) => {
+                    const date = event.date.toLowerCase();
+                    const year = date.includes('2026') ? 2026 : 2025;
+                    const monthMap = {
+                        'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+                        'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+                    };
+                    
+                    const monthMatch = date.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i);
+                    if (monthMatch) {
+                        return new Date(year, monthMap[monthMatch[1].toLowerCase()], 1);
+                    }
+                    return new Date(year, 11, 31);
+                };
+                
+                return parseDate(a) - parseDate(b);
             });
 
             // Display events
@@ -165,8 +367,22 @@
                 markers.push(marker);
                 
                 div.addEventListener("click", () => {
+                    // Toggle selection
+                    const index = selectedEvents.indexOf(event);
+                    if (index === -1) {
+                        selectedEvents.push(event);
+                        div.classList.add('selected');
+                    } else {
+                        selectedEvents.splice(index, 1);
+                        div.classList.remove('selected');
+                    }
+
+                    // Update map view and popup
                     map.setView([event.lat, event.lng], 6);
                     marker.openPopup();
+
+                    // Update polyline and time info
+                    updateSelection();
                 });
             });
 
