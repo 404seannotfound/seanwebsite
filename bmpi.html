@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Burning Man Principles Indicator (BMPI) Quiz</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h3, h4 {
+            color: #333;
+        }
+        .question {
+            margin-bottom: 20px;
+            transition: opacity 0.5s ease-out;
+        }
+        .question.hidden {
+            opacity: 0;
+            height: 0;
+            overflow: hidden;
+            margin: 0;
+        }
+        .question p {
+            margin: 0;
+        }
+        .options {
+            margin-left: 20px;
+        }
+        .options label {
+            display: block;
+            margin-bottom: 5px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .options label:hover {
+            background-color: #f0f0f0;
+        }
+        hr {
+            margin: 20px 0;
+        }
+        .btn {
+            padding: 10px 15px;
+            font-size: 16px;
+            margin-right: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            border: none;
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+        .results ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .results li {
+            margin-bottom: 5px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            transition: transform 0.2s;
+        }
+        .results li:hover {
+            transform: translateX(5px);
+        }
+        .progress-container {
+            position: sticky;
+            top: 0;
+            background-color: white;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            z-index: 100;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background-color: #007bff;
+            width: 0%;
+            transition: width 0.3s ease-out;
+        }
+        .progress-text {
+            text-align: center;
+            margin-top: 5px;
+            font-size: 14px;
+            color: #666;
+        }
+        .result-header {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .result-header h4 {
+            margin-top: 0;
+            color: #007bff;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+        .result-header p {
+            margin: 5px 0;
+            color: #666;
+        }
+        .principle-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .principle-card:hover {
+            transform: translateY(-5px);
+        }
+        .principle-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .principle-content {
+            padding: 20px;
+        }
+        .principle-title {
+            font-size: 1.5em;
+            color: #007bff;
+            margin: 0 0 10px 0;
+        }
+        .principle-archetype {
+            font-style: italic;
+            color: #666;
+            margin-bottom: 10px;
+        }
+        .principle-description {
+            color: #444;
+            line-height: 1.6;
+        }
+        .principle-score {
+            font-weight: bold;
+            color: #28a745;
+            margin-top: 10px;
+        }
+        .intro-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+            border-left: 4px solid #007bff;
+        }
+        .intro-section h4 {
+            color: #007bff;
+            margin-top: 0;
+        }
+        .intro-section p {
+            color: #444;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+<h3>Burning Man Principles Indicator (BMPI) Quiz</h3>
+
+<div class="intro-section">
+    <h4>What is the BMPI?</h4>
+    <p>The Burning Man Principles Indicator (BMPI) is a personality assessment that helps you understand how you align with the ten core principles of Burning Man culture. These principles, developed by Burning Man founder Larry Harvey, represent the essential values and behaviors that guide the Burning Man community.</p>
+    <p>This quiz will:</p>
+    <ul>
+        <li>Present you with 50 real-world scenarios</li>
+        <li>Measure your natural responses to these situations</li>
+        <li>Calculate which principles resonate most strongly with your values</li>
+        <li>Provide insights into your primary principle and how it shapes your interactions</li>
+    </ul>
+    <p>There are no right or wrong answers - this is about understanding your natural inclinations and how they align with these transformative principles.</p>
+</div>
+
+<div class="progress-container">
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
+    <div class="progress-text">Questions remaining: <span id="questions-remaining">50</span></div>
+</div>
+
+<div id="quiz"></div>
+
+<div id="results" class="results" style="display: none;">
+    <h4>Your Results:</h4>
+    <ul id="results-list"></ul>
+    <button class="btn btn-secondary" onclick="resetQuiz()">Retake Quiz</button>
+</div>
+
+<script>
+    // Define the quiz questions
+    const quizData = [
+    {
+        Number: 1,
+        Text: "You arrive at a vibrant festival. What's the first thing you do?",
+        Options: [
+            { Text: "Introduce yourself to strangers and make new friends.", Principle: "Radical Inclusion" },
+            { Text: "Set up your art installation for everyone to enjoy.", Principle: "Radical Self-Expression" },
+            { Text: "Join a team to help with event logistics.", Principle: "Communal Effort" },
+            { Text: "Explore spontaneously without a plan.", Principle: "Immediacy" }
+        ]
+    },
+    {
+        Number: 2,
+        Text: "You find out that a friend forgot their tent. How do you respond?",
+        Options: [
+            { Text: "Offer to share your tent with them.", Principle: "Gifting" },
+            { Text: "Help them build a shelter from available materials.", Principle: "Radical Self-Reliance" },
+            { Text: "Organize a group to find a spare tent.", Principle: "Communal Effort" },
+            { Text: "Encourage them to adapt and make the most of it.", Principle: "Immediacy" }
+        ]
+    },
+    {
+        Number: 3,
+        Text: "There's a community mural project in your neighborhood. What's your approach?",
+        Options: [
+            { Text: "Participate by painting your own unique section.", Principle: "Radical Self-Expression" },
+            { Text: "Invite everyone, ensuring all feel welcome to contribute.", Principle: "Radical Inclusion" },
+            { Text: "Coordinate the supplies and schedule for the project.", Principle: "Civic Responsibility" },
+            { Text: "Make sure the materials are eco-friendly.", Principle: "Leaving No Trace" }
+        ]
+    },
+    {
+        Number: 4,
+        Text: "During a group hike, you notice some trash along the trail. What do you do?",
+        Options: [
+            { Text: "Pick it up and pack it out.", Principle: "Leaving No Trace" },
+            { Text: "Lead a cleanup effort with your group.", Principle: "Communal Effort" },
+            { Text: "Create an impromptu art piece with the found objects.", Principle: "Radical Self-Expression" },
+            { Text: "Use the moment to educate others about environmental impact.", Principle: "Civic Responsibility" }
+        ]
+    },
+    {
+        Number: 5,
+        Text: "You have a surplus of vegetables from your garden. How do you handle it?",
+        Options: [
+            { Text: "Give them away to neighbors and friends.", Principle: "Gifting" },
+            { Text: "Set up a community veggie swap meet.", Principle: "Participation" },
+            { Text: "Create a unique dish to share at the next gathering.", Principle: "Radical Self-Expression" },
+            { Text: "Compost them to enrich your soil.", Principle: "Leaving No Trace" }
+        ]
+    },
+    {
+        Number: 6,
+        Text: "A local park needs renovation. What's your contribution?",
+        Options: [
+            { Text: "Volunteer your time to help with the renovations.", Principle: "Participation" },
+            { Text: "Organize a fundraising event to support the cause.", Principle: "Civic Responsibility" },
+            { Text: "Design a new layout that reflects the community's diversity.", Principle: "Radical Inclusion" },
+            { Text: "Create an art installation to enhance the park's appeal.", Principle: "Radical Self-Expression" }
+        ]
+    },
+    {
+        Number: 7,
+        Text: "You're hosting a dinner party. What's your style?",
+        Options: [
+            { Text: "Prepare a surprise dish for your guests.", Principle: "Gifting" },
+            { Text: "Invite guests to bring ingredients to cook together.", Principle: "Communal Effort" },
+            { Text: "Decorate the space with your own artistic flair.", Principle: "Radical Self-Expression" },
+            { Text: "Ensure that everyone feels welcome and included.", Principle: "Radical Inclusion" }
+        ]
+    },
+    {
+        Number: 8,
+        Text: "A friend admires a handmade accessory you're wearing. You:",
+        Options: [
+            { Text: "Offer to teach them how to make one.", Principle: "Gifting" },
+            { Text: "Surprise them by giving it to them.", Principle: "Gifting" },
+            { Text: "Encourage them to design their own version.", Principle: "Radical Self-Expression" },
+            { Text: "Organize a crafting session for your friends.", Principle: "Participation" }
+        ]
+    },
+    {
+        Number: 9,
+        Text: "How do you prefer to travel?",
+        Options: [
+            { Text: "Planning every detail to be self-sufficient.", Principle: "Radical Self-Reliance" },
+            { Text: "Joining group tours to meet new people.", Principle: "Radical Inclusion" },
+            { Text: "Embracing spontaneity without a fixed plan.", Principle: "Immediacy" },
+            { Text: "Volunteering abroad to contribute to communities.", Principle: "Civic Responsibility" }
+        ]
+    },
+    {
+        Number: 10,
+        Text: "At a music festival, you:",
+        Options: [
+            { Text: "Join in dance circles and jam sessions.", Principle: "Participation" },
+            { Text: "Create and wear an extravagant costume.", Principle: "Radical Self-Expression" },
+            { Text: "Hand out free water bottles to attendees.", Principle: "Gifting" },
+            { Text: "Help clean up litter after performances.", Principle: "Leaving No Trace" }
+        ]
+    },
+    {
+        Number: 11,
+        Text: "You notice a lack of diversity in local events. How do you respond?",
+        Options: [
+            { Text: "Organize inclusive events welcoming all backgrounds.", Principle: "Radical Inclusion" },
+            { Text: "Create unique events showcasing your culture.", Principle: "Radical Self-Expression" },
+            { Text: "Volunteer to support and improve existing events.", Principle: "Participation" },
+            { Text: "Advocate for policy changes to encourage diversity.", Principle: "Civic Responsibility" }
+        ]
+    },
+    {
+        Number: 12,
+        Text: "Your community is planning a charity drive. How do you contribute?",
+        Options: [
+            { Text: "Donate items anonymously, expecting nothing in return.", Principle: "Gifting" },
+            { Text: "Rally others to contribute and maximize the impact.", Principle: "Communal Effort" },
+            { Text: "Host a creative fundraising event to draw attention.", Principle: "Radical Self-Expression" },
+            { Text: "Ensure the drive benefits everyone fairly.", Principle: "Civic Responsibility" }
+        ]
+    },
+    {
+        Number: 13,
+        Text: "You have a day off with no plans. What do you decide to do?",
+        Options: [
+            { Text: "Explore a new hobby spontaneously.", Principle: "Immediacy" },
+            { Text: "Join a local workshop or class to learn something new.", Principle: "Participation" },
+            { Text: "Work on a personal project independently.", Principle: "Radical Self-Reliance" },
+            { Text: "Volunteer at a community center to help others.", Principle: "Civic Responsibility" }
+        ]
+    },
+    {
+        Number: 14,
+        Text: "A public space has been vandalized. How do you respond?",
+        Options: [
+            { Text: "Help restore it quietly to its original state.", Principle: "Leaving No Trace" },
+            { Text: "Organize a community art project to beautify it.", Principle: "Communal Effort" },
+            { Text: "Use it as a canvas for your own artistic expression.", Principle: "Radical Self-Expression" },
+            { Text: "Advocate for better security measures.", Principle: "Civic Responsibility" }
+        ]
+    },
+    {
+        Number: 15,
+        Text: "You're designing your personal workspace. What's your approach?",
+        Options: [
+            { Text: "Decorate it uniquely to inspire creativity.", Principle: "Radical Self-Expression" },
+            { Text: "Use sustainable materials and minimize waste.", Principle: "Leaving No Trace" },
+            { Text: "Set it up to share with others for collaborative work.", Principle: "Communal Effort" },
+            { Text: "Equip it with everything you need to work independently.", Principle: "Radical Self-Reliance" }
+        ]
+    },
+    {
+        Number: 16,
+        Text: "Your friend needs help moving to a new home. What do you do?",
+        Options: [
+            { Text: "Offer your time and vehicle to assist.", Principle: "Gifting" },
+            { Text: "Gather a group of friends to help out.", Principle: "Communal Effort" },
+            { Text: "Encourage them to tackle it independently for personal growth.", Principle: "Radical Self-Reliance" },
+            { Text: "Make it fun by adding music and games during the move.", Principle: "Participation" }
+        ]
+    },
+    {
+        Number: 17,
+        Text: "There's a local talent show coming up. How do you get involved?",
+        Options: [
+            { Text: "Perform your own unique act on stage.", Principle: "Radical Self-Expression" },
+            { Text: "Attend and support all performers equally.", Principle: "Radical Inclusion" },
+            { Text: "Help organize and promote the event.", Principle: "Participation" },
+            { Text: "Ensure the event is accessible for everyone.", Principle: "Civic Responsibility" }
+        ]
+    },
+    {
+        Number: 18,
+        Text: "A neighbor is struggling with yard work. What's your response?",
+        Options: [
+            { Text: "Surprise them by doing it for them.", Principle: "Gifting" },
+            { Text: "Teach them efficient techniques to handle it.", Principle: "Radical Self-Reliance" },
+            { Text: "Organize a neighborhood work party to assist.", Principle: "Communal Effort" },
+            { Text: "Lend them your tools to make the job easier.", Principle: "Gifting" }
+        ]
+    },
+    {
+        Number: 19,
+        Text: "You have an idea for improving your community. How do you proceed?",
+        Options: [
+            { Text: "Implement it yourself without delay.", Principle: "Immediacy" },
+            { Text: "Propose it at a town meeting for discussion.", Principle: "Civic Responsibility" },
+            { Text: "Collaborate with others to develop the idea further.", Principle: "Communal Effort" },
+            { Text: "Create an artistic representation to inspire support.", Principle: "Radical Self-Expression" }
+        ]
+    },
+    {
+        Number: 20,
+        Text: "You receive an unexpected gift from someone. How do you react?",
+        Options: [
+            { Text: "Pay it forward by gifting to someone else.", Principle: "Gifting" },
+            { Text: "Use it to create something new and unique.", Principle: "Radical Self-Expression" },
+            { Text: "Share it with your community or friends.", Principle: "Communal Effort" },
+            { Text: "Express gratitude and enjoy it privately.", Principle: "Radical Self-Reliance" }
+        ]
+    },
+    {
+        Number: 21,
+        Text: "The power goes out in your area unexpectedly. What do you do?",
+        Options: [
+            { Text: "Use your emergency supplies to manage independently.", Principle: "Radical Self-Reliance" },
+            { Text: "Host a candlelit gathering for neighbors.", Principle: "Participation" },
+            { Text: "Take the opportunity to stargaze and reflect.", Principle: "Immediacy" },
+            { Text: "Check on others to ensure they're safe.", Principle: "Civic Responsibility" }
+        ]
+    },
+    {
+        Number: 22,
+        Text: "You're planning a surprise for a close friend. What do you choose?",
+        Options: [
+            { Text: "Craft a handmade gift tailored to them.", Principle: "Gifting" },
+            { Text: "Organize a surprise party with mutual friends.", Principle: "Communal Effort" },
+            { Text: "Write and perform a song or poem in their honor.", Principle: "Radical Self-Expression" },
+            { Text: "Help them achieve a personal goal they've been working towards.", Principle: "Radical Self-Reliance" }
+        ]
+    },
+    {
+        Number: 23,
+        Text: "You witness someone being excluded from a group activity. What do you do?",
+        Options: [
+            { Text: "Invite them to join your group instead.", Principle: "Radical Inclusion" },
+            { Text: "Stand up and address the exclusion openly.", Principle: "Civic Responsibility" },
+            { Text: "Offer them support and companionship.", Principle: "Gifting" },
+            { Text: "Encourage them to assert themselves confidently.", Principle: "Radical Self-Reliance" }
+        ]
+    },
+    {
+        Number: 24,
+        Text: "A local beach is polluted. How do you take action?",
+        Options: [
+            { Text: "Join or organize a beach cleanup effort.", Principle: "Participation" },
+            { Text: "Create art from collected debris to raise awareness.", Principle: "Radical Self-Expression" },
+            { Text: "Advocate for environmental protections and policies.", Principle: "Civic Responsibility" },
+            { Text: "Reduce your own waste to prevent future pollution.", Principle: "Leaving No Trace" }
+        ]
+    },
+    {
+        Number: 25,
+        Text: "You possess skills that others find valuable. How do you share them?",
+        Options: [
+            { Text: "Offer free workshops or classes to teach others.", Principle: "Gifting" },
+            { Text: "Use your skills to create unique works to share.", Principle: "Radical Self-Expression" },
+            { Text: "Trade skills with others to learn new things.", Principle: "Participation" },
+            { Text: "Continue honing your skills independently.", Principle: "Radical Self-Reliance" }
+        ]
+    },
+    {
+        Number: 26,
+        Text: "You find a lost wallet on the street. What action do you take?",
+        Options: [
+            { Text: "Return it anonymously without seeking recognition.", Principle: "Gifting" },
+            { Text: "Try to find the owner personally to return it.", Principle: "Civic Responsibility" },
+            { Text: "Leave it where it is, trusting the owner will return.", Principle: "Radical Self-Reliance" },
+            { Text: "Use its contents to create a found-object art piece.", Principle: "Radical Self-Expression" }
+        ]
+    },
+    {
+        Number: 27,
+        Text: "Your community lacks green spaces. How do you address this?",
+        Options: [
+            { Text: "Start a community garden for everyone to enjoy.", Principle: "Participation" },
+            { Text: "Plant trees and plants on your own property.", Principle: "Radical Self-Reliance" },
+            { Text: "Campaign for public parks and green initiatives.", Principle: "Civic Responsibility" },
+            { Text: "Create pop-up green spaces with potted plants.", Principle: "Immediacy" }
+        ]
+    },
+    {
+        Number: 28,
+        Text: "You want to celebrate a personal achievement. What do you do?",
+        Options: [
+            { Text: "Host a party and invite everyone you know.", Principle: "Radical Inclusion" },
+            { Text: "Reflect privately and set new personal goals.", Principle: "Radical Self-Reliance" },
+            { Text: "Share your story publicly to inspire others.", Principle: "Gifting" },
+            { Text: "Commemorate it through art, music, or writing.", Principle: "Radical Self-Expression" }
+        ]
+    },
+    {
+        Number: 29,
+        Text: "You're faced with a complex problem. How do you approach it?",
+        Options: [
+            { Text: "Brainstorm solutions with a diverse group.", Principle: "Communal Effort" },
+            { Text: "Tackle it immediately using available resources.", Principle: "Immediacy" },
+            { Text: "Research and plan thoroughly before acting.", Principle: "Radical Self-Reliance" },
+            { Text: "Approach it creatively, thinking outside the box.", Principle: "Radical Self-Expression" }
+        ]
+    },
+    {
+        Number: 30,
+        Text: "A public facility is closing due to lack of funds. What's your response?",
+        Options: [
+            { Text: "Organize a fundraiser to keep it open.", Principle: "Civic Responsibility" },
+            { Text: "Create an alternative space using community resources.", Principle: "Communal Effort" },
+            { Text: "Advocate for government support or grants.", Principle: "Civic Responsibility" },
+            { Text: "Adapt by finding new ways to meet community needs independently.", Principle: "Radical Self-Reliance" }
+        ]
+    },
+    {
+        Number: 31,
+        Text: "You see someone struggling with heavy bags. How do you assist?",
+        Options: [
+            { Text: "Offer to help carry them to their destination.", Principle: "Gifting" },
+            { Text: "Suggest they distribute the weight differently.", Principle: "Radical Self-Reliance" },
+            { Text: "Gather others to assist and make it a group effort.", Principle: "Communal Effort" },
+            { Text: "Provide them with a cart or tool to help.", Principle: "Civic Responsibility" }
+        ]
+    },
+    {
+        Number: 32,
+        Text: "Your city lacks cultural events. What do you decide to do?",
+        Options: [
+            { Text: "Organize an inclusive festival celebrating diversity.", Principle: "Radical Inclusion" },
+            { Text: "Start a personal project to showcase your culture.", Principle: "Radical Self-Expression" },
+            { Text: "Join forces with others to create new events.", Principle: "Participation" },
+            { Text: "Petition local authorities for support and funding.", Principle: "Civic Responsibility" }
+        ]
+    },
+    {
+        Number: 33,
+        Text: "You've discovered a new passion. How do you embrace it?",
+        Options: [
+            { Text: "Dive in and learn everything independently.", Principle: "Radical Self-Reliance" },
+            { Text: "Share your enthusiasm with friends and family.", Principle: "Gifting" },
+            { Text: "Incorporate it into your creative projects.", Principle: "Radical Self-Expression" },
+            { Text: "Find a community group to explore it together.", Principle: "Participation" }
+        ]
+    },
+    {
+        Number: 34,
+        Text: "Your workplace lacks collaboration. How do you address this?",
+        Options: [
+            { Text: "Propose team-building activities to management.", Principle: "Communal Effort" },
+            { Text: "Lead by example through open communication.", Principle: "Participation" },
+            { Text: "Focus on your tasks independently to maintain productivity.", Principle: "Radical Self-Reliance" },
+            { Text: "Introduce creative ideas to inspire teamwork.", Principle: "Radical Self-Expression" }
+        ]
+    },
+    {
+        Number: 35,
+        Text: "An emergency arises in your area. What's your immediate action?",
+        Options: [
+            { Text: "Offer assistance wherever it's needed immediately.", Principle: "Immediacy" },
+            { Text: "Coordinate relief efforts with local authorities.", Principle: "Civic Responsibility" },
+            { Text: "Ensure your household is prepared and safe first.", Principle: "Radical Self-Reliance" },
+            { Text: "Provide emotional support to affected individuals.", Principle: "Gifting" }
+        ]
+    },
+    {
+        Number: 36,
+        Text: "You have an extra ticket to a sold-out event. What do you do?",
+        Options: [
+            { Text: "Give it away for free to someone who wants to go.", Principle: "Gifting" },
+            { Text: "Sell it at face value to avoid profit.", Principle: "Decommodification" },
+            { Text: "Invite someone new to join you at the event.", Principle: "Radical Inclusion" },
+            { Text: "Exchange it for something unique or handmade.", Principle: "Participation" }
+        ]
+    },
+    {
+        Number: 37,
+        Text: "Your friend feels uninspired. How do you help them?",
+        Options: [
+            { Text: "Create art together to spark creativity.", Principle: "Radical Self-Expression" },
+            { Text: "Encourage them to try something new spontaneously.", Principle: "Immediacy" },
+            { Text: "Support them in finding their own path independently.", Principle: "Radical Self-Reliance" },
+            { Text: "Introduce them to a community group with similar interests.", Principle: "Participation" }
+        ]
+    },
+    {
+        Number: 38,
+        Text: "There's a local competition happening. What's your involvement?",
+        Options: [
+            { Text: "Enter to showcase your talents and skills.", Principle: "Radical Self-Expression" },
+            { Text: "Help organize or judge the event.", Principle: "Civic Responsibility" },
+            { Text: "Cheer on all participants equally.", Principle: "Radical Inclusion" },
+            { Text: "Focus on personal growth over winning.", Principle: "Radical Self-Reliance" }
+        ]
+    },
+    {
+        Number: 39,
+        Text: "You receive a monetary gift unexpectedly. How do you use it?",
+        Options: [
+            { Text: "Donate it to a cause you care about.", Principle: "Gifting" },
+            { Text: "Invest in tools or education for personal development.", Principle: "Radical Self-Reliance" },
+            { Text: "Use it to create something for the community.", Principle: "Communal Effort" },
+            { Text: "Spend it on an immediate experience or adventure.", Principle: "Immediacy" }
+        ]
+    },
+    {
+        Number: 40,
+        Text: "Your group can't agree on a plan. How do you move forward?",
+        Options: [
+            { Text: "Facilitate a discussion to find common ground.", Principle: "Participation" },
+            { Text: "Propose a creative compromise that incorporates all ideas.", Principle: "Radical Self-Expression" },
+            { Text: "Decide independently and act on your decision.", Principle: "Immediacy" },
+            { Text: "Suggest splitting tasks based on each person's strengths.", Principle: "Communal Effort" }
+        ]
+    },
+    {
+        Number: 41,
+        Text: "You have free time during a trip. What do you choose to do?",
+        Options: [
+            { Text: "Explore the local culture spontaneously.", Principle: "Immediacy" },
+            { Text: "Volunteer with a local organization.", Principle: "Civic Responsibility" },
+            { Text: "Reflect and journal on your experiences.", Principle: "Radical Self-Reliance" },
+            { Text: "Connect with fellow travelers to share stories.", Principle: "Radical Inclusion" }
+        ]
+    },
+    {
+        Number: 42,
+        Text: "Your community faces a divisive issue. How do you contribute?",
+        Options: [
+            { Text: "Organize an open forum for respectful dialogue.", Principle: "Participation" },
+            { Text: "Create art that promotes unity and understanding.", Principle: "Radical Self-Expression" },
+            { Text: "Encourage self-reflection among community members.", Principle: "Radical Self-Reliance" },
+            { Text: "Advocate for fair and inclusive solutions.", Principle: "Civic Responsibility" }
+        ]
+    },
+    {
+        Number: 43,
+        Text: "You want to reduce your environmental impact. What's your strategy?",
+        Options: [
+            { Text: "Adopt a zero-waste lifestyle personally.", Principle: "Leaving No Trace" },
+            { Text: "Educate others on sustainability practices.", Principle: "Civic Responsibility" },
+            { Text: "Innovate new eco-friendly methods or products.", Principle: "Radical Self-Expression" },
+            { Text: "Participate in community cleanups and environmental efforts.", Principle: "Participation" }
+        ]
+    },
+    {
+        Number: 44,
+        Text: "A friend seeks advice on a challenging project. How do you assist?",
+        Options: [
+            { Text: "Guide them to find their own solutions.", Principle: "Radical Self-Reliance" },
+            { Text: "Offer your help and resources generously.", Principle: "Gifting" },
+            { Text: "Collaborate with them to tackle it together.", Principle: "Communal Effort" },
+            { Text: "Encourage them to involve a wider group for support.", Principle: "Radical Inclusion" }
+        ]
+    },
+    {
+        Number: 45,
+        Text: "You're inspired by a social cause. What action do you take?",
+        Options: [
+            { Text: "Take immediate action to support it personally.", Principle: "Immediacy" },
+            { Text: "Create awareness through art or creative expression.", Principle: "Radical Self-Expression" },
+            { Text: "Mobilize your community to get involved.", Principle: "Communal Effort" },
+            { Text: "Make lifestyle changes to align with the cause.", Principle: "Radical Self-Reliance" }
+        ]
+    },
+    {
+        Number: 46,
+        Text: "You're learning a new skill. How do you go about it?",
+        Options: [
+            { Text: "Practice diligently on your own.", Principle: "Radical Self-Reliance" },
+            { Text: "Share your progress and seek feedback from others.", Principle: "Participation" },
+            { Text: "Incorporate it into your creative projects.", Principle: "Radical Self-Expression" },
+            { Text: "Teach others what you've learned as you go.", Principle: "Gifting" }
+        ]
+    },
+    {
+        Number: 47,
+        Text: "You encounter a cultural tradition unfamiliar to you. What do you do?",
+        Options: [
+            { Text: "Learn about it and participate respectfully.", Principle: "Radical Inclusion" },
+            { Text: "Observe and reflect on it privately.", Principle: "Radical Self-Reliance" },
+            { Text: "Incorporate elements into your own practices creatively.", Principle: "Radical Self-Expression" },
+            { Text: "Promote understanding among your peers.", Principle: "Civic Responsibility" }
+        ]
+    },
+    {
+        Number: 48,
+        Text: "There's an opportunity to join a new community group. You:",
+        Options: [
+            { Text: "Jump in and get involved without hesitation.", Principle: "Immediacy" },
+            { Text: "Offer your unique skills to contribute to the group.", Principle: "Radical Self-Expression" },
+            { Text: "Ensure the group's values align with yours before joining.", Principle: "Radical Self-Reliance" },
+            { Text: "Encourage friends to join and participate as well.", Principle: "Radical Inclusion" }
+        ]
+    },
+    {
+        Number: 49,
+        Text: "You have extra materials left from a project. How do you use them?",
+        Options: [
+            { Text: "Donate them to someone who can use them.", Principle: "Gifting" },
+            { Text: "Use them to create something entirely new and unique.", Principle: "Radical Self-Expression" },
+            { Text: "Save them for future personal projects.", Principle: "Radical Self-Reliance" },
+            { Text: "Organize a material swap meet for the community.", Principle: "Communal Effort" }
+        ]
+    },
+    {
+        Number: 50,
+        Text: "You want to celebrate your community's achievements. What do you do?",
+        Options: [
+            { Text: "Host a public event honoring everyone's contributions.", Principle: "Radical Inclusion" },
+            { Text: "Create a mural or art piece depicting the accomplishments.", Principle: "Radical Self-Expression" },
+            { Text: "Document and share stories from community members.", Principle: "Gifting" },
+            { Text: "Plan future projects building on this success collaboratively.", Principle: "Communal Effort" }
+        ]
+    }
+    ];
+    // Principles and their initial scores
+    const principles = {
+        "Radical Inclusion": 0,
+        "Gifting": 0,
+        "Decommodification": 0,
+        "Radical Self-Reliance": 0,
+        "Radical Self-Expression": 0,
+        "Communal Effort": 0,
+        "Civic Responsibility": 0,
+        "Leaving No Trace": 0,
+        "Participation": 0,
+        "Immediacy": 0
+    };
+
+    // Add timer variables
+    let startTime;
+    let timerInterval;
+    let quizDuration = 0;
+
+    // Function to start the timer
+    function startTimer() {
+        startTime = Date.now();
+        timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    // Function to update the timer
+    function updateTimer() {
+        quizDuration = Math.floor((Date.now() - startTime) / 1000);
+    }
+
+    // Function to format time
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+
+    // Function to update progress bar
+    function updateProgress() {
+        const totalQuestions = quizData.length;
+        const answeredQuestions = document.querySelectorAll('input[type=radio]:checked').length;
+        const remainingQuestions = totalQuestions - answeredQuestions;
+        
+        const progressFill = document.querySelector('.progress-fill');
+        const questionsRemaining = document.getElementById('questions-remaining');
+        
+        const progress = (answeredQuestions / totalQuestions) * 100;
+        progressFill.style.width = `${progress}%`;
+        questionsRemaining.textContent = remainingQuestions;
+    }
+
+    // Modified handleQuestionVisibility function
+    function handleQuestionVisibility(questionIndex) {
+        const questionDiv = document.querySelector(`#question-${questionIndex}`);
+        if (questionDiv) {
+            questionDiv.classList.add('hidden');
+            updateProgress();
+            
+            // Check if all questions are answered
+            const totalQuestions = quizData.length;
+            const answeredQuestions = document.querySelectorAll('input[type=radio]:checked').length;
+            if (answeredQuestions === totalQuestions) {
+                clearInterval(timerInterval);
+                calculateResults();
+            }
+        }
+    }
+
+    // Modified renderQuiz function
+    function renderQuiz() {
+        const quizContainer = document.getElementById('quiz');
+        quizContainer.innerHTML = '';
+        quizData.forEach((question, index) => {
+            const questionDiv = document.createElement('div');
+            questionDiv.className = 'question';
+            questionDiv.id = `question-${index}`;
+            let optionsHtml = '';
+            question.Options.forEach((option, optIndex) => {
+                optionsHtml += `
+                    <label>
+                        <input type="radio" name="question${index}" value="${option.Principle}" 
+                               onchange="handleQuestionVisibility(${index})">
+                        <strong>${String.fromCharCode(65 + optIndex)}:</strong> ${option.Text}
+                    </label>
+                `;
+            });
+            questionDiv.innerHTML = `
+                <p><strong>${question.Number}. ${question.Text}</strong></p>
+                <div class="options">
+                    ${optionsHtml}
+                </div>
+                <hr>
+            `;
+            quizContainer.appendChild(questionDiv);
+        });
+        // Start the timer when quiz is rendered
+        startTimer();
+    }
+
+    // Function to calculate results
+    function calculateResults() {
+        // Reset principle scores
+        for (let key in principles) {
+            principles[key] = 0;
+        }
+        // Get user answers
+        const totalQuestions = quizData.length;
+        for (let i = 0; i < totalQuestions; i++) {
+            const radios = document.getElementsByName(`question${i}`);
+            let answered = false;
+            for (const radio of radios) {
+                if (radio.checked) {
+                    principles[radio.value]++;
+                    answered = true;
+                    break;
+                }
+            }
+            if (!answered) {
+                alert('Please answer all questions before submitting.');
+                return;
+            }
+        }
+        // Display results
+        displayResults();
+    }
+
+    // Add principle descriptions and archetype images
+    const principleInfo = {
+        "Radical Inclusion": {
+            description: "Anyone may be a part of Burning Man. We welcome and respect the stranger. No prerequisites exist for participation in our community.",
+            archetype: "The Welcoming Host",
+            image: "https://images.unsplash.com/photo-1587573089734-09cb69c0f2b4?w=500&h=300&fit=crop" // Diverse group of hands coming together
+        },
+        "Gifting": {
+            description: "Burning Man is devoted to acts of gift giving. The value of a gift is unconditional. Gifting does not contemplate a return or an exchange for something of equal value.",
+            archetype: "The Generous Spirit",
+            image: "https://images.unsplash.com/photo-1513885535751-8b9238bd345a?w=500&h=300&fit=crop" // Hands offering/giving
+        },
+        "Decommodification": {
+            description: "Our community seeks to create social environments unmediated by commercial sponsorships, transactions, or advertising. We resist the substitution of consumption for participatory experience.",
+            archetype: "The Free Spirit",
+            image: "https://images.unsplash.com/photo-1499209974431-9dddcece7f88?w=500&h=300&fit=crop" // People enjoying sunset without technology
+        },
+        "Radical Self-Reliance": {
+            description: "Burning Man encourages the individual to discover, exercise and rely on his or her inner resources.",
+            archetype: "The Independent Explorer",
+            image: "https://images.unsplash.com/photo-1534513235033-f1c1d5a0efdf?w=500&h=300&fit=crop" // Solo hiker on mountain peak
+        },
+        "Radical Self-Expression": {
+            description: "Radical self-expression arises from the unique gifts of the individual. No one other than the individual or a collaborating group can determine its content.",
+            archetype: "The Creative Soul",
+            image: "https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?w=500&h=300&fit=crop" // Colorful art/paint explosion
+        },
+        "Communal Effort": {
+            description: "Our community values creative cooperation and collaboration. We strive to produce, promote and protect social networks, public spaces, works of art, and methods of communication that support such interaction.",
+            archetype: "The Community Builder",
+            image: "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?w=500&h=300&fit=crop" // Group working together
+        },
+        "Civic Responsibility": {
+            description: "We value civil society. Community members who organize events should assume responsibility for public welfare and endeavor to communicate civic responsibilities to participants.",
+            archetype: "The Responsible Citizen",
+            image: "https://images.unsplash.com/photo-1464746133101-a2c3f88e0dd9?w=500&h=300&fit=crop" // Community gathering/meeting
+        },
+        "Leaving No Trace": {
+            description: "Our community respects the environment. We are committed to leaving no physical trace of our activities wherever we gather. We clean up after ourselves and endeavor, whenever possible, to leave such places in a better state than when we found them.",
+            archetype: "The Environmental Steward",
+            image: "https://images.unsplash.com/photo-1532601224476-15c79f2f7a51?w=500&h=300&fit=crop" // Pristine nature scene
+        },
+        "Participation": {
+            description: "Our community is committed to a radically participatory ethic. We believe that transformative change, whether in the individual or in society, can occur only through the medium of deeply personal participation.",
+            archetype: "The Active Participant",
+            image: "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?w=500&h=300&fit=crop" // Group activity/celebration
+        },
+        "Immediacy": {
+            description: "Immediate experience is, in many ways, the most important touchstone of value in our culture. We seek to overcome barriers that stand between us and a recognition of our inner selves, the reality of those around us, participation in society, and contact with a natural world exceeding human powers.",
+            archetype: "The Present Moment",
+            image: "https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=500&h=300&fit=crop" // Sunrise/mindful moment in nature
+        }
+    };
+
+    // Modified displayResults function
+    function displayResults() {
+        const resultsContainer = document.getElementById('results');
+        const resultsList = document.getElementById('results-list');
+        
+        // Sort principles by score
+        const sortedPrinciples = Object.entries(principles)
+            .sort((a, b) => b[1] - a[1]);
+        
+        // Calculate percentages and find top principles
+        const totalQuestions = quizData.length;
+        const topPrinciple = sortedPrinciples[0];
+        
+        // Display detailed results
+        resultsList.innerHTML = `
+            <li class="result-header">
+                <h4>Quiz Summary</h4>
+                <p>Completed on: ${new Date().toLocaleString()}</p>
+                <p>Time taken: ${formatTime(quizDuration)}</p>
+                <h4>Your Principle Breakdown</h4>
+                ${sortedPrinciples.slice(0, 3).map(([principle, score], index) => `
+                    <p><strong>${index + 1}. ${principle}: ${score}/${totalQuestions} points (${Math.round((score/totalQuestions)*100)}%)</strong></p>
+                `).join('')}
+                <div style="color: #666; font-size: 0.9em;">
+                    ${sortedPrinciples.slice(3).map(([principle, score], index) => `
+                        <p>${index + 4}. ${principle}: ${score}/${totalQuestions} points (${Math.round((score/totalQuestions)*100)}%)</p>
+                    `).join('')}
+                </div>
+            </li>
+            <li class="result-header">
+                <h4>Your Primary Principle</h4>
+                <div class="principle-card">
+                    <img src="${principleInfo[topPrinciple[0]].image}" alt="${principleInfo[topPrinciple[0]].archetype}" class="principle-image">
+                    <div class="principle-content">
+                        <h3 class="principle-title">${topPrinciple[0]}</h3>
+                        <p class="principle-archetype">Archetype: ${principleInfo[topPrinciple[0]].archetype}</p>
+                        <p class="principle-description">${principleInfo[topPrinciple[0]].description}</p>
+                        <p class="principle-score">Your Score: ${topPrinciple[1]}/${totalQuestions} points (${Math.round((topPrinciple[1]/totalQuestions)*100)}%)</p>
+                    </div>
+                </div>
+            </li>
+        `;
+        
+        // Hide quiz and show results
+        document.getElementById('quiz').style.display = 'none';
+        resultsContainer.style.display = 'block';
+        // Scroll to top
+        window.scrollTo(0, 0);
+    }
+
+    // Modified resetQuiz function
+    function resetQuiz() {
+        // Reset principle scores
+        for (let key in principles) {
+            principles[key] = 0;
+        }
+        // Uncheck all radio buttons
+        const radios = document.querySelectorAll('input[type=radio]');
+        radios.forEach(radio => radio.checked = false);
+        // Show all questions
+        const questions = document.querySelectorAll('.question');
+        questions.forEach(question => question.classList.remove('hidden'));
+        // Show quiz and hide results
+        document.getElementById('quiz').style.display = 'block';
+        document.getElementById('results').style.display = 'none';
+        // Reset progress bar
+        updateProgress();
+        // Start new timer
+        clearInterval(timerInterval);
+        startTimer();
+        // Scroll to top
+        window.scrollTo(0, 0);
+    }
+
+    // Initialize the quiz on page load
+    window.onload = renderQuiz;
+</script>
+
+</body>
+</html>
