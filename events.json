@@ -416,6 +416,14 @@
             "lng": 17.0000,
             "ticketUrl": "https://www.namibiaburn.org",
             "status": "verified"
+        },
+        {
+            "name": "Oregon Country Fair",
+            "location": "Veneta, Oregon",
+            "date": "2025-07-11/2025-07-13",
+            "lat": 44.0487,
+            "lng": -123.3509,
+            "ticketUrl": "https://oregoncountryfair.org/"
         }
     ]
 } 
