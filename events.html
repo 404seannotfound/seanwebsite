@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Burning Man Regional Events</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+        #sidebar {
+            width: 300px;
+            height: 100vh;
+            overflow-y: auto;
+            background: #f4f4f4;
+            padding: 10px;
+        }
+        #map {
+            flex: 1;
+            height: 100vh;
+        }
+        .event-item {
+            padding: 8px;
+            cursor: pointer;
+            border-bottom: 1px solid #ccc;
+        }
+        .event-item:hover {
+            background: #ddd;
+        }
+        .month-nav {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 5px;
+            margin-bottom: 15px;
+        }
+        .month-btn {
+            padding: 5px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            background: white;
+        }
+        .month-btn.active {
+            background: #4CAF50;
+            color: white;
+        }
+        .event-item.highlighted {
+            background: #e8f5e9;
+        }
+        .event-item.highlighted:hover {
+            background: #c8e6c9;
+        }
+    </style>
+</head>
+<body>
+    <div id="sidebar">
+        <div class="month-nav"></div>
+    </div>
+    <div id="map"></div>
+    
+    <script>
+        const events = [
+            // U.S. Regional Burns
+            { name: "Saguaro Man", location: "Willcox, Arizona", date: "Apr 23-27, 2025", lat: 32.2523, lng: -109.8323, ticketUrl: "https://saguaroman.org/" },
+            { name: "BEquinox", location: "California City, California", date: "May 7-11, 2025", lat: 35.1258, lng: -117.9859, ticketUrl: "https://bequinox.org/" },
+            { name: "unSCruz", location: "Tres Pinos, California", date: "May 1-4, 2025", lat: 36.7822, lng: -121.3024, ticketUrl: "https://unscruz.org/" },
+            { name: "Burning Flipside", location: "Apache Pass, Texas", date: "Apr 24-28, 2025", lat: 30.4394, lng: -97.0715, ticketUrl: "https://burningflipside.com/" },
+            { name: "FreezerBurn", location: "Webberville, Texas", date: "Jan 15-19, 2026", lat: 30.2275, lng: -97.4627, ticketUrl: "https://freezerburn.org/" },
+            { name: "Burnt Soup", location: "Central Texas, Texas", date: "Aug 28 - Sep 1, 2025", lat: 30.2672, lng: -97.7431, ticketUrl: "https://burntsoup.org/" },
+            { name: "Myschievia", location: "Hughes Springs, Texas", date: "Oct 9-13, 2025", lat: 32.997, lng: -94.634, ticketUrl: "https://myschievia.org/" },
+            { name: "Ignite", location: "Stuart, Virginia", date: "May 23-26, 2025", lat: 36.6407, lng: -80.2653, ticketUrl: "https://igniteburn.org/" },
+            { name: "Playa del Fuego", location: "Tamaqua, Pennsylvania", date: "May 22-26, 2025", lat: 40.7973, lng: -75.9694, ticketUrl: "https://playadelfuego.org/" },
+            { name: "Summerisle Burn", location: "Pennsylvania", date: "Jun 15-19, 2025", lat: 40.0187, lng: -78.5039, ticketUrl: "https://summerisle.org/" },
+            { name: "Mosaic Experiment", location: "Rutland, Ohio", date: "Oct 15-19, 2025", lat: 39.0434, lng: -82.2657, ticketUrl: "https://mosaicexperiment.com/" },
+            { name: "InterFuse", location: "Laquey, Missouri", date: "May 15-18, 2025", lat: 37.8239, lng: -92.3335, ticketUrl: "https://interfuse.org/" },
+            { name: "Gateway Burn", location: "St. Louis area, Missouri", date: "Jun 20-24, 2025", lat: 38.6270, lng: -90.1994, ticketUrl: "https://gatewayburn.org/" },
+            { name: "Critical Northwest", location: "Granite Falls, Washington", date: "Jul 10-14, 2025", lat: 48.0832, lng: -121.9687, ticketUrl: "https://criticalnorthwest.org/" },
+            { name: "Element 11", location: "Stargazer Ranch, Utah", date: "Jun 18-22, 2025", lat: 40.7608, lng: -111.891, ticketUrl: "https://element11.org/" },
+            { name: "Frostburn", location: "Masontown, West Virginia", date: "Feb 13-16, 2026", lat: 39.5520, lng: -79.8006, ticketUrl: "https://frostburn.org/" },
+            { name: "NECTR", location: "Hartford, Connecticut", date: "Jun 25-29, 2025", lat: 41.7658, lng: -72.6734, ticketUrl: "https://nectr.org/" },
+            { name: "Reclaimation", location: "Irvine, Kentucky", date: "Jun 5-9, 2025", lat: 37.7006, lng: -84.0002, ticketUrl: "https://reclaimation.org/" },
+            { name: "HearthsOPhyre", location: "Des Moines, Iowa", date: "Jul 15-19, 2025", lat: 41.5868, lng: -93.6250, ticketUrl: "https://hearthsophyre.org/" },
+            { name: "B.U.R.N.", location: "Chicago, Illinois", date: "May 15-19, 2025", lat: 41.8781, lng: -87.6298, ticketUrl: "https://burnchicago.org/" },
+            { name: "Idaho Decompression", location: "Boise, Idaho", date: "Oct 20-24, 2025", lat: 43.6150, lng: -116.2023, ticketUrl: "https://idahodecompression.org/" },
+            { name: "Melting Man", location: "Grand Forks, North Dakota", date: "Feb 20-24, 2026", lat: 47.9253, lng: -97.0329, ticketUrl: "https://meltingman.org/" },
+            { name: "Firefly", location: "Bethel, Vermont", date: "Jul 1-6, 2025", lat: 43.8334, lng: -72.6023, ticketUrl: "https://fireflyartscollective.org/" },
+            { name: "Lakes of Fire", location: "Rothbury, Michigan", date: "Jul 16-20, 2025", lat: 43.491, lng: -86.091, ticketUrl: "https://lakesoffire.org/" },
+            { name: "Flaming Cheese Burn", location: "Driftless Area, Wisconsin", date: "Jun 5-8, 2025", lat: 43.7844, lng: -91.2521, ticketUrl: "https://flamingcheeseburn.org/" },
+
+            // International Regional Events
+            { name: "AfrikaBurn", location: "Tankwa Karoo, South Africa", date: "Apr 28 - May 4, 2025", lat: -32.339, lng: 19.753, ticketUrl: "https://afrikaburn.com/" },
+            { name: "Fuego Austral", location: "Argentina", date: "Feb 28 - Mar 4, 2025", lat: -34.6037, lng: -58.3816, ticketUrl: "https://fuegoaustral.org/" },
+            { name: "Blazing Swan", location: "Kulin, Western Australia", date: "Apr 16-22, 2025", lat: -32.6667, lng: 118.1667, ticketUrl: "https://blazingswan.com.au/" },
+            { name: "Burning Seed", location: "Matong, NSW, Australia", date: "Sep 25 - Oct 1, 2025", lat: -34.9285, lng: 148.3408, ticketUrl: "https://burningseed.com/" },
+            { name: "Modifyre", location: "Queensland, Australia", date: "Jul 10-14, 2025", lat: -27.4698, lng: 153.0251, ticketUrl: "https://modifyre.org/" },
+            { name: "The 3rd Degree", location: "NSW Central Coast, Australia", date: "Sep 15-19, 2025", lat: -33.4255, lng: 151.3420, ticketUrl: "https://3rddegree.org.au/" },
+            { name: "Kiwiburn", location: "Hunterville, New Zealand", date: "Jan 20-25, 2026", lat: -39.934, lng: 175.569, ticketUrl: "https://kiwiburn.com/" },
+            { name: "Nowhere", location: "Monegros Desert, Spain", date: "Jul 1-6, 2025", lat: 41.518, lng: -0.022, ticketUrl: "https://goingnowhere.org/" },
+            { name: "Where the Sheep Sleep", location: "Veluwe, Netherlands", date: "Jun 25-29, 2025", lat: 52.1326, lng: 5.2913, ticketUrl: "https://wherethesheepsleep.org/" },
+            { name: "Kiez Burn", location: "Brandenburg, Germany", date: "Jun 20-24, 2025", lat: 52.5200, lng: 13.4050, ticketUrl: "https://kiezburn.org/" },
+            { name: "The Borderland", location: "Böda, Sweden", date: "Jul 15-19, 2025", lat: 57.2567, lng: 17.0489, ticketUrl: "https://theborderland.se/" },
+            { name: "Burning Nest", location: "Devon, United Kingdom", date: "May 25-29, 2025", lat: 50.7184, lng: -3.5339, ticketUrl: "https://burningnest.co.uk/" },
+            { name: "MicroBurn", location: "Powys, Wales", date: "Sep 15-19, 2025", lat: 52.1307, lng: -3.7837, ticketUrl: "https://microburn.org/" },
+            { name: "Midburn", location: "Negev Desert, Israel", date: "Jun 20-24, 2025", lat: 30.7913, lng: 34.7789, ticketUrl: "https://midburn.org/" },
+            { name: "Burning Japan", location: "Japan", date: "Oct 15-19, 2025", lat: 35.6762, lng: 139.6503, ticketUrl: "https://burningjapan.org/" },
+            { name: "Wasteland Weekend", location: "Edwards, California", date: "Sep 24-28, 2025", lat: 34.9258, lng: -117.9389, ticketUrl: "https://wastelandweekend.com/" }
+        ];
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const map = L.map('map').setView([20, 0], 2);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(map);
+            
+            const sidebar = document.getElementById("sidebar");
+            const monthNav = document.querySelector(".month-nav");
+            
+            // Create month navigation buttons
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            months.forEach(month => {
+                const btn = document.createElement("button");
+                btn.className = "month-btn";
+                btn.textContent = month;
+                monthNav.appendChild(btn);
+            });
+
+            // Store markers and event items
+            const markers = [];
+            const eventItems = [];
+
+            // Sort events by date
+            events.sort((a, b) => {
+                const getDate = (event) => {
+                    const date = event.date.toLowerCase();
+                    const year = date.includes('2026') ? 2026 : 2025;
+                    const monthMap = {
+                        'jan': 0, 'feb': 1, 'mar': 2, 'apr': 3, 'may': 4, 'jun': 5,
+                        'jul': 6, 'aug': 7, 'sep': 8, 'oct': 9, 'nov': 10, 'dec': 11
+                    };
+                    
+                    // Extract month from date string
+                    const monthMatch = date.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i);
+                    if (monthMatch) {
+                        return new Date(year, monthMap[monthMatch[1].toLowerCase()], 1);
+                    }
+                    return new Date(year, 11, 31); // Default to end of year
+                };
+                
+                return getDate(a) - getDate(b);
+            });
+
+            // Display events
+            events.forEach(event => {
+                const div = document.createElement("div");
+                div.className = "event-item";
+                div.innerHTML = `${event.date} - <a href="${event.ticketUrl}" target="_blank">${event.name}</a> (${event.location})`;
+                sidebar.appendChild(div);
+                eventItems.push(div);
+                
+                const marker = L.marker([event.lat, event.lng]).addTo(map)
+                    .bindPopup(`<b><a href="${event.ticketUrl}" target="_blank">${event.name}</a></b><br>${event.location}<br>${event.date}`);
+                markers.push(marker);
+                
+                div.addEventListener("click", () => {
+                    map.setView([event.lat, event.lng], 6);
+                    marker.openPopup();
+                });
+            });
+
+            // Handle month filtering
+            const monthBtns = document.querySelectorAll(".month-btn");
+            monthBtns.forEach((btn, index) => {
+                btn.addEventListener("click", () => {
+                    // Update button states
+                    monthBtns.forEach(b => b.classList.remove("active"));
+                    btn.classList.add("active");
+
+                    // Get month name
+                    const month = months[index].toLowerCase();
+                    
+                    // Filter events
+                    events.forEach((event, i) => {
+                        const eventDate = event.date.toLowerCase();
+                        const isInMonth = eventDate.includes(month);
+                        
+                        // Show/hide markers based on month
+                        markers[i].setOpacity(isInMonth ? 1 : 0.3);
+                        
+                        // Update sidebar highlighting
+                        eventItems[i].classList.toggle("highlighted", isInMonth);
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>
