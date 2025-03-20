@@ -133,67 +133,31 @@
             z-index: 1000;
             max-width: 400px;
             max-height: 80vh;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         .timeline-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
-        }
-        .collapse-btn {
-            background: #4CAF50;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-        }
-        .collapse-btn:hover {
-            background: #45a049;
+            flex-shrink: 0;
         }
         .timeline-content {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
             transition: max-height 0.3s ease-out;
-            overflow: hidden;
         }
         .timeline-content.collapsed {
             max-height: 0;
         }
-        .month-header {
-            font-weight: bold;
-            margin-top: 15px;
-            margin-bottom: 10px;
-            color: #4CAF50;
-            border-bottom: 2px solid #4CAF50;
-            padding-bottom: 5px;
-        }
-        .event-details {
-            font-size: 12px;
-            color: #666;
-        }
-        .event-name {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-        .event-info {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .travel-info {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed #ccc;
-            font-size: 0.9em;
-            color: #666;
-        }
         .trip-summary {
-            margin-top: 20px;
             padding-top: 15px;
             border-top: 2px solid #4CAF50;
             font-weight: bold;
+            flex-shrink: 0;
+            background: white;
         }
         .trip-summary h4 {
             margin: 0 0 10px 0;
@@ -574,7 +538,8 @@
                             <h3 style="margin: 0;">Event Timeline:</h3>
                             <button class="collapse-btn" onclick="toggleTimeline()">Collapse</button>
                         </div>
-                        <div class="timeline-content">`;
+                        <div class="timeline-content">
+                            <div class="timeline-events">`;
 
                     // Calculate and display detailed timeline
                     let currentMonth = '';
@@ -626,7 +591,10 @@
                         timeHtml += '</div>';
                     }
 
-                    // Add summary
+                    // Close the timeline-events div
+                    timeHtml += '</div></div>';
+
+                    // Add summary outside the scrollable area
                     timeHtml += `
                         <div class="trip-summary">
                             <h4>Trip Summary</h4>
@@ -635,9 +603,6 @@
                             <div>Total Event Days: ${totalDays} days</div>
                             <div>Average Distance Between Events: ${Math.round(totalDistance / (selectedEvents.length - 1))} miles</div>
                         </div>`;
-
-                    // Close the timeline-content div
-                    timeHtml += '</div>';
 
                     timeInfo.innerHTML = timeHtml;
                 }
