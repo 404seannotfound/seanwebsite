@@ -631,49 +631,62 @@
                 const months = ['January', 'February', 'March', 'April', 'May', 'June', 
                               'July', 'August', 'September', 'October', 'November', 'December'];
 
-                // Get first day of 2025
-                const firstDay = new Date(2025, 0, 1);
-                const startDay = firstDay.getDay();
+                // Start with January 1st, 2025
+                const currentDate = new Date(2025, 0, 1);
+                const endDate = new Date(2025, 11, 31);
 
-                // Add empty cells for days before the first day
-                for (let i = 0; i < startDay; i++) {
-                    const emptyDay = document.createElement('div');
-                    emptyDay.className = 'calendar-day empty';
-                    calendar.appendChild(emptyDay);
-                }
+                while (currentDate <= endDate) {
+                    const month = currentDate.getMonth();
 
-                // Add days for the entire year
-                const daysInYear = 365;
-                const today = new Date();
-                const currentYear = today.getFullYear();
-                const isCurrentYear = currentYear === 2025;
-                
-                for (let i = 1; i <= daysInYear; i++) {
-                    const date = new Date(2025, 0, i);
-                    const month = date.getMonth();
-
-                    // Add month divider if month changed
+                    // If we're starting a new month
                     if (month !== currentMonth) {
                         currentMonth = month;
+                        
+                        // Add month divider
                         const monthDiv = document.createElement('div');
                         monthDiv.className = 'month-divider';
                         monthDiv.textContent = months[month] + ' 2025';
                         calendar.appendChild(monthDiv);
+
+                        // Add empty cells for days before the 1st of the month
+                        const firstDayOfMonth = new Date(2025, month, 1).getDay();
+                        for (let i = 0; i < firstDayOfMonth; i++) {
+                            const emptyDay = document.createElement('div');
+                            emptyDay.className = 'calendar-day empty';
+                            calendar.appendChild(emptyDay);
+                        }
                     }
 
+                    // Create the day cell
                     const day = document.createElement('div');
                     day.className = 'calendar-day';
                     
                     // Check if this is today
-                    if (isCurrentYear && 
-                        date.getDate() === today.getDate() && 
-                        date.getMonth() === today.getMonth()) {
+                    const today = new Date();
+                    if (currentDate.getFullYear() === today.getFullYear() &&
+                        currentDate.getMonth() === today.getMonth() &&
+                        currentDate.getDate() === today.getDate()) {
                         day.classList.add('today');
                     }
                     
-                    day.dataset.day = i;
-                    day.textContent = date.getDate(); // Add day number
+                    day.dataset.date = currentDate.toISOString().split('T')[0];
+                    day.textContent = currentDate.getDate();
                     calendar.appendChild(day);
+
+                    // If it's the last day of the month, add empty cells to complete the week
+                    const isLastDayOfMonth = currentDate.getDate() === new Date(2025, month + 1, 0).getDate();
+                    if (isLastDayOfMonth) {
+                        const lastDayOfWeek = currentDate.getDay();
+                        const remainingDays = 6 - lastDayOfWeek;
+                        for (let i = 0; i < remainingDays; i++) {
+                            const emptyDay = document.createElement('div');
+                            emptyDay.className = 'calendar-day empty';
+                            calendar.appendChild(emptyDay);
+                        }
+                    }
+
+                    // Move to next day
+                    currentDate.setDate(currentDate.getDate() + 1);
                 }
             }
 
