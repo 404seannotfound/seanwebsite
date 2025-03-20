@@ -332,6 +332,16 @@
         .event-item.show {
             display: flex; /* Show when has 'show' class */
         }
+        .bug-report {
+            color: red;
+            font-size: 12px;
+            margin-left: 15px;
+        }
+        
+        .bug-report a {
+            color: red;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -346,8 +356,9 @@
         <div class="view-toggle">
             <button class="toggle-btn active" data-view="map">Map View</button>
             <button class="toggle-btn" data-view="calendar">Calendar View</button>
-    </div>
-    <div id="map"></div>
+            <span class="bug-report">Some of the dates are wrong. Sorry. If you notice one -- <a href="https://forms.gle/Zcmc4o9x434T6SYF8" target="_blank">report it here</a>.</span>
+        </div>
+        <div id="map"></div>
         <div class="calendar-container">
             <div class="calendar-header"></div>
             <div class="calendar"></div>
