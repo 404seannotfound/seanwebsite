@@ -9,6 +9,14 @@
             "ticketUrl": "https://burningman.org/"
         },
         {
+            "name": "Apogaea",
+            "location": "Valdez, Colorado",
+            "date": "June 4–8, 2025",
+            "lat": 37.5872,
+            "lng": -105.4082,
+            "ticket_link": "https://apogaea.com/tickets/"
+        },
+        {
             "name": "SOAK",
             "location": "Tyghe Valley, Oregon",
             "date": "2025-05-22/2025-05-26",
