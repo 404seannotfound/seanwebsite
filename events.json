@@ -14,7 +14,7 @@
             "date": "2025-07-04/2025-07-08",
             "lat": 37.5872,
             "lng": -105.4082,
-            "ticket_link": "https://apogaea.com/tickets/"
+            "ticketUrl": "https://apogaea.com/tickets/"
         },
         {
             "name": "SOAK",
