@@ -1,0 +1,133 @@
+/* Modern CSS for Sean's Website */
+:root {
+  --primary-color: #3498db;
+  --secondary-color: #2c3e50;
+  --accent-color: #e74c3c;
+  --text-color: #333;
+  --light-color: #f8f9fa;
+  --font-main: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: var(--light-color);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+header {
+  background-color: var(--secondary-color);
+  color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+header h1 {
+  margin-bottom: 1rem;
+  font-size: 2.5rem;
+}
+
+nav ul {
+  display: flex;
+  list-style: none;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+nav ul li {
+  margin-right: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+a:hover {
+  color: var(--accent-color);
+  text-decoration: underline;
+}
+
+header a {
+  color: white;
+  font-weight: bold;
+}
+
+header a:hover {
+  color: var(--accent-color);
+}
+
+section {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 8px;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+section h2 {
+  margin-bottom: 1rem;
+  color: var(--secondary-color);
+  border-bottom: 2px solid var(--primary-color);
+  padding-bottom: 0.5rem;
+}
+
+footer {
+  text-align: center;
+  padding: 1.5rem;
+  margin-top: 2rem;
+  color: var(--secondary-color);
+  border-top: 1px solid #ddd;
+}
+
+/* Button styles */
+.button {
+  display: inline-block;
+  background-color: var(--primary-color);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background-color 0.3s;
+}
+
+.button:hover {
+  background-color: var(--accent-color);
+  text-decoration: none;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+  
+  header {
+    padding: 1.5rem;
+  }
+  
+  header h1 {
+    font-size: 2rem;
+  }
+  
+  nav ul {
+    flex-direction: column;
+  }
+  
+  nav ul li {
+    margin-bottom: 0.5rem;
+  }
+} 
