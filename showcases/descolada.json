@@ -1,8 +1,8 @@
 {
   "title": "Descolada",
-  "description": "A GPT inspired by Orson Scott Card's novels that explores complex biological and ecological concepts through interactive discussions.",
-  "tags": ["Science Fiction", "Biology"],
+  "description": "Creates cutaways of ideas and objects, generating detailed cross-section views from descriptions.",
+  "tags": ["Design", "Visualization"],
   "imageColor": "2c3e50",
-  "url": "#",
-  "status": "coming-soon"
+  "url": "https://chatgpt.com/g/g-Q7kf5ruoF-descolada",
+  "status": "active"
 } 
