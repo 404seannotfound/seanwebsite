@@ -5,6 +5,76 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sean's Website</title>
     <link rel="stylesheet" href="styles.css">
+    <style>
+        .showcase-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .showcase-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .showcase-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .showcase-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .showcase-content {
+            padding: 1.5rem;
+        }
+        
+        .showcase-card h3 {
+            margin-top: 0;
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .showcase-description {
+            color: var(--text-color);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+        
+        .showcase-link {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: background-color 0.3s;
+        }
+        
+        .showcase-link:hover {
+            background-color: var(--accent-color);
+            text-decoration: none;
+        }
+        
+        .showcase-tag {
+            display: inline-block;
+            background-color: var(--light-color);
+            color: var(--secondary-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            margin-right: 5px;
+            margin-bottom: 10px;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -15,7 +85,6 @@
                 <li><a href="events/events.html">Events I want to attend</a></li>
                 <li><a href="bmpi.html">Take the Burning Man Principles Indicator Quiz</a></li>
                 <li><a href="https://chatgpt.com/g/g-6778af4013f08191939c8fd3a358d183-bmpi">Burning Man Aptitude Test (using an LLM)</a></li>
-                <li><a href="gpt-showcases.html">GPT Showcases</a></li>
                 <li><a href="events/contribute.html">Contribute to Events</a></li>
             </ul>
         </nav>
@@ -27,6 +96,15 @@
         <p>Feel free to explore the site and check out my projects.</p>
     </section>
     
+    <section id="gpt-showcases">
+        <h2>GPT Showcases</h2>
+        <p>Check out these custom GPTs and AI-powered applications I've created:</p>
+        <div class="showcase-grid" id="showcase-container">
+            <!-- Showcase cards will be loaded here -->
+            <div class="loading">Loading GPT showcases...</div>
+        </div>
+    </section>
+    
     <section id="contact">
         <h2>Contact for Support</h2>
         <p>If you need technical support, please fill out the form below:</p>
@@ -36,5 +114,103 @@
     <footer>
         <p>&copy; 2025 Derek Sean Spratt. All rights reserved.</p>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const showcaseFiles = [
+                'burning-man-aptitude.json',
+                'code-reviewer.json',
+                'travel-planner.json',
+                'story-generator.json',
+                'recipe-assistant.json'
+            ];
+            
+            const showcaseContainer = document.getElementById('showcase-container');
+            let loadedShowcases = 0;
+            
+            // Clear loading message
+            showcaseContainer.innerHTML = '';
+            
+            // Load each showcase file
+            showcaseFiles.forEach(file => {
+                fetch(`showcases/${file}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Create showcase card
+                        const card = createShowcaseCard(data);
+                        showcaseContainer.appendChild(card);
+                        
+                        // Count loaded showcases
+                        loadedShowcases++;
+                        if (loadedShowcases === showcaseFiles.length) {
+                            // All showcases loaded
+                            console.log('All GPT showcases loaded successfully');
+                        }
+                    })
+                    .catch(error => {
+                        console.error(`Error loading showcase file ${file}:`, error);
+                        const errorElement = document.createElement('div');
+                        errorElement.textContent = `Error loading ${file}`;
+                        errorElement.style.color = 'red';
+                        showcaseContainer.appendChild(errorElement);
+                    });
+            });
+            
+            // Function to create a showcase card
+            function createShowcaseCard(showcase) {
+                const card = document.createElement('div');
+                card.className = 'showcase-card';
+                
+                // Create placeholder image with color from showcase data
+                const img = document.createElement('img');
+                img.className = 'showcase-image';
+                img.src = `https://placehold.co/600x400/${showcase.imageColor}/ffffff?text=${encodeURIComponent(showcase.title)}`;
+                img.alt = showcase.title;
+                
+                // Create content container
+                const content = document.createElement('div');
+                content.className = 'showcase-content';
+                
+                // Add tags
+                showcase.tags.forEach(tag => {
+                    const tagSpan = document.createElement('span');
+                    tagSpan.className = 'showcase-tag';
+                    tagSpan.textContent = tag;
+                    content.appendChild(tagSpan);
+                });
+                
+                // Add title
+                const title = document.createElement('h3');
+                title.textContent = showcase.title;
+                content.appendChild(title);
+                
+                // Add description
+                const description = document.createElement('p');
+                description.className = 'showcase-description';
+                description.textContent = showcase.description;
+                content.appendChild(description);
+                
+                // Add link
+                const link = document.createElement('a');
+                link.className = 'showcase-link';
+                link.href = showcase.url;
+                link.target = '_blank';
+                
+                if (showcase.status === 'active') {
+                    link.textContent = 'Try it Out';
+                } else {
+                    link.textContent = 'Coming Soon';
+                }
+                
+                content.appendChild(link);
+                
+                // Assemble card
+                card.appendChild(img);
+                card.appendChild(content);
+                
+                return card;
+            }
+        });
+    </script>
 </body>
 </html>
