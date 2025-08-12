@@ -141,6 +141,8 @@
         .badge-man { background: #ff9800; }
         .badge-temple { background: #e64a19; }
         .badge-supper { background: #667eea; }
+        .badge-wedding { background: #ec407a; }
+        .badge-party { background: #ff7043; }
         
         .day-number {
             font-weight: bold;
@@ -949,6 +951,13 @@
             if (dateStr === '2025-08-31') {
                 // Temple badge
                 return `<span class="day-badges"><span class="day-badge badge-temple">Temple</span></span>`;
+            }
+            if (dateStr === '2025-08-27') {
+                // Wednesday: Trapdoor/Poison Ivy Wedding (6pm) and Fire Camp Party (dark-thirty)
+                return `<span class="day-badges">
+                            <span class="day-badge badge-wedding" title="Trapdoor/Poison Ivy Wedding — 6pm">💍 6pm</span>
+                            <span class="day-badge badge-party" title="Fire Camp Party — dark-thirty">🔥</span>
+                        </span>`;
             }
             if (dateStr === '2025-09-06') {
                 // Last Supper badge
