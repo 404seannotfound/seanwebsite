@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Burning Man Schedule</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .current-time {
+            font-size: 1.2em;
+            margin-top: 10px;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 50px;
+            display: inline-block;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            padding: 30px;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 10px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .weekday-header {
+            font-weight: bold;
+            text-align: center;
+            padding: 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+        }
+        
+        .calendar-day {
+            min-height: 120px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 5px;
+            position: relative;
+            background: white;
+            transition: all 0.3s ease;
+        }
+        
+        .calendar-day:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .calendar-day.today {
+            border-color: #ff9800;
+            background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+            box-shadow: 0 0 20px rgba(255, 152, 0, 0.3);
+        }
+        
+        .calendar-day.pre-event {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e8f5e9 100%);
+        }
+        
+        .calendar-day.event-week {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffebee 100%);
+        }
+        
+        .calendar-day.post-event {
+            background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+        }
+        
+        .day-number {
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+        
+        .day-label {
+            font-size: 0.7em;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .time-blocks {
+            position: relative;
+            height: 60px;
+            background: linear-gradient(to right, 
+                #f0f0f0 0%, #f0f0f0 25%, 
+                #e0e0e0 25%, #e0e0e0 50%,
+                #f0f0f0 50%, #f0f0f0 75%,
+                #e0e0e0 75%, #e0e0e0 100%);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+        
+        .event-block {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.7em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            padding: 2px;
+        }
+        
+        .event-block:hover {
+            opacity: 1;
+            z-index: 10;
+            transform: scaleY(1.1);
+        }
+        
+        .event-block.gate {
+            background: linear-gradient(135deg, #ff6b6b 0%, #c44569 100%);
+        }
+        
+        .event-block.setup {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        }
+        
+        .event-block.dirt {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+        }
+        
+        .event-block.exodus {
+            background: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%);
+        }
+        
+        .event-block.teardown {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .event-block.temple {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+        }
+        
+        .event-block.active {
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
+        }
+        
+        .day-popup {
+            position: absolute;
+            background: white;
+            border: 2px solid #667eea;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 1000;
+            min-width: 300px;
+            max-width: 400px;
+            display: none;
+            pointer-events: none;
+        }
+        
+        .day-popup.show {
+            display: block;
+        }
+        
+        .popup-header {
+            font-weight: bold;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+            color: #333;
+        }
+        
+        .popup-timeline {
+            position: relative;
+            background: linear-gradient(to bottom,
+                #f8f8f8 0%, #f8f8f8 8.33%,
+                #fff 8.33%, #fff 16.66%,
+                #f8f8f8 16.66%, #f8f8f8 25%,
+                #fff 25%, #fff 33.33%,
+                #f8f8f8 33.33%, #f8f8f8 41.66%,
+                #fff 41.66%, #fff 50%,
+                #f8f8f8 50%, #f8f8f8 58.33%,
+                #fff 58.33%, #fff 66.66%,
+                #f8f8f8 66.66%, #f8f8f8 75%,
+                #fff 75%, #fff 83.33%,
+                #f8f8f8 83.33%, #f8f8f8 91.66%,
+                #fff 91.66%, #fff 100%);
+            border-radius: 8px;
+            padding: 10px;
+            min-height: 200px;
+        }
+        
+        .time-label {
+            position: absolute;
+            left: 5px;
+            font-size: 0.7em;
+            color: #666;
+            font-weight: bold;
+        }
+        
+        .popup-event {
+            position: relative;
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 8px;
+            color: white;
+            font-size: 0.85em;
+            margin-left: 40px;
+        }
+        
+        .popup-event.gate {
+            background: linear-gradient(135deg, #ff6b6b 0%, #c44569 100%);
+        }
+        
+        .popup-event.setup {
+            background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+        }
+        
+        .popup-event.dirt {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);
+        }
+        
+        .popup-event.exodus {
+            background: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%);
+        }
+        
+        .popup-event.teardown {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .popup-event.temple {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+        }
+        
+        .popup-event-title {
+            font-weight: bold;
+            margin-bottom: 3px;
+        }
+        
+        .popup-event-time {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .current-time-marker {
+            position: absolute;
+            left: 40px;
+            right: 10px;
+            height: 2px;
+            background: #ff5722;
+            box-shadow: 0 0 10px rgba(255, 87, 34, 0.5);
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .current-time-marker::before {
+            content: '';
+            position: absolute;
+            left: -5px;
+            top: -4px;
+            width: 10px;
+            height: 10px;
+            background: #ff5722;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(255, 87, 34, 0.8);
+        }
+        
+        .current-time-marker::after {
+            content: attr(data-time);
+            position: absolute;
+            left: 10px;
+            top: -8px;
+            font-size: 0.7em;
+            color: #ff5722;
+            font-weight: bold;
+            background: white;
+            padding: 0 5px;
+            border-radius: 3px;
+        }
+        
+        .no-events-message {
+            text-align: center;
+            color: #999;
+            font-style: italic;
+            padding: 20px;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 255, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+        
+        .sidebar {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            max-height: calc(100vh - 200px);
+            overflow-y: auto;
+        }
+        
+        .event-details {
+            margin-bottom: 20px;
+        }
+        
+        .event-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .event-item:hover {
+            transform: translateX(5px);
+        }
+        
+        .event-item.active {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            animation: pulse 2s infinite;
+        }
+        
+        .event-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .event-time {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .event-status {
+            font-size: 0.85em;
+            margin-top: 5px;
+            padding-top: 5px;
+            border-top: 1px solid rgba(255,255,255,0.3);
+        }
+        
+        #map {
+            height: 300px;
+            background: #f0f0f0;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        
+        .map-placeholder {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: #666;
+        }
+        
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f8f8;
+            border-radius: 10px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            font-size: 0.85em;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
+            margin-right: 8px;
+        }
+        
+        @media (max-width: 1200px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            .calendar-grid {
+                grid-template-columns: repeat(7, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .calendar-grid {
+                grid-template-columns: 1fr;
+            }
+            .weekday-header {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🔥 My Burning Man Schedule 🔥</h1>
+            <div class="current-time" id="currentTime"></div>
+        </header>
+        
+        <div class="main-content">
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Calendar will be generated here -->
+            </div>
+            
+            <div class="sidebar">
+                <h2 style="margin-bottom: 20px; color: #333;">Today's Schedule</h2>
+                <div id="todayEvents" class="event-details"></div>
+                
+                <div id="map">
+                    <div class="map-placeholder">
+                        <svg width="200" height="200" viewBox="0 0 200 200">
+                            <!-- Simple Burning Man city layout -->
+                            <circle cx="100" cy="100" r="90" fill="none" stroke="#ddd" stroke-width="2"/>
+                            <circle cx="100" cy="100" r="70" fill="none" stroke="#ddd" stroke-width="2"/>
+                            <circle cx="100" cy="100" r="50" fill="none" stroke="#ddd" stroke-width="2"/>
+                            <circle cx="100" cy="100" r="30" fill="none" stroke="#ddd" stroke-width="2"/>
+                            <circle cx="100" cy="100" r="10" fill="#667eea" opacity="0.5"/>
+                            <text x="100" y="105" text-anchor="middle" fill="#667eea" font-size="8">Center Camp</text>
+                            
+                            <!-- Radial streets -->
+                            <line x1="100" y1="100" x2="100" y2="10" stroke="#ddd" stroke-width="1" opacity="0.5"/>
+                            <line x1="100" y1="100" x2="150" y2="50" stroke="#ddd" stroke-width="1" opacity="0.5"/>
+                            <line x1="100" y1="100" x2="150" y2="150" stroke="#ddd" stroke-width="1" opacity="0.5"/>
+                            <line x1="100" y1="100" x2="50" y2="150" stroke="#ddd" stroke-width="1" opacity="0.5"/>
+                            <line x1="100" y1="100" x2="50" y2="50" stroke="#ddd" stroke-width="1" opacity="0.5"/>
+                            
+                            <!-- Location marker -->
+                            <g id="locationMarker" style="display: none;">
+                                <circle r="8" fill="#f5576c" opacity="0.8"/>
+                                <circle r="3" fill="white"/>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+                
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);"></div>
+                        <span>Setup</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #ff6b6b 0%, #c44569 100%);"></div>
+                        <span>Gate</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #56ab2f 0%, #a8e063 100%);"></div>
+                        <span>Dirt/Ranger</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%);"></div>
+                        <span>Exodus</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                        <span>Teardown</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);"></div>
+                        <span>Temple</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Day detail popup -->
+    <div id="dayPopup" class="day-popup"></div>
+    
+    <script>
+        // Event data with What3Words locations
+        const events = [
+            // SITE Setup - Pre-Event
+            {
+                title: "🔨 SITE Setup",
+                date: "2025-08-16",
+                startTime: "08:00",
+                endTime: "17:00",
+                location: "SITE Setup",
+                category: "setup",
+                w3w: "///build.dust.home",
+                mapCoords: { x: 80, y: 140 }
+            },
+            {
+                title: "🔨 SITE Setup",
+                date: "2025-08-17",
+                startTime: "08:00",
+                endTime: "17:00",
+                location: "SITE Setup",
+                category: "setup",
+                w3w: "///build.dust.home",
+                mapCoords: { x: 80, y: 140 }
+            },
+            {
+                title: "🔨 SITE Setup",
+                date: "2025-08-18",
+                startTime: "08:00",
+                endTime: "17:00",
+                location: "SITE Setup",
+                category: "setup",
+                w3w: "///build.dust.home",
+                mapCoords: { x: 80, y: 140 }
+            },
+            {
+                title: "🔨 SITE Setup",
+                date: "2025-08-19",
+                startTime: "08:00",
+                endTime: "17:00",
+                location: "SITE Setup",
+                category: "setup",
+                w3w: "///build.dust.home",
+                mapCoords: { x: 80, y: 140 }
+            },
+            {
+                title: "🔨 SITE Setup",
+                date: "2025-08-20",
+                startTime: "08:00",
+                endTime: "17:00",
+                location: "SITE Setup",
+                category: "setup",
+                w3w: "///build.dust.home",
+                mapCoords: { x: 80, y: 140 }
+            },
+            {
+                title: "🔨 SITE Setup",
+                date: "2025-08-21",
+                startTime: "08:00",
+                endTime: "17:00",
+                location: "SITE Setup",
+                category: "setup",
+                w3w: "///build.dust.home",
+                mapCoords: { x: 80, y: 140 }
+            },
+            {
+                title: "🔨 SITE Setup",
+                date: "2025-08-22",
+                startTime: "08:00",
+                endTime: "17:00",
+                location: "SITE Setup",
+                category: "setup",
+                w3w: "///build.dust.home",
+                mapCoords: { x: 80, y: 140 }
+            },
+            // Dirt - Green Dot shifts
+            {
+                title: "🟢 Dirt - Green Dot Morning",
+                date: "2025-08-23",
+                startTime: "05:45",
+                endTime: "12:15",
+                location: "Dirt - Green Dot",
+                category: "dirt",
+                w3w: "///ranger.green.patrol",
+                mapCoords: { x: 120, y: 80 }
+            },
+            // Gate shifts
+            {
+                title: "🚧💀 Gate Crew",
+                date: "2025-08-24",
+                startTime: "06:00",
+                endTime: "12:00",
+                location: "Gate",
+                category: "gate",
+                w3w: "///entry.dust.portal",
+                mapCoords: { x: 100, y: 190 }
+            },
+            {
+                title: "🚧💀 Gate Crew",
+                date: "2025-08-24",
+                startTime: "23:55",
+                endTime: "06:00",
+                location: "Gate",
+                category: "gate",
+                w3w: "///entry.dust.portal",
+                mapCoords: { x: 100, y: 190 }
+            },
+            {
+                title: "🚧💀 Gate Crew",
+                date: "2025-08-25",
+                startTime: "23:55",
+                endTime: "06:00",
+                location: "Gate",
+                category: "gate",
+                w3w: "///entry.dust.portal",
+                mapCoords: { x: 100, y: 190 }
+            },
+            // Pacific Northwest Sunrise Meetup
+            {
+                title: "🌅 Pacific Northwest Sunrise Meetup",
+                date: "2025-08-27",
+                startTime: "06:00",
+                endTime: "07:00",
+                location: "Temple",
+                category: "temple",
+                w3w: "///sacred.sunrise.gathering",
+                mapCoords: { x: 100, y: 30 }
+            },
+            // More Dirt shifts
+            {
+                title: "🟢 Dirt - Green Dot Morning",
+                date: "2025-08-28",
+                startTime: "05:45",
+                endTime: "12:15",
+                location: "Dirt - Green Dot",
+                category: "dirt",
+                w3w: "///ranger.green.patrol",
+                mapCoords: { x: 120, y: 80 }
+            },
+            {
+                title: "🟢 Dirt - Green Dot Swing",
+                date: "2025-08-29",
+                startTime: "17:45",
+                endTime: "00:15",
+                location: "Dirt - Green Dot",
+                category: "dirt",
+                w3w: "///ranger.green.patrol",
+                mapCoords: { x: 120, y: 80 }
+            },
+            // Exodus shifts
+            {
+                title: "🚧💀 Exodus F-Lot",
+                date: "2025-08-31",
+                startTime: "06:00",
+                endTime: "12:00",
+                location: "Exodus F Lot",
+                category: "exodus",
+                w3w: "///exodus.filter.lane",
+                mapCoords: { x: 100, y: 10 }
+            },
+            {
+                title: "🚧💀 Exodus Pulser",
+                date: "2025-09-01",
+                startTime: "18:00",
+                endTime: "00:00",
+                location: "Exodus Pulsers",
+                category: "exodus",
+                w3w: "///pulse.release.exodus",
+                mapCoords: { x: 100, y: 15 }
+            },
+            // SITE Teardown - Post-Event
+            {
+                title: "🔧 SITE Teardown",
+                date: "2025-09-02",
+                startTime: "08:00",
+                endTime: "17:00",
+                location: "SITE Teardown",
+                category: "teardown",
+                w3w: "///pack.dust.leave",
+                mapCoords: { x: 80, y: 140 }
+            },
+            {
+                title: "🚧💀 Exodus F-Lot",
+                date: "2025-09-02",
+                startTime: "18:00",
+                endTime: "00:00",
+                location: "Exodus F Lot",
+                category: "exodus",
+                w3w: "///exodus.filter.lane",
+                mapCoords: { x: 100, y: 10 }
+            },
+            {
+                title: "🔧 SITE Teardown",
+                date: "2025-09-03",
+                startTime: "08:00",
+                endTime: "17:00",
+                location: "SITE Teardown",
+                category: "teardown",
+                w3w: "///pack.dust.leave",
+                mapCoords: { x: 80, y: 140 }
+            },
+            {
+                title: "🔧 SITE Teardown",
+                date: "2025-09-04",
+                startTime: "08:00",
+                endTime: "17:00",
+                location: "SITE Teardown",
+                category: "teardown",
+                w3w: "///pack.dust.leave",
+                mapCoords: { x: 80, y: 140 }
+            },
+            {
+                title: "🔧 SITE Teardown",
+                date: "2025-09-05",
+                startTime: "08:00",
+                endTime: "17:00",
+                location: "SITE Teardown",
+                category: "teardown",
+                w3w: "///pack.dust.leave",
+                mapCoords: { x: 80, y: 140 }
+            }
+        ];
+        
+        // Generate calendar days
+        function generateCalendarDays() {
+            const startDate = new Date('2025-08-10T12:00:00');
+            const endDate = new Date('2025-09-15T12:00:00');
+            const days = [];
+            
+            // Find the Sunday before start date
+            const firstSunday = new Date(startDate);
+            firstSunday.setDate(firstSunday.getDate() - firstSunday.getDay());
+            
+            // Generate 6 weeks of days
+            for (let d = new Date(firstSunday); d <= endDate; d.setDate(d.getDate() + 1)) {
+                days.push(new Date(d));
+            }
+            
+            return days;
+        }
+        
+        // Determine phase of Burning Man
+        function getPhase(date) {
+            const eventStart = new Date('2025-08-24T12:00:00');
+            const eventEnd = new Date('2025-09-01T12:00:00');
+            
+            if (date < eventStart) return 'pre-event';
+            if (date > eventEnd) return 'post-event';
+            return 'event-week';
+        }
+        
+        // Format date for display
+        function formatDate(date) {
+            const options = { weekday: 'short', month: 'short', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+        
+        // Check if event is currently active
+        // Includes cross-midnight handling when end time is earlier than start time
+        function isEventActive(event) {
+            const now = new Date();
+            const [year, month, day] = event.date.split('-').map(Number);
+            const [startHour, startMin] = event.startTime.split(':').map(Number);
+            const [endHour, endMin] = event.endTime.split(':').map(Number);
+            
+            const eventStart = new Date(year, month - 1, day, startHour, startMin, 0);
+            
+            let eventEnd = new Date(year, month - 1, day, endHour, endMin, 0);
+            // Cross-midnight if end time logically precedes start time
+            if (endHour < startHour || (endHour === startHour && endMin < startMin)) {
+                eventEnd.setDate(eventEnd.getDate() + 1);
+            }
+            
+            return now >= eventStart && now <= eventEnd;
+        }
+        
+        // Get event status text
+        // Uses same cross-midnight logic as isEventActive() for accurate progress
+        function getEventStatus(event) {
+            const now = new Date();
+            const [year, month, day] = event.date.split('-').map(Number);
+            const [startHour, startMin] = event.startTime.split(':').map(Number);
+            const [endHour, endMin] = event.endTime.split(':').map(Number);
+            
+            const eventStart = new Date(year, month - 1, day, startHour, startMin, 0);
+            
+            let eventEnd = new Date(year, month - 1, day, endHour, endMin, 0);
+            if (endHour < startHour || (endHour === startHour && endMin < startMin)) {
+                eventEnd.setDate(eventEnd.getDate() + 1);
+            }
+            
+            if (now < eventStart) {
+                const hoursUntil = Math.floor((eventStart - now) / (1000 * 60 * 60));
+                const minutesUntil = Math.floor(((eventStart - now) % (1000 * 60 * 60)) / (1000 * 60));
+                if (hoursUntil > 24) {
+                    const daysUntil = Math.floor(hoursUntil / 24);
+                    return `Starts in ${daysUntil} day${daysUntil > 1 ? 's' : ''}`;
+                }
+                return `Starts in ${hoursUntil}h ${minutesUntil}m`;
+            } else if (now >= eventStart && now <= eventEnd) {
+                const elapsed = now - eventStart;
+                const total = eventEnd - eventStart;
+                const progress = (elapsed / total) * 100;
+                return `IN PROGRESS (${Math.round(progress)}% complete)`;
+            } else {
+                return 'Completed';
+            }
+        }
+        
+        // Helpers to calculate per-day event segments (handles cross-midnight)
+        //
+        // We previously drew a single block per event only on its start date.
+        // Now we compute, for each calendar day, what portion of any event overlaps
+        // that day and render that slice as a filled segment. This makes events
+        // that span midnight appear on BOTH days appropriately.
+        function getEventDateRange(event) {
+            const [year, month, day] = event.date.split('-').map(Number);
+            const [startHour, startMin] = event.startTime.split(':').map(Number);
+            const [endHour, endMin] = event.endTime.split(':').map(Number);
+            const start = new Date(year, month - 1, day, startHour, startMin, 0);
+            const end = new Date(year, month - 1, day, endHour, endMin, 0);
+            // Consider events that end after midnight (e.g., 23:55 -> 06:00)
+            if (endHour < startHour || (endHour === startHour && endMin < startMin)) {
+                // Crosses midnight into next day
+                end.setDate(end.getDate() + 1);
+            }
+            return { start, end };
+        }
+
+        // For a given day, return an array of segments { left, width, category, title }
+        // Given a YYYY,MM,DD produce a set of {left,width} segments for all
+        // events overlapping that day. left/width are percentages across a 24h bar.
+        function getDaySegments(year, month, day) {
+            const dayStart = new Date(year, month - 1, day, 0, 0, 0);
+            const dayEnd = new Date(year, month - 1, day, 24, 0, 0);
+            const minutesInDay = 1440;
+            const segments = [];
+            
+            events.forEach(event => {
+                const { start, end } = getEventDateRange(event);
+                // If the event overlaps this day, compute the slice to draw
+                if (end > dayStart && start < dayEnd) {
+                    const segStart = new Date(Math.max(start.getTime(), dayStart.getTime()));
+                    const segEnd = new Date(Math.min(end.getTime(), dayEnd.getTime()));
+                    const startMinutes = (segStart - dayStart) / (1000 * 60);
+                    const endMinutes = (segEnd - dayStart) / (1000 * 60);
+                    const left = (startMinutes / minutesInDay) * 100;
+                    const width = Math.max(0, ((endMinutes - startMinutes) / minutesInDay) * 100);
+                    segments.push({ 
+                        left: `${left}%`, 
+                        width: `${width}%`, 
+                        category: event.category, 
+                        title: event.title,
+                        location: event.location,
+                        startTime: event.startTime,
+                        endTime: event.endTime,
+                        w3w: event.w3w
+                    });
+                }
+            });
+            
+            return segments;
+        }
+        
+        // Update current time
+        function updateCurrentTime() {
+            const now = new Date();
+            const options = { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            };
+            document.getElementById('currentTime').textContent = now.toLocaleString('en-US', options);
+        }
+        
+        // Render calendar
+        function renderCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const days = generateCalendarDays();
+            const today = new Date().toDateString();
+            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            
+            let html = '';
+            
+            // Add weekday headers
+            weekdays.forEach(day => {
+                html += `<div class="weekday-header">${day}</div>`;
+            });
+            
+            // Add calendar days
+            days.forEach(day => {
+                const year = day.getFullYear();
+                const month = String(day.getMonth() + 1).padStart(2, '0');
+                const dayNum = String(day.getDate()).padStart(2, '0');
+                const dateStr = `${year}-${month}-${dayNum}`;
+                const dayEvents = events.filter(e => e.date === dateStr);
+                const isToday = day.toDateString() === today;
+                const phase = getPhase(day);
+                const monthName = day.toLocaleDateString('en-US', { month: 'short' });
+                
+                // Check if day is in our range
+                const startDate = new Date('2025-08-10T12:00:00');
+                const endDate = new Date('2025-09-15T12:00:00');
+                const isInRange = day >= startDate && day <= endDate;
+                
+                if (!isInRange) {
+                    html += `<div class="calendar-day" style="opacity: 0.3;"></div>`;
+                } else {
+                    html += `<div class="calendar-day ${isToday ? 'today' : ''} ${phase}" id="day-${dateStr}">
+                        <div class="day-number">${dayNum}</div>
+                        <div class="day-label">${monthName}</div>`;
+                    
+                    // Render time segments overlapping this day (including cross-midnight)
+                    const segments = getDaySegments(Number(year), Number(month), Number(dayNum));
+                    if (segments.length > 0) {
+                        html += '<div class="time-blocks">';
+                        segments.forEach(seg => {
+                            // Simple colored fill; no text inside to keep clean
+                            html += `<div class="event-block ${seg.category} ${''}"
+                                     style="left: ${seg.left}; width: ${seg.width};"
+                                     onclick="showEventDetails('${seg.title}', '${seg.location}', '${seg.startTime}', '${seg.endTime}', '${seg.w3w}')"
+                                     title="${seg.title}"></div>`;
+                        });
+                        html += '</div>';
+                    }
+                    
+                    html += `</div>`;
+                }
+            });
+            
+            grid.innerHTML = html;
+        }
+        
+        // Update today's events in sidebar
+        function updateTodayEvents() {
+            const todayDiv = document.getElementById('todayEvents');
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const dayNum = String(now.getDate()).padStart(2, '0');
+            const todayStr = `${year}-${month}-${dayNum}`;
+            
+            const todayEvents = events.filter(e => e.date === todayStr);
+            
+            if (todayEvents.length === 0) {
+                todayDiv.innerHTML = '<p style="color: #666; font-style: italic;">No scheduled events today</p>';
+            } else {
+                let html = '';
+                todayEvents.forEach(event => {
+                    const isActive = isEventActive(event);
+                    const status = getEventStatus(event);
+                    
+                    html += `
+                        <div class="event-item ${isActive ? 'active' : ''}" onclick="updateMapLocation(${events.indexOf(event)})">
+                            <div class="event-title">${event.title}</div>
+                            <div class="event-time">${event.startTime} - ${event.endTime}</div>
+                            <div class="event-time">${event.location}</div>
+                            <div class="event-status">${status}</div>
+                        </div>
+                    `;
+                });
+                todayDiv.innerHTML = html;
+            }
+            
+            // Find current active event for map
+            const activeEvent = events.find(e => isEventActive(e));
+            if (activeEvent) {
+                updateMapLocation(events.indexOf(activeEvent));
+            }
+        }
+        
+        // Update map location
+        function updateMapLocation(eventIndex) {
+            const marker = document.getElementById('locationMarker');
+            if (eventIndex >= 0 && eventIndex < events.length) {
+                const event = events[eventIndex];
+                marker.style.display = 'block';
+                marker.setAttribute('transform', `translate(${event.mapCoords.x}, ${event.mapCoords.y})`);
+            } else {
+                marker.style.display = 'none';
+            }
+        }
+        
+        // Show event details (for click handler)
+        function showEventDetails(title, location, startTime, endTime, w3w) {
+            alert(`${title}\n${location}\n${startTime} - ${endTime}\n${w3w}`);
+        }
+        
+        // Update dynamic content
+        function updateDynamicContent() {
+            // Update active states on calendar (across all days/segments)
+            // We select blocks by their title and toggle 'active' based on current time.
+            events.forEach((event) => {
+                const blocks = document.querySelectorAll(`.event-block[title="${CSS.escape(event.title)}"]`);
+                blocks.forEach(block => {
+                    if (isEventActive(event)) {
+                        block.classList.add('active');
+                    } else {
+                        block.classList.remove('active');
+                    }
+                });
+            });
+            
+            // Update sidebar
+            updateTodayEvents();
+        }
+        
+        // Initialize
+        function init() {
+            updateCurrentTime();
+            renderCalendar();
+            updateTodayEvents();
+            
+            // Update every minute
+            setInterval(() => {
+                updateCurrentTime();
+                updateDynamicContent();
+            }, 60000);
+            
+            // Update time every second
+            setInterval(() => {
+                updateCurrentTime();
+            }, 1000);
+            
+            // Scroll to today
+            setTimeout(() => {
+                const todayElement = document.querySelector('.today');
+                if (todayElement) {
+                    todayElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+        }
+        
+        // Start the app
+        init();
+    </script>
+</body>
+</html>
