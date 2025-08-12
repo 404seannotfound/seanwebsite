@@ -107,6 +107,41 @@
             background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
         }
         
+        /* Special day highlights */
+        .calendar-day.man-burn {
+            background: radial-gradient(circle at 85% 20%, rgba(255,180,0,0.35), transparent 40%),
+                        linear-gradient(135deg, #fff3e0 0%, #ffe082 100%);
+            border-color: #ffb300;
+        }
+        .calendar-day.temple-burn {
+            background: radial-gradient(circle at 15% 20%, rgba(255,87,34,0.25), transparent 40%),
+                        linear-gradient(135deg, #fbe9e7 0%, #ffe0b2 100%);
+            border-color: #ff7043;
+        }
+        .calendar-day.last-supper {
+            background: radial-gradient(circle at 50% 90%, rgba(102,126,234,0.25), transparent 40%),
+                        linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-color: #667eea;
+        }
+        .day-badges {
+            display: inline-flex;
+            gap: 6px;
+            margin-left: 6px;
+            vertical-align: middle;
+        }
+        .day-badge {
+            display: inline-block;
+            padding: 1px 6px;
+            border-radius: 10px;
+            font-size: 0.65em;
+            font-weight: 700;
+            color: #fff;
+            line-height: 1.4;
+        }
+        .badge-man { background: #ff9800; }
+        .badge-temple { background: #e64a19; }
+        .badge-supper { background: #667eea; }
+        
         .day-number {
             font-weight: bold;
             font-size: 0.9em;
@@ -897,6 +932,31 @@
             document.getElementById('currentTime').textContent = now.toLocaleString('en-US', options);
         }
         
+        // Helpers: special day styling
+        function getSpecialDayClass(dateStr) {
+            // YYYY-MM-DD
+            if (dateStr === '2025-08-30') return 'man-burn';
+            if (dateStr === '2025-08-31') return 'temple-burn';
+            if (dateStr === '2025-09-06') return 'last-supper';
+            return '';
+        }
+
+        function getSpecialDayBadges(dateStr) {
+            if (dateStr === '2025-08-30') {
+                // Man Burn badge: )'(
+                return `<span class="day-badges"><span class="day-badge badge-man">)&#39;(</span></span>`;
+            }
+            if (dateStr === '2025-08-31') {
+                // Temple badge
+                return `<span class="day-badges"><span class="day-badge badge-temple">Temple</span></span>`;
+            }
+            if (dateStr === '2025-09-06') {
+                // Last Supper badge
+                return `<span class="day-badges"><span class="day-badge badge-supper">Last Supper</span></span>`;
+            }
+            return '';
+        }
+
         // Render calendar
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');
@@ -930,8 +990,10 @@
                 if (!isInRange) {
                     html += `<div class="calendar-day" style="opacity: 0.3;"></div>`;
                 } else {
-                    html += `<div class="calendar-day ${isToday ? 'today' : ''} ${phase}" id="day-${dateStr}">
-                        <div class="day-number">${dayNum}</div>
+                    const specialClass = getSpecialDayClass(dateStr);
+                    const badges = getSpecialDayBadges(dateStr);
+                    html += `<div class="calendar-day ${isToday ? 'today' : ''} ${phase} ${specialClass}" id="day-${dateStr}">
+                        <div class="day-number">${dayNum} ${badges}</div>
                         <div class="day-label">${monthName}</div>`;
                     
                     // Render time segments overlapping this day (including cross-midnight)
