@@ -95,6 +95,11 @@
             box-shadow: 0 0 20px rgba(255, 152, 0, 0.3);
         }
         
+        .calendar-day.selected {
+            outline: 3px solid #3f51b5;
+            box-shadow: 0 0 0 3px rgba(63,81,181,0.2) inset, 0 0 15px rgba(63,81,181,0.35);
+        }
+        
         .calendar-day.pre-event {
             background: linear-gradient(135deg, #f0f4f8 0%, #e8f5e9 100%);
         }
@@ -497,7 +502,7 @@
             </div>
             
             <div class="sidebar">
-                <h2 style="margin-bottom: 20px; color: #333;">Today's Schedule</h2>
+                <h2 id="scheduleTitle" style="margin-bottom: 20px; color: #333;">Today's Schedule</h2>
                 <div id="todayEvents" class="event-details"></div>
                 
                 <div id="map">
@@ -831,6 +836,17 @@
             }
         ];
         
+        // Selected day state (YYYY-MM-DD) or null for 'today'
+        let selectedDateStr = null;
+        
+        // Select a day and refresh UI
+        function selectDay(dateStr) {
+            selectedDateStr = dateStr;
+            renderCalendar();
+            updateTodayEvents();
+            updateCurrentTime();
+        }
+        
         // Generate calendar days
         function generateCalendarDays() {
             const startDate = new Date('2025-08-10T12:00:00');
@@ -991,17 +1007,35 @@
         
         // Update current time
         function updateCurrentTime() {
+            const el = document.getElementById('currentTime');
+            if (!el) return;
             const now = new Date();
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit'
-            };
-            document.getElementById('currentTime').textContent = now.toLocaleString('en-US', options);
+            
+            if (!selectedDateStr) {
+                const options = { 
+                    weekday: 'long', 
+                    year: 'numeric', 
+                    month: 'long', 
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit'
+                };
+                el.textContent = now.toLocaleString('en-US', options);
+                return;
+            }
+            
+            // Show running time distance between selected day (midnight local) and now
+            const target = new Date(`${selectedDateStr}T00:00:00`);
+            let diffMs = target.getTime() - now.getTime();
+            const future = diffMs >= 0;
+            diffMs = Math.abs(diffMs);
+            const totalMinutes = Math.floor(diffMs / (1000 * 60));
+            const days = Math.floor(totalMinutes / (60 * 24));
+            const hours = Math.floor((totalMinutes % (60 * 24)) / 60);
+            const mins = totalMinutes % 60;
+            const label = target.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            el.textContent = `${future ? 'In' : ''} ${days} day${days!==1?'s':''} ${hours} hour${hours!==1?'s':''} ${mins} min${mins!==1?'s':''} ${future ? '' : 'ago'} — ${label}`.trim();
         }
         
         // Helpers: special day styling
@@ -1075,7 +1109,8 @@
                 } else {
                     const specialClass = getSpecialDayClass(dateStr);
                     const badges = getSpecialDayBadges(dateStr);
-                    html += `<div class="calendar-day ${isToday ? 'today' : ''} ${phase} ${specialClass}" id="day-${dateStr}">
+                    const isSelected = selectedDateStr === dateStr;
+                    html += `<div class="calendar-day ${isToday ? 'today' : ''} ${phase} ${specialClass} ${isSelected ? 'selected' : ''}" id="day-${dateStr}" onclick="selectDay('${dateStr}')">
                         <div class="day-number">${dayNum} ${badges}</div>
                         <div class="day-label">${monthName}</div>`;
                     
@@ -1103,11 +1138,20 @@
         // Update today's events in sidebar
         function updateTodayEvents() {
             const todayDiv = document.getElementById('todayEvents');
-            const now = new Date();
-            const year = now.getFullYear();
-            const month = String(now.getMonth() + 1).padStart(2, '0');
-            const dayNum = String(now.getDate()).padStart(2, '0');
+            // Determine which day to show: selected or today
+            const baseDate = selectedDateStr ? new Date(`${selectedDateStr}T00:00:00`) : new Date();
+            const year = baseDate.getFullYear();
+            const month = String(baseDate.getMonth() + 1).padStart(2, '0');
+            const dayNum = String(baseDate.getDate()).padStart(2, '0');
             const todayStr = `${year}-${month}-${dayNum}`;
+            
+            // Update sidebar title
+            const titleEl = document.getElementById('scheduleTitle');
+            if (titleEl) {
+                const label = baseDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+                const isToday = !selectedDateStr || (new Date().toDateString() === baseDate.toDateString());
+                titleEl.textContent = isToday ? `Today's Schedule` : `Schedule for ${label}`;
+            }
             
             // Work on expanded events list
             const allEvents = events.flatMap(e => {
