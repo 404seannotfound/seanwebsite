@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tips & Support - Sean's Website</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+        
+        .subtitle {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+        
+        .content {
+            padding: 40px 30px;
+        }
+        
+        .photo-section {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+        }
+        
+        .photo-container {
+            position: relative;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+        
+        .photo-container:hover {
+            transform: translateY(-5px);
+        }
+        
+        .photo {
+            width: 250px;
+            height: 250px;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .photo-placeholder {
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 3em;
+        }
+        
+        .payment-section {
+            margin-top: 30px;
+        }
+        
+        .section-title {
+            font-size: 1.8em;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .payment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 30px;
+        }
+        
+        .payment-card {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+        }
+        
+        .payment-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            border-color: #667eea;
+        }
+        
+        .payment-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+        }
+        
+        .payment-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        
+        .payment-handle {
+            font-size: 0.95em;
+            color: #666;
+            font-family: monospace;
+        }
+        
+        /* Specific payment colors */
+        .payment-card.paypal:hover {
+            border-color: #0070ba;
+        }
+        
+        .payment-card.venmo:hover {
+            border-color: #008CFF;
+        }
+        
+        .payment-card.applecash:hover {
+            border-color: #000000;
+        }
+        
+        .payment-card.zelle:hover {
+            border-color: #6d1ed4;
+        }
+        
+        .payment-card.cashapp:hover {
+            border-color: #00d632;
+        }
+        
+        .payment-card.bitcoin:hover {
+            border-color: #f7931a;
+        }
+        
+        .qr-section {
+            margin-top: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        
+        .qr-section h3 {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 20px;
+        }
+        
+        .qr-code-container {
+            display: inline-block;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        
+        .qr-code {
+            max-width: 250px;
+            width: 250px;
+            height: auto;
+            display: block;
+        }
+        
+        .message {
+            text-align: center;
+            margin-top: 40px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f0f4f8 0%, #e8f5e9 100%);
+            border-radius: 15px;
+            color: #333;
+            font-size: 1.1em;
+            line-height: 1.6;
+        }
+        
+        .message strong {
+            color: #667eea;
+        }
+        
+        footer {
+            background: #f8f8f8;
+            padding: 20px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+        }
+        
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2em;
+            }
+            
+            .photo {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .photo-placeholder {
+                width: 200px;
+                height: 200px;
+            }
+            
+            .payment-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💝 Tips & Support</h1>
+            <p class="subtitle">Thank you for your generosity!</p>
+        </header>
+        
+        <div class="content">
+            <!-- Photo Section -->
+            <div class="photo-section">
+                <div class="photo-container">
+                    <img src="images/IMG_0184-2.jpg" alt="Sean" class="photo">
+                </div>
+                <div class="photo-container">
+                    <img src="images/IMG_2390.JPG" alt="Sean spinning fire" class="photo">
+                </div>
+                <div class="photo-container">
+                    <img src="images/Untitled-1.jpg" alt="Sean" class="photo">
+                </div>
+                <div class="photo-container">
+                    <img src="images/att.L4qSEAKAXbjbuLwpaq5m5YmaMk3-BfSBbyvPoS1ZpBY.jpg" alt="Sean" class="photo">
+                </div>
+            </div>
+            
+            <!-- Payment Section -->
+            <div class="payment-section">
+                <h2 class="section-title">Choose Your Preferred Payment Method</h2>
+                
+                <div class="payment-grid">
+                    <!-- PayPal -->
+                    <a href="https://paypal.me/dseansp" class="payment-card paypal" target="_blank">
+                        <div class="payment-icon">💙</div>
+                        <div class="payment-name">PayPal</div>
+                        <div class="payment-handle">dseansp - Friendly Fire</div>
+                    </a>
+                    
+                    <!-- Venmo -->
+                    <a href="https://venmo.com/dseansp" class="payment-card venmo" target="_blank">
+                        <div class="payment-icon">💸</div>
+                        <div class="payment-name">Venmo</div>
+                        <div class="payment-handle">dseansp</div>
+                    </a>
+                    
+                    <!-- Cash App -->
+                    <a href="https://cash.app/$dseansp" class="payment-card cashapp" target="_blank">
+                        <div class="payment-icon">💵</div>
+                        <div class="payment-name">Cash App</div>
+                        <div class="payment-handle">$dseansp</div>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- QR Code Section -->
+            <div class="qr-section">
+                <div style="display: flex; gap: 20px; justify-content: center; align-items: center;">
+                    <div class="qr-code-container">
+                        <img src="images/paypal.JPG" alt="PayPal QR Code" class="qr-code">
+                    </div>
+                    <div class="qr-code-container">
+                        <img src="images/zelle.JPG" alt="Zelle QR Code" class="qr-code">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Thank You Message -->
+            <div class="message">
+                <strong>Thank you for your support!</strong><br>
+                Your tips help me continue creating awesome projects, spinning fire, and bringing joy to the community. 
+                Every contribution is deeply appreciated! 🙏✨
+            </div>
+        </div>
+        
+        <footer>
+            <p>&copy; 2025 Derek Sean Spratt. All rights reserved.</p>
+            <p style="margin-top: 10px;"><a href="index.html" style="color: #667eea; text-decoration: none;">← Back to Home</a></p>
+        </footer>
+    </div>
+    
+    <script>
+        // Function to copy Bitcoin address to clipboard
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('Bitcoin address copied to clipboard!');
+            }, function(err) {
+                alert('Bitcoin address: ' + text);
+            });
+        }
+    </script>
+</body>
+</html>
