@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NFL Live Game Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Game Selection Screen -->
+        <div id="selection-screen" class="screen active">
+            <header>
+                <h1>🏈 NFL Live Game Tracker</h1>
+                <p class="subtitle">Select games to watch live</p>
+            </header>
+            
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading live games...</p>
+            </div>
+            
+            <div id="game-list" class="game-list"></div>
+            
+            <div id="no-games" class="no-games" style="display: none;">
+                <p>No live games at the moment. Check back during game day!</p>
+            </div>
+            
+            <button id="watch-btn" class="watch-btn" style="display: none;">
+                Watch Selected Games
+            </button>
+        </div>
+        
+        <!-- Live View Screen -->
+        <div id="live-screen" class="screen">
+            <header class="live-header">
+                <h1>🏈 NFL Live</h1>
+                <button id="back-btn" class="back-btn">← Back to Selection</button>
+            </header>
+            
+            <div id="game-panels" class="game-panels"></div>
+        </div>
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
