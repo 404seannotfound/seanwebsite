@@ -139,6 +139,19 @@ body {
     margin-bottom: 5px;
 }
 
+.team-record {
+    font-size: 0.85rem;
+    opacity: 0.8;
+    margin: 3px 0;
+}
+
+.team-division {
+    font-size: 0.75rem;
+    opacity: 0.7;
+    font-style: italic;
+    margin: 2px 0;
+}
+
 .team-score {
     font-size: 2rem;
     font-weight: bold;
@@ -304,6 +317,27 @@ body {
     margin-bottom: 5px;
 }
 
+.panel-team-record {
+    font-size: 0.8rem;
+    opacity: 0.8;
+    margin: 3px 0;
+}
+
+.panel-team-division {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    font-style: italic;
+    margin: 2px 0;
+}
+
+.panel-team-seed {
+    font-size: 0.75rem;
+    background: rgba(255,255,255,0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin: 3px 0;
+}
+
 .panel-team-score {
     font-size: 1.8rem;
     font-weight: bold;
@@ -361,6 +395,122 @@ body {
     opacity: 0.7;
 }
 
+/* Team Standings Section */
+.standings-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+}
+
+.standings-section h3 {
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: #4CAF50;
+}
+
+.standings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.team-standing {
+    background: rgba(255,255,255,0.05);
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 3px solid #4CAF50;
+}
+
+.team-standing h4 {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: #fff;
+}
+
+.standing-stat {
+    font-size: 0.85rem;
+    margin: 5px 0;
+    padding: 3px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.standing-stat:last-child {
+    border-bottom: none;
+}
+
+.standing-stat strong {
+    color: #4CAF50;
+    margin-right: 5px;
+}
+
+/* Playoff Scenarios Section */
+.playoff-section {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255,215,0,0.1);
+    border-radius: 10px;
+    border: 2px solid rgba(255,215,0,0.3);
+}
+
+.playoff-section h3 {
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    color: #FFD700;
+}
+
+.playoff-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+}
+
+.team-playoff {
+    background: rgba(255,255,255,0.05);
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 3px solid #FFD700;
+}
+
+.team-playoff h4 {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: #FFD700;
+}
+
+.playoff-status {
+    margin-bottom: 12px;
+}
+
+.scenario {
+    font-size: 0.85rem;
+    margin: 5px 0;
+    padding: 5px 8px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 5px;
+}
+
+.playoff-path {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.2);
+}
+
+.playoff-path strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #FFD700;
+}
+
+.path-step {
+    font-size: 0.85rem;
+    margin: 5px 0;
+    padding: 5px 8px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 5px;
+    border-left: 2px solid #FFD700;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .game-list {
@@ -381,5 +531,10 @@ body {
     
     #selection-screen h1 {
         font-size: 2rem;
+    }
+    
+    .standings-grid,
+    .playoff-grid {
+        grid-template-columns: 1fr;
     }
 }

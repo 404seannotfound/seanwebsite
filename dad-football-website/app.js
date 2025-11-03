@@ -4,6 +4,7 @@ class NFLGameTracker {
     constructor() {
         this.selectedGames = new Set();
         this.allGames = [];
+        this.standings = null;
         this.updateInterval = null;
         this.init();
     }
@@ -42,9 +43,13 @@ class NFLGameTracker {
         noGames.style.display = 'none';
 
         try {
-            // Fetch live NFL games from ESPN API
-            const games = await this.fetchNFLGames();
+            // Fetch both games and standings
+            const [games, standings] = await Promise.all([
+                this.fetchNFLGames(),
+                this.fetchNFLStandings()
+            ]);
             this.allGames = games;
+            this.standings = standings;
 
             loading.style.display = 'none';
 
@@ -87,16 +92,20 @@ class NFLGameTracker {
                     isLive: competition.status.type.state === 'in',
                     isCompleted: competition.status.type.completed,
                     homeTeam: {
+                        id: homeTeam.team.id,
                         name: homeTeam.team.displayName,
                         shortName: homeTeam.team.abbreviation,
                         score: homeTeam.score,
-                        logo: homeTeam.team.logo
+                        logo: homeTeam.team.logo,
+                        record: homeTeam.records?.[0]?.summary || 'N/A'
                     },
                     awayTeam: {
+                        id: awayTeam.team.id,
                         name: awayTeam.team.displayName,
                         shortName: awayTeam.team.abbreviation,
                         score: awayTeam.score,
-                        logo: awayTeam.team.logo
+                        logo: awayTeam.team.logo,
+                        record: awayTeam.records?.[0]?.summary || 'N/A'
                     },
                     venue: competition.venue?.fullName || 'TBD',
                     broadcast: competition.broadcasts?.[0]?.names?.[0] || 'N/A',
@@ -107,6 +116,147 @@ class NFLGameTracker {
             console.error('Error fetching NFL games:', error);
             throw error;
         }
+    }
+
+    async fetchNFLStandings() {
+        try {
+            const response = await fetch('https://site.api.espn.com/apis/v2/sports/football/nfl/standings');
+            const data = await response.json();
+            
+            const standings = {
+                afc: { divisions: {}, playoffPicture: [] },
+                nfc: { divisions: {}, playoffPicture: [] }
+            };
+
+            // Process standings by conference and division
+            if (data.children) {
+                data.children.forEach(conference => {
+                    const confName = conference.abbreviation.toLowerCase(); // 'afc' or 'nfc'
+                    
+                    if (conference.children) {
+                        conference.children.forEach(division => {
+                            const divName = division.name; // e.g., "AFC East"
+                            const teams = [];
+                            
+                            if (division.standings?.entries) {
+                                division.standings.entries.forEach(entry => {
+                                    const team = entry.team;
+                                    const stats = {};
+                                    entry.stats.forEach(stat => {
+                                        stats[stat.name] = stat.value;
+                                    });
+                                    
+                                    teams.push({
+                                        id: team.id,
+                                        name: team.displayName,
+                                        abbreviation: team.abbreviation,
+                                        logo: team.logos?.[0]?.href,
+                                        wins: stats.wins || 0,
+                                        losses: stats.losses || 0,
+                                        ties: stats.ties || 0,
+                                        winPercent: stats.winPercent || 0,
+                                        gamesPlayed: stats.gamesPlayed || 0,
+                                        pointsFor: stats.pointsFor || 0,
+                                        pointsAgainst: stats.pointsAgainst || 0,
+                                        divisionRank: stats.divisionRank || 0,
+                                        playoffSeed: stats.playoffSeed || 0
+                                    });
+                                });
+                            }
+                            
+                            standings[confName].divisions[divName] = teams;
+                        });
+                    }
+                });
+            }
+
+            return standings;
+        } catch (error) {
+            console.error('Error fetching NFL standings:', error);
+            return null;
+        }
+    }
+
+    getTeamStanding(teamId) {
+        if (!this.standings) return null;
+        
+        for (const conf of ['afc', 'nfc']) {
+            for (const divName in this.standings[conf].divisions) {
+                const team = this.standings[conf].divisions[divName].find(t => t.id === teamId);
+                if (team) {
+                    return {
+                        ...team,
+                        conference: conf.toUpperCase(),
+                        division: divName
+                    };
+                }
+            }
+        }
+        return null;
+    }
+
+    calculatePlayoffScenario(teamId) {
+        const teamStanding = this.getTeamStanding(teamId);
+        if (!teamStanding) return null;
+
+        const conf = teamStanding.conference.toLowerCase();
+        const division = teamStanding.division;
+        const divisionTeams = this.standings[conf].divisions[division];
+        
+        // Get all conference teams sorted by playoff seed
+        const allConfTeams = [];
+        for (const divName in this.standings[conf].divisions) {
+            allConfTeams.push(...this.standings[conf].divisions[divName]);
+        }
+        allConfTeams.sort((a, b) => {
+            if (b.winPercent !== a.winPercent) return b.winPercent - a.winPercent;
+            return b.wins - a.wins;
+        });
+
+        const teamRankInConf = allConfTeams.findIndex(t => t.id === teamId) + 1;
+        const divisionLeader = divisionTeams[0];
+        const isDivisionLeader = divisionLeader.id === teamId;
+        const gamesRemaining = 17 - teamStanding.gamesPlayed;
+
+        // Calculate scenarios
+        const scenarios = [];
+        
+        if (teamRankInConf <= 7) {
+            scenarios.push(`✅ Currently in playoff position (#${teamRankInConf} seed)`);
+        } else {
+            scenarios.push(`❌ Currently outside playoffs (Ranked #${teamRankInConf} in ${conf.toUpperCase()})`);
+        }
+
+        if (isDivisionLeader) {
+            scenarios.push(`🏆 Leading ${division}`);
+        } else {
+            const gamesBack = divisionLeader.wins - teamStanding.wins;
+            scenarios.push(`📊 ${gamesBack} game(s) behind division leader (${divisionLeader.abbreviation})`);
+        }
+
+        if (gamesRemaining > 0) {
+            scenarios.push(`📅 ${gamesRemaining} game(s) remaining in regular season`);
+        }
+
+        // Path to Super Bowl
+        const pathToSuperBowl = [];
+        if (teamRankInConf <= 7) {
+            pathToSuperBowl.push('1️⃣ Win Wild Card Round');
+            pathToSuperBowl.push('2️⃣ Win Divisional Round');
+            pathToSuperBowl.push('3️⃣ Win Conference Championship');
+            pathToSuperBowl.push('🏆 Super Bowl LIX');
+        } else {
+            pathToSuperBowl.push('⚠️ Must make playoffs first');
+            pathToSuperBowl.push(`Need to be top 7 in ${conf.toUpperCase()} (currently #${teamRankInConf})`);
+        }
+
+        return {
+            currentSeed: teamRankInConf,
+            inPlayoffs: teamRankInConf <= 7,
+            scenarios,
+            pathToSuperBowl,
+            gamesRemaining
+        };
     }
 
     renderGameList(games) {
@@ -127,18 +277,26 @@ class NFLGameTracker {
         const statusClass = game.isLive ? 'live' : '';
         const statusText = game.isLive ? '🔴 LIVE' : game.status;
 
+        // Get team standings
+        const awayStanding = this.getTeamStanding(game.awayTeam.id);
+        const homeStanding = this.getTeamStanding(game.homeTeam.id);
+
         card.innerHTML = `
             <div class="game-status ${statusClass}">${statusText}</div>
             <div class="game-matchup">
                 <div class="team">
                     <img src="${game.awayTeam.logo}" alt="${game.awayTeam.name}" class="team-logo">
                     <div class="team-name">${game.awayTeam.name}</div>
+                    <div class="team-record">${game.awayTeam.record}</div>
+                    ${awayStanding ? `<div class="team-division">${awayStanding.division}</div>` : ''}
                     <div class="team-score">${game.awayTeam.score}</div>
                 </div>
                 <div class="vs">@</div>
                 <div class="team">
                     <img src="${game.homeTeam.logo}" alt="${game.homeTeam.name}" class="team-logo">
                     <div class="team-name">${game.homeTeam.name}</div>
+                    <div class="team-record">${game.homeTeam.record}</div>
+                    ${homeStanding ? `<div class="team-division">${homeStanding.division}</div>` : ''}
                     <div class="team-score">${game.homeTeam.score}</div>
                 </div>
             </div>
@@ -219,6 +377,10 @@ class NFLGameTracker {
         panel.dataset.gameId = game.id;
 
         const statusText = game.isLive ? '🔴 LIVE' : game.status;
+        const awayStanding = this.getTeamStanding(game.awayTeam.id);
+        const homeStanding = this.getTeamStanding(game.homeTeam.id);
+        const awayPlayoff = this.calculatePlayoffScenario(game.awayTeam.id);
+        const homePlayoff = this.calculatePlayoffScenario(game.homeTeam.id);
 
         panel.innerHTML = `
             <div class="panel-header">
@@ -227,12 +389,18 @@ class NFLGameTracker {
                     <div class="panel-team">
                         <img src="${game.awayTeam.logo}" alt="${game.awayTeam.name}" class="panel-team-logo">
                         <div class="panel-team-name">${game.awayTeam.name}</div>
+                        <div class="panel-team-record">${game.awayTeam.record}</div>
+                        ${awayStanding ? `<div class="panel-team-division">${awayStanding.division}</div>` : ''}
+                        ${awayPlayoff ? `<div class="panel-team-seed">Seed: #${awayPlayoff.currentSeed}</div>` : ''}
                         <div class="panel-team-score">${game.awayTeam.score}</div>
                     </div>
                     <div class="panel-vs">@</div>
                     <div class="panel-team">
                         <img src="${game.homeTeam.logo}" alt="${game.homeTeam.name}" class="panel-team-logo">
                         <div class="panel-team-name">${game.homeTeam.name}</div>
+                        <div class="panel-team-record">${game.homeTeam.record}</div>
+                        ${homeStanding ? `<div class="panel-team-division">${homeStanding.division}</div>` : ''}
+                        ${homePlayoff ? `<div class="panel-team-seed">Seed: #${homePlayoff.currentSeed}</div>` : ''}
                         <div class="panel-team-score">${game.homeTeam.score}</div>
                     </div>
                 </div>
@@ -243,11 +411,83 @@ class NFLGameTracker {
                 </div>
             </div>
             <div class="panel-details">
+                ${this.renderTeamStandings(awayStanding, homeStanding)}
+                ${this.renderPlayoffScenarios(game.awayTeam.name, awayPlayoff, game.homeTeam.name, homePlayoff)}
                 ${this.renderPanelLinks(game)}
             </div>
         `;
 
         return panel;
+    }
+
+    renderTeamStandings(awayStanding, homeStanding) {
+        if (!awayStanding && !homeStanding) return '';
+
+        return `
+            <div class="standings-section">
+                <h3>📊 Team Rankings</h3>
+                <div class="standings-grid">
+                    ${awayStanding ? `
+                        <div class="team-standing">
+                            <h4>${awayStanding.name}</h4>
+                            <div class="standing-stat"><strong>Record:</strong> ${awayStanding.wins}-${awayStanding.losses}${awayStanding.ties > 0 ? `-${awayStanding.ties}` : ''}</div>
+                            <div class="standing-stat"><strong>Conference:</strong> ${awayStanding.conference}</div>
+                            <div class="standing-stat"><strong>Division:</strong> ${awayStanding.division}</div>
+                            <div class="standing-stat"><strong>Division Rank:</strong> #${awayStanding.divisionRank}</div>
+                            <div class="standing-stat"><strong>Points For:</strong> ${awayStanding.pointsFor}</div>
+                            <div class="standing-stat"><strong>Points Against:</strong> ${awayStanding.pointsAgainst}</div>
+                        </div>
+                    ` : ''}
+                    ${homeStanding ? `
+                        <div class="team-standing">
+                            <h4>${homeStanding.name}</h4>
+                            <div class="standing-stat"><strong>Record:</strong> ${homeStanding.wins}-${homeStanding.losses}${homeStanding.ties > 0 ? `-${homeStanding.ties}` : ''}</div>
+                            <div class="standing-stat"><strong>Conference:</strong> ${homeStanding.conference}</div>
+                            <div class="standing-stat"><strong>Division:</strong> ${homeStanding.division}</div>
+                            <div class="standing-stat"><strong>Division Rank:</strong> #${homeStanding.divisionRank}</div>
+                            <div class="standing-stat"><strong>Points For:</strong> ${homeStanding.pointsFor}</div>
+                            <div class="standing-stat"><strong>Points Against:</strong> ${homeStanding.pointsAgainst}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }
+
+    renderPlayoffScenarios(awayTeamName, awayPlayoff, homeTeamName, homePlayoff) {
+        if (!awayPlayoff && !homePlayoff) return '';
+
+        return `
+            <div class="playoff-section">
+                <h3>🏆 Path to Super Bowl</h3>
+                <div class="playoff-grid">
+                    ${awayPlayoff ? `
+                        <div class="team-playoff">
+                            <h4>${awayTeamName}</h4>
+                            <div class="playoff-status">
+                                ${awayPlayoff.scenarios.map(s => `<div class="scenario">${s}</div>`).join('')}
+                            </div>
+                            <div class="playoff-path">
+                                <strong>Steps to Super Bowl:</strong>
+                                ${awayPlayoff.pathToSuperBowl.map(step => `<div class="path-step">${step}</div>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                    ${homePlayoff ? `
+                        <div class="team-playoff">
+                            <h4>${homeTeamName}</h4>
+                            <div class="playoff-status">
+                                ${homePlayoff.scenarios.map(s => `<div class="scenario">${s}</div>`).join('')}
+                            </div>
+                            <div class="playoff-path">
+                                <strong>Steps to Super Bowl:</strong>
+                                ${homePlayoff.pathToSuperBowl.map(step => `<div class="path-step">${step}</div>`).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
     }
 
     renderPanelLinks(game) {
@@ -297,8 +537,12 @@ class NFLGameTracker {
 
     async updateLivePanels() {
         try {
-            const games = await this.fetchNFLGames();
+            const [games, standings] = await Promise.all([
+                this.fetchNFLGames(),
+                this.fetchNFLStandings()
+            ]);
             this.allGames = games;
+            this.standings = standings;
 
             const selectedGameData = games.filter(game => this.selectedGames.has(game.id));
 
