@@ -307,7 +307,18 @@ class NFLGameTracker {
             </div>
         `;
 
+        // Single click to select/deselect
         card.addEventListener('click', () => this.toggleGameSelection(game.id, card));
+        
+        // Double click to go straight to detail view
+        card.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            this.selectedGames.clear();
+            document.querySelectorAll('.game-card').forEach(c => c.classList.remove('selected'));
+            this.selectedGames.add(game.id);
+            card.classList.add('selected');
+            this.showLiveView();
+        });
 
         return card;
     }
@@ -495,19 +506,84 @@ class NFLGameTracker {
             return '<p>No additional links available</p>';
         }
 
+        // Enhanced link descriptions with icons and previews
+        const linkDescriptions = {
+            'Gamecast': {
+                icon: '🎮',
+                title: 'Live Gamecast',
+                description: 'Play-by-play action, real-time stats, and game flow',
+                highlight: 'Interactive game tracker'
+            },
+            'Play-by-Play': {
+                icon: '📋',
+                title: 'Detailed Play-by-Play',
+                description: 'Every snap, every yard, complete game breakdown',
+                highlight: 'Full game timeline'
+            },
+            'Box Score': {
+                icon: '📊',
+                title: 'Complete Box Score',
+                description: 'Player stats, team totals, and performance metrics',
+                highlight: 'All the numbers'
+            },
+            'Recap': {
+                icon: '📰',
+                title: 'Game Recap & Highlights',
+                description: 'Key moments, turning points, and expert analysis',
+                highlight: 'Story of the game'
+            },
+            'Highlights': {
+                icon: '🎬',
+                title: 'Video Highlights',
+                description: 'Watch the best plays and biggest moments',
+                highlight: 'Must-see action'
+            },
+            'Commentary': {
+                icon: '🎙️',
+                title: 'Expert Commentary',
+                description: 'Analysis and insights from the pros',
+                highlight: 'Expert breakdown'
+            },
+            'Now': {
+                icon: '⚡',
+                title: 'Live Updates',
+                description: 'Real-time scores and instant notifications',
+                highlight: 'Stay in the action'
+            }
+        };
+
         const linksHTML = game.links
             .filter(link => link.href)
-            .map(link => `
-                <a href="${link.href}" target="_blank" class="panel-link">
-                    ${link.text || 'View Details'} →
-                </a>
-            `)
+            .map(link => {
+                const linkText = link.text || 'View Details';
+                const linkInfo = linkDescriptions[linkText] || {
+                    icon: '🔗',
+                    title: linkText,
+                    description: 'Additional game information and details',
+                    highlight: 'Click to explore'
+                };
+                
+                return `
+                    <a href="${link.href}" target="_blank" class="panel-link enhanced-link">
+                        <div class="link-icon">${linkInfo.icon}</div>
+                        <div class="link-content">
+                            <div class="link-title">${linkInfo.title}</div>
+                            <div class="link-description">${linkInfo.description}</div>
+                            <div class="link-highlight">✨ ${linkInfo.highlight}</div>
+                        </div>
+                        <div class="link-arrow">→</div>
+                    </a>
+                `;
+            })
             .join('');
 
         return `
-            <h3>Links & Resources</h3>
-            <div class="panel-links">
-                ${linksHTML}
+            <div class="links-section">
+                <h3>🔥 Watch More & Dive Deeper</h3>
+                <p class="links-subtitle">Click any option below for more game content</p>
+                <div class="panel-links">
+                    ${linksHTML}
+                </div>
             </div>
         `;
     }
