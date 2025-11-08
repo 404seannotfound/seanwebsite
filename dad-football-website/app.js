@@ -333,6 +333,38 @@ class NFLGameTracker {
             card.style.animation = `slideInUp 0.6s ease-out ${index * 0.1}s both`;
             gameList.appendChild(card);
         });
+        
+        // Render standings details below
+        this.renderStandingsDetails();
+    }
+    
+    renderStandingsDetails() {
+        const detailsContainer = document.getElementById('standings-details');
+        if (!detailsContainer) return;
+        
+        if (!this.standings) {
+            detailsContainer.innerHTML = '';
+            return;
+        }
+        
+        // Render both conferences
+        detailsContainer.innerHTML = `
+            <div class="conference-standings">
+                ${this.renderFullStandingsTable('AFC')}
+                ${this.renderFullStandingsTable('NFC')}
+            </div>
+            <div class="playoff-explainer-main">
+                <div class="explainer-header">📚 How NFL Playoffs Work:</div>
+                <div class="explainer-content">
+                    <strong>Regular Season:</strong> 17 games to determine playoff seeding<br>
+                    <strong>Playoffs:</strong> 7 teams per conference (AFC & NFC) make it<br>
+                    <strong>Seeds #1-2:</strong> Get BYE week (skip Wild Card, rest up!)<br>
+                    <strong>Seeds #3-4:</strong> Division winners, host Wild Card games<br>
+                    <strong>Seeds #5-7:</strong> Wild Card teams, play on the road<br>
+                    <strong>Total Games to Win:</strong> 3 games (or 4 for Wild Card teams) = Super Bowl!
+                </div>
+            </div>
+        `;
     }
 
     createGameCard(game) {

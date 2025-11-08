@@ -418,6 +418,45 @@ body::before {
     height: 300px;
 }
 
+/* Standings Details Section on Main Page */
+.standings-details-section {
+    max-width: 1400px;
+    margin: 40px auto;
+    padding: 20px;
+}
+
+.conference-standings {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.playoff-explainer-main {
+    background: linear-gradient(135deg, rgba(33,150,243,0.2), rgba(3,169,244,0.2));
+    border: 2px solid rgba(33,150,243,0.4);
+    border-radius: 12px;
+    padding: 20px;
+    margin: 0 auto;
+    max-width: 1000px;
+    animation: subtleGlow 3s ease-in-out infinite;
+}
+
+.playoff-explainer-main .explainer-header {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #64B5F6;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.playoff-explainer-main .explainer-content {
+    font-size: 1rem;
+    line-height: 2;
+    color: rgba(255,255,255,0.95);
+    text-align: center;
+}
+
 .watch-btn:hover {
     background: linear-gradient(135deg, #45a049, #66BB6A, #45a049);
     transform: scale(1.1) translateY(-3px);
