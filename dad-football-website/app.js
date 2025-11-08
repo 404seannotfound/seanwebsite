@@ -764,34 +764,10 @@ class NFLGameTracker {
         const container = document.getElementById(`history-${game.id}`);
         if (!container) return;
         
-        try {
-            const history = await this.fetchTeamHistory(game.awayTeam.id, game.homeTeam.id);
-            
-            if (!history || history.length === 0) {
-                // Show sample data as fallback
-                console.log('No API history, using sample data');
-                const sampleGames = this.generateSampleHistory(game.awayTeam.shortName, game.homeTeam.shortName);
-                container.innerHTML = this.renderHistoricalChart(sampleGames, game.awayTeam, game.homeTeam, true);
-                return;
-            }
-            
-            // Transform API data to chart format
-            const chartGames = history.map(h => ({
-                year: h.year,
-                awayScore: h.awayTeam.id === game.awayTeam.id ? h.awayTeam.score : h.homeTeam.score,
-                homeScore: h.homeTeam.id === game.homeTeam.id ? h.homeTeam.score : h.awayTeam.score,
-                winner: h.awayTeam.score > h.homeTeam.score ? 
-                    (h.awayTeam.id === game.awayTeam.id ? game.awayTeam.shortName : game.homeTeam.shortName) :
-                    (h.homeTeam.id === game.homeTeam.id ? game.homeTeam.shortName : game.awayTeam.shortName)
-            }));
-            
-            container.innerHTML = this.renderHistoricalChart(chartGames, game.awayTeam, game.homeTeam, false);
-        } catch (error) {
-            console.error('Error loading historical data:', error);
-            // Show sample data on error
-            const sampleGames = this.generateSampleHistory(game.awayTeam.shortName, game.homeTeam.shortName);
-            container.innerHTML = this.renderHistoricalChart(sampleGames, game.awayTeam, game.homeTeam, true);
-        }
+        // Use sample data directly - ESPN API doesn't provide reliable historical matchup data
+        console.log('Generating sample historical data for visualization');
+        const sampleGames = this.generateSampleHistory(game.awayTeam.shortName, game.homeTeam.shortName);
+        container.innerHTML = this.renderHistoricalChart(sampleGames, game.awayTeam, game.homeTeam, true);
     }
 
     generateSampleHistory(awayTeam, homeTeam) {
