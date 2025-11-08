@@ -311,6 +311,27 @@ body::before {
     margin: 2px 0;
 }
 
+.team-seed-badge {
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    margin: 4px 0;
+    border-radius: 10px;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.team-seed-badge.in-playoffs {
+    background: linear-gradient(135deg, rgba(76,175,80,0.3), rgba(56,142,60,0.3));
+    border: 1px solid rgba(76,175,80,0.5);
+    color: #81C784;
+}
+
+.team-seed-badge.out-playoffs {
+    background: linear-gradient(135deg, rgba(244,67,54,0.3), rgba(211,47,47,0.3));
+    border: 1px solid rgba(244,67,54,0.5);
+    color: #EF5350;
+}
+
 .team-odds {
     font-size: 0.8rem;
     padding: 4px 10px;

@@ -356,9 +356,17 @@ class NFLGameTracker {
         const awayStanding = this.getTeamStanding(game.awayTeam.id);
         const homeStanding = this.getTeamStanding(game.homeTeam.id);
         
+        // Get playoff scenarios for seed ranking
+        const awayPlayoff = this.calculatePlayoffScenario(game.awayTeam.id);
+        const homePlayoff = this.calculatePlayoffScenario(game.homeTeam.id);
+        
         // Format odds
         const awayOddsHTML = game.awayTeam.odds ? `<div class="team-odds">${this.formatOdds(game.awayTeam.odds)}</div>` : '';
         const homeOddsHTML = game.homeTeam.odds ? `<div class="team-odds">${this.formatOdds(game.homeTeam.odds)}</div>` : '';
+        
+        // Format seed ranking
+        const awaySeedHTML = awayPlayoff ? `<div class="team-seed-badge ${awayPlayoff.inPlayoffs ? 'in-playoffs' : 'out-playoffs'}">Seed: #${awayPlayoff.currentSeed} ${awayPlayoff.inPlayoffs ? '✓' : '✗'}</div>` : '';
+        const homeSeedHTML = homePlayoff ? `<div class="team-seed-badge ${homePlayoff.inPlayoffs ? 'in-playoffs' : 'out-playoffs'}">Seed: #${homePlayoff.currentSeed} ${homePlayoff.inPlayoffs ? '✓' : '✗'}</div>` : '';
 
         card.innerHTML = `
             <div class="game-status ${statusClass}">${statusText}</div>
@@ -369,6 +377,7 @@ class NFLGameTracker {
                     <div class="team-name">${game.awayTeam.name}</div>
                     <div class="team-record">${game.awayTeam.record}</div>
                     ${awayStanding ? `<div class="team-division">${awayStanding.division}</div>` : ''}
+                    ${awaySeedHTML}
                     ${awayOddsHTML}
                     <div class="team-score">${game.awayTeam.score}</div>
                 </div>
@@ -378,6 +387,7 @@ class NFLGameTracker {
                     <div class="team-name">${game.homeTeam.name}</div>
                     <div class="team-record">${game.homeTeam.record}</div>
                     ${homeStanding ? `<div class="team-division">${homeStanding.division}</div>` : ''}
+                    ${homeSeedHTML}
                     ${homeOddsHTML}
                     <div class="team-score">${game.homeTeam.score}</div>
                 </div>
