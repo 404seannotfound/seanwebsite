@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NASCAR Live Race Tracker</title>
+    <link rel="stylesheet" href="nascar-styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Race Selection Screen -->
+        <div id="selection-screen" class="screen active">
+            <header>
+                <div class="header-glow"></div>
+                <h1>🏁 NASCAR Live Race Tracker</h1>
+                <p class="subtitle">Select races to watch live</p>
+                <p class="hint">💡 Tip: Double-click any race to view it instantly!</p>
+            </header>
+            
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading live races...</p>
+            </div>
+            
+            <div id="race-list" class="race-list"></div>
+            
+            <div id="no-races" class="no-races" style="display: none;">
+                <p>No live races at the moment.</p>
+                <p style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;">Showing recent race results and current standings below 👇</p>
+            </div>
+            
+            <button id="watch-btn" class="watch-btn" style="display: none;">
+                Watch Selected Races
+            </button>
+            
+            <!-- Standings and Details Section -->
+            <div id="standings-details" class="standings-details-section"></div>
+        </div>
+        
+        <!-- Live View Screen -->
+        <div id="live-screen" class="screen">
+            <header class="live-header">
+                <h1>🏁 NASCAR Live</h1>
+                <button id="back-btn" class="back-btn">← Back to Selection</button>
+            </header>
+            
+            <div id="race-panels" class="race-panels"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Force reload with timestamp to bypass cache
+        const timestamp = new Date().getTime();
+        const script = document.createElement('script');
+        script.src = 'nascar-app.js?t=' + timestamp;
+        document.body.appendChild(script);
+    </script>
+</body>
+</html>

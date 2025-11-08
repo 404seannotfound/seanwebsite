@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MMA Live Fight Tracker</title>
+    <link rel="stylesheet" href="mma-styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Fight Selection Screen -->
+        <div id="selection-screen" class="screen active">
+            <header>
+                <div class="header-glow"></div>
+                <h1>🥊 MMA Live Fight Tracker</h1>
+                <p class="subtitle">Select fights to watch live</p>
+                <p class="hint">💡 Tip: Double-click any fight to view it instantly!</p>
+            </header>
+            
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading live fights...</p>
+            </div>
+            
+            <div id="fight-list" class="fight-list"></div>
+            
+            <div id="no-fights" class="no-fights" style="display: none;">
+                <p>No live fights at the moment.</p>
+                <p style="font-size: 0.9rem; margin-top: 10px; opacity: 0.8;">Upcoming events shown below 👇</p>
+            </div>
+            
+            <button id="watch-btn" class="watch-btn" style="display: none;">
+                Watch Selected Fights
+            </button>
+            
+            <!-- Events Section -->
+            <div id="events-details" class="events-details-section"></div>
+        </div>
+        
+        <!-- Live View Screen -->
+        <div id="live-screen" class="screen">
+            <header class="live-header">
+                <h1>🥊 MMA Live</h1>
+                <button id="back-btn" class="back-btn">← Back to Selection</button>
+            </header>
+            
+            <div id="fight-panels" class="fight-panels"></div>
+        </div>
+    </div>
+    
+    <script>
+        // Force reload with timestamp to bypass cache
+        const timestamp = new Date().getTime();
+        const script = document.createElement('script');
+        script.src = 'mma-app.js?t=' + timestamp;
+        document.body.appendChild(script);
+    </script>
+</body>
+</html>
