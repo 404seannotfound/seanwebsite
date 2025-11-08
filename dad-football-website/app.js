@@ -764,8 +764,9 @@ class NFLGameTracker {
         const container = document.getElementById(`history-${game.id}`);
         if (!container) return;
         
-        // Use sample data directly - ESPN API doesn't provide reliable historical matchup data
-        console.log('Generating sample historical data for visualization');
+        // Note: ESPN API does not provide historical head-to-head matchup data
+        // Using sample data for chart visualization only
+        // All other stats (Win%, Points, Defense, Odds) are 100% real from ESPN
         const sampleGames = this.generateSampleHistory(game.awayTeam.shortName, game.homeTeam.shortName);
         container.innerHTML = this.renderHistoricalChart(sampleGames, game.awayTeam, game.homeTeam, true);
     }
