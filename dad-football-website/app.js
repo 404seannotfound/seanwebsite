@@ -128,73 +128,6 @@ class NFLGameTracker {
         }
     }
 
-    async fetchTeamHistory(team1Id, team2Id) {
-        try {
-            // Add timeout to prevent hanging
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-            
-            const response = await fetch(
-                `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${team1Id}/schedule`,
-                { signal: controller.signal }
-            );
-            clearTimeout(timeoutId);
-            
-            if (!response.ok) {
-                console.log('API response not OK:', response.status);
-                return null;
-            }
-            
-            const data = await response.json();
-            console.log('Schedule data received:', data);
-            
-            if (!data.events) {
-                console.log('No events in schedule data');
-                return null;
-            }
-            
-            // Filter for games against team2
-            const matchups = data.events.filter(event => {
-                const competition = event.competitions?.[0];
-                if (!competition) return false;
-                
-                const competitors = competition.competitors || [];
-                return competitors.some(c => c.team.id === team2Id);
-            }).map(event => {
-                const competition = event.competitions[0];
-                const homeTeam = competition.competitors.find(c => c.homeAway === 'home');
-                const awayTeam = competition.competitors.find(c => c.homeAway === 'away');
-                
-                return {
-                    date: new Date(event.date),
-                    year: new Date(event.date).getFullYear(),
-                    awayTeam: {
-                        id: awayTeam.team.id,
-                        name: awayTeam.team.abbreviation,
-                        score: parseInt(awayTeam.score) || 0
-                    },
-                    homeTeam: {
-                        id: homeTeam.team.id,
-                        name: homeTeam.team.abbreviation,
-                        score: parseInt(homeTeam.score) || 0
-                    },
-                    completed: competition.status.type.completed
-                };
-            }).filter(game => game.completed) // Only completed games
-              .slice(0, 5); // Last 5 games
-            
-            console.log('Found matchups:', matchups.length);
-            return matchups;
-        } catch (error) {
-            if (error.name === 'AbortError') {
-                console.error('Request timeout - API took too long');
-            } else {
-                console.error('Error fetching team history:', error);
-            }
-            return null;
-        }
-    }
-
     async fetchNFLStandings() {
         try {
             const response = await fetch('https://site.api.espn.com/apis/v2/sports/football/nfl/standings');
@@ -741,104 +674,11 @@ class NFLGameTracker {
             return '';
         }
         
-        // Fetch real historical data
-        const historyHTML = `
+        return `
             <div class="matchup-history">
                 <h3>📈 Matchup Insights & Fun Facts</h3>
                 <div class="fun-facts">
                     ${funFacts.map(fact => `<div class="fun-fact">${fact}</div>`).join('')}
-                </div>
-                <div class="historical-chart" id="history-${game.id}">
-                    <div class="loading-history">Loading historical matchup data...</div>
-                </div>
-            </div>
-        `;
-        
-        // Fetch history asynchronously and update
-        this.loadHistoricalData(game);
-        
-        return historyHTML;
-    }
-
-    async loadHistoricalData(game) {
-        const container = document.getElementById(`history-${game.id}`);
-        if (!container) return;
-        
-        // Note: ESPN API does not provide historical head-to-head matchup data
-        // Using sample data for chart visualization only
-        // All other stats (Win%, Points, Defense, Odds) are 100% real from ESPN
-        const sampleGames = this.generateSampleHistory(game.awayTeam.shortName, game.homeTeam.shortName);
-        container.innerHTML = this.renderHistoricalChart(sampleGames, game.awayTeam, game.homeTeam, true);
-    }
-
-    generateSampleHistory(awayTeam, homeTeam) {
-        // Generate realistic sample data (in production, fetch from API)
-        const currentYear = new Date().getFullYear();
-        const games = [];
-        
-        // Generate 5 recent matchups
-        for (let i = 0; i < 5; i++) {
-            const year = currentYear - i;
-            const awayScore = Math.floor(Math.random() * 21) + 10; // 10-30 points
-            const homeScore = Math.floor(Math.random() * 21) + 10;
-            const location = Math.random() > 0.5 ? 'Home' : 'Away';
-            
-            games.push({
-                year,
-                awayScore,
-                homeScore,
-                winner: awayScore > homeScore ? awayTeam : homeTeam,
-                location
-            });
-        }
-        
-        return games.reverse(); // Oldest to newest
-    }
-    
-    renderHistoricalChart(games, awayTeam, homeTeam, isSampleData = false) {
-        if (!games || games.length === 0) return '';
-        
-        const maxScore = Math.max(...games.flatMap(g => [g.awayScore, g.homeScore]));
-        
-        // Calculate head-to-head record
-        const awayWins = games.filter(g => g.winner === awayTeam.shortName).length;
-        const homeWins = games.filter(g => g.winner === homeTeam.shortName).length;
-        
-        return `
-            <div class="historical-chart">
-                <h4>📊 Recent Matchup History (Last ${games.length} Games)</h4>
-                <div class="head-to-head-record">
-                    <span class="record-item away-record">${awayTeam.shortName}: ${awayWins} wins</span>
-                    <span class="record-divider">|</span>
-                    <span class="record-item home-record">${homeTeam.shortName}: ${homeWins} wins</span>
-                </div>
-                <div class="chart-container">
-                    ${games.map(game => `
-                        <div class="game-bar-group">
-                            <div class="game-year">${game.year}</div>
-                            <div class="score-bars">
-                                <div class="score-bar-wrapper away-bar-wrapper">
-                                    <div class="team-label">${awayTeam.shortName}</div>
-                                    <div class="score-bar away-bar ${game.winner === awayTeam.shortName ? 'winner-bar' : ''}" 
-                                         style="width: ${(game.awayScore / maxScore) * 100}%">
-                                        <span class="score-value">${game.awayScore}</span>
-                                    </div>
-                                </div>
-                                <div class="score-bar-wrapper home-bar-wrapper">
-                                    <div class="team-label">${homeTeam.shortName}</div>
-                                    <div class="score-bar home-bar ${game.winner === homeTeam.shortName ? 'winner-bar' : ''}" 
-                                         style="width: ${(game.homeScore / maxScore) * 100}%">
-                                        <span class="score-value">${game.homeScore}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-                <div class="chart-note">
-                    ${isSampleData ? 
-                        '💡 <em>Sample data shown - Real matchup history unavailable</em>' : 
-                        '📅 <em>Showing actual head-to-head results from ESPN data</em>'}
                 </div>
             </div>
         `;
