@@ -130,11 +130,28 @@ class NFLGameTracker {
 
     async fetchTeamHistory(team1Id, team2Id) {
         try {
-            // Fetch recent games between these two teams
-            const response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${team1Id}/schedule`);
-            const data = await response.json();
+            // Add timeout to prevent hanging
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
             
-            if (!data.events) return null;
+            const response = await fetch(
+                `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${team1Id}/schedule`,
+                { signal: controller.signal }
+            );
+            clearTimeout(timeoutId);
+            
+            if (!response.ok) {
+                console.log('API response not OK:', response.status);
+                return null;
+            }
+            
+            const data = await response.json();
+            console.log('Schedule data received:', data);
+            
+            if (!data.events) {
+                console.log('No events in schedule data');
+                return null;
+            }
             
             // Filter for games against team2
             const matchups = data.events.filter(event => {
@@ -166,9 +183,14 @@ class NFLGameTracker {
             }).filter(game => game.completed) // Only completed games
               .slice(0, 5); // Last 5 games
             
+            console.log('Found matchups:', matchups.length);
             return matchups;
         } catch (error) {
-            console.error('Error fetching team history:', error);
+            if (error.name === 'AbortError') {
+                console.error('Request timeout - API took too long');
+            } else {
+                console.error('Error fetching team history:', error);
+            }
             return null;
         }
     }
@@ -746,7 +768,10 @@ class NFLGameTracker {
             const history = await this.fetchTeamHistory(game.awayTeam.id, game.homeTeam.id);
             
             if (!history || history.length === 0) {
-                container.innerHTML = '<div class="no-history">No recent matchup history available</div>';
+                // Show sample data as fallback
+                console.log('No API history, using sample data');
+                const sampleGames = this.generateSampleHistory(game.awayTeam.shortName, game.homeTeam.shortName);
+                container.innerHTML = this.renderHistoricalChart(sampleGames, game.awayTeam, game.homeTeam, true);
                 return;
             }
             
@@ -760,10 +785,12 @@ class NFLGameTracker {
                     (h.homeTeam.id === game.homeTeam.id ? game.homeTeam.shortName : game.awayTeam.shortName)
             }));
             
-            container.innerHTML = this.renderHistoricalChart(chartGames, game.awayTeam, game.homeTeam);
+            container.innerHTML = this.renderHistoricalChart(chartGames, game.awayTeam, game.homeTeam, false);
         } catch (error) {
             console.error('Error loading historical data:', error);
-            container.innerHTML = '<div class="error-history">Unable to load matchup history</div>';
+            // Show sample data on error
+            const sampleGames = this.generateSampleHistory(game.awayTeam.shortName, game.homeTeam.shortName);
+            container.innerHTML = this.renderHistoricalChart(sampleGames, game.awayTeam, game.homeTeam, true);
         }
     }
 
@@ -791,7 +818,7 @@ class NFLGameTracker {
         return games.reverse(); // Oldest to newest
     }
     
-    renderHistoricalChart(games, awayTeam, homeTeam) {
+    renderHistoricalChart(games, awayTeam, homeTeam, isSampleData = false) {
         if (!games || games.length === 0) return '';
         
         const maxScore = Math.max(...games.flatMap(g => [g.awayScore, g.homeScore]));
@@ -832,7 +859,9 @@ class NFLGameTracker {
                     `).join('')}
                 </div>
                 <div class="chart-note">
-                    📅 <em>Showing actual head-to-head results from ESPN data</em>
+                    ${isSampleData ? 
+                        '💡 <em>Sample data shown - Real matchup history unavailable</em>' : 
+                        '📅 <em>Showing actual head-to-head results from ESPN data</em>'}
                 </div>
             </div>
         `;
