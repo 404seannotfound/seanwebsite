@@ -132,6 +132,7 @@ class NFLGameTracker {
         try {
             const response = await fetch('https://site.api.espn.com/apis/v2/sports/football/nfl/standings');
             const data = await response.json();
+            console.log('Raw standings API response:', data);
             
             const standings = {
                 afc: { divisions: {}, playoffPicture: [] },
@@ -140,6 +141,7 @@ class NFLGameTracker {
 
             // Process standings by conference and division
             if (data.children) {
+                console.log('Found children:', data.children.length);
                 data.children.forEach(conference => {
                     const confName = conference.abbreviation.toLowerCase(); // 'afc' or 'nfc'
                     
