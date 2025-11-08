@@ -769,8 +769,58 @@ body::before {
 
 .playoff-section h3 {
     margin-bottom: 15px;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     color: #FFD700;
+    text-align: center;
+}
+
+.playoff-explainer {
+    background: linear-gradient(135deg, rgba(33,150,243,0.2), rgba(3,169,244,0.2));
+    border: 2px solid rgba(33,150,243,0.4);
+    border-radius: 12px;
+    padding: 15px;
+    margin-bottom: 20px;
+    animation: subtleGlow 3s ease-in-out infinite;
+}
+
+@keyframes subtleGlow {
+    0%, 100% { box-shadow: 0 0 10px rgba(33,150,243,0.3); }
+    50% { box-shadow: 0 0 20px rgba(33,150,243,0.5); }
+}
+
+.explainer-header {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #64B5F6;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.explainer-content {
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.95);
+}
+
+.explainer-content strong {
+    color: #FFD700;
+    font-weight: 600;
+}
+
+.playoff-explanation {
+    background: rgba(33,150,243,0.15);
+    border-left: 3px solid #64B5F6;
+    padding: 10px 12px;
+    margin: 10px 0;
+    border-radius: 6px;
+}
+
+.explanation-item {
+    font-size: 0.9rem;
+    margin: 6px 0;
+    padding: 4px 0;
+    color: #64B5F6;
+    font-weight: 500;
 }
 
 .playoff-grid {

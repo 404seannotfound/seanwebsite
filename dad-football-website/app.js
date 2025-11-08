@@ -247,16 +247,50 @@ class NFLGameTracker {
             scenarios.push(`📅 ${gamesRemaining} game(s) remaining in regular season`);
         }
 
-        // Path to Super Bowl
+        // Path to Super Bowl with detailed explanation
         const pathToSuperBowl = [];
+        const playoffExplanation = [];
+        
         if (teamRankInConf <= 7) {
-            pathToSuperBowl.push('1️⃣ Win Wild Card Round');
-            pathToSuperBowl.push('2️⃣ Win Divisional Round');
-            pathToSuperBowl.push('3️⃣ Win Conference Championship');
-            pathToSuperBowl.push('🏆 Super Bowl LIX');
+            // Determine specific playoff path based on seed
+            if (teamRankInConf === 1) {
+                playoffExplanation.push('🎯 #1 Seed = BYE WEEK (skip Wild Card, rest & home field)');
+                pathToSuperBowl.push('✓ SKIP Wild Card Round (automatic bye)');
+                pathToSuperBowl.push('1️⃣ Win Divisional Round at HOME');
+                pathToSuperBowl.push('2️⃣ Win Conference Championship at HOME');
+            } else if (teamRankInConf === 2) {
+                playoffExplanation.push('🎯 #2 Seed = BYE WEEK (skip Wild Card, rest & home field)');
+                pathToSuperBowl.push('✓ SKIP Wild Card Round (automatic bye)');
+                pathToSuperBowl.push('1️⃣ Win Divisional Round at HOME');
+                pathToSuperBowl.push('2️⃣ Win Conference Championship (likely at #1 seed)');
+            } else if (teamRankInConf <= 4) {
+                playoffExplanation.push('🎯 Division Winner = Home game in Wild Card');
+                pathToSuperBowl.push('1️⃣ Win Wild Card Round at HOME');
+                pathToSuperBowl.push('2️⃣ Win Divisional Round (likely away at #1 or #2 seed)');
+                pathToSuperBowl.push('3️⃣ Win Conference Championship');
+            } else {
+                playoffExplanation.push('🎯 Wild Card Team = Must win on the road');
+                pathToSuperBowl.push('1️⃣ Win Wild Card Round AWAY (at #3 or #4 seed)');
+                pathToSuperBowl.push('2️⃣ Win Divisional Round AWAY (at #1 or #2 seed)');
+                pathToSuperBowl.push('3️⃣ Win Conference Championship');
+            }
+            pathToSuperBowl.push('🏆 Win SUPER BOWL LIX (neutral site)');
+            
+            // Add specific opponents they'd likely face
+            const nextOpponents = this.getPlayoffOpponents(teamRankInConf, allConfTeams);
+            if (nextOpponents.length > 0) {
+                playoffExplanation.push(`📋 Likely opponents: ${nextOpponents.join(', ')}`);
+            }
         } else {
-            pathToSuperBowl.push('⚠️ Must make playoffs first');
-            pathToSuperBowl.push(`Need to be top 7 in ${conf.toUpperCase()} (currently #${teamRankInConf})`);
+            playoffExplanation.push('⚠️ NOT CURRENTLY IN PLAYOFFS');
+            playoffExplanation.push(`Must finish in top 7 of ${conf.toUpperCase()} (currently #${teamRankInConf})`);
+            
+            // Show who they need to beat
+            const teamsAhead = allConfTeams.slice(6, teamRankInConf).map(t => t.abbreviation);
+            if (teamsAhead.length > 0) {
+                pathToSuperBowl.push(`Must pass: ${teamsAhead.join(', ')}`);
+            }
+            pathToSuperBowl.push(`Need ${Math.min(gamesRemaining, teamRankInConf - 7)} more wins (and help from losses above)`);
         }
 
         return {
@@ -264,8 +298,30 @@ class NFLGameTracker {
             inPlayoffs: teamRankInConf <= 7,
             scenarios,
             pathToSuperBowl,
+            playoffExplanation,
             gamesRemaining
         };
+    }
+
+    getPlayoffOpponents(seed, confTeams) {
+        const opponents = [];
+        
+        if (seed === 1 || seed === 2) {
+            // Bye week teams face lowest remaining seed in divisional
+            opponents.push('Lowest remaining Wild Card winner');
+        } else if (seed === 3) {
+            opponents.push(`#6 seed (${confTeams[5]?.abbreviation || 'TBD'})`);
+        } else if (seed === 4) {
+            opponents.push(`#5 seed (${confTeams[4]?.abbreviation || 'TBD'})`);
+        } else if (seed === 5) {
+            opponents.push(`#4 seed (${confTeams[3]?.abbreviation || 'TBD'})`);
+        } else if (seed === 6) {
+            opponents.push(`#3 seed (${confTeams[2]?.abbreviation || 'TBD'})`);
+        } else if (seed === 7) {
+            opponents.push(`#2 seed (${confTeams[1]?.abbreviation || 'TBD'})`);
+        }
+        
+        return opponents;
     }
 
     renderGameList(games) {
@@ -496,7 +552,18 @@ class NFLGameTracker {
 
         return `
             <div class="playoff-section">
-                <h3>🏆 Path to Super Bowl</h3>
+                <h3>🏆 Path to Super Bowl Explained</h3>
+                <div class="playoff-explainer">
+                    <div class="explainer-header">📚 How NFL Playoffs Work:</div>
+                    <div class="explainer-content">
+                        <strong>Regular Season:</strong> 17 games to determine playoff seeding<br>
+                        <strong>Playoffs:</strong> 7 teams per conference (AFC & NFC) make it<br>
+                        <strong>Seeds #1-2:</strong> Get BYE week (skip Wild Card, rest up!)<br>
+                        <strong>Seeds #3-4:</strong> Division winners, host Wild Card games<br>
+                        <strong>Seeds #5-7:</strong> Wild Card teams, play on the road<br>
+                        <strong>Total Games to Win:</strong> 3 games (or 4 for Wild Card teams) = Super Bowl!
+                    </div>
+                </div>
                 <div class="playoff-grid">
                     ${awayPlayoff ? `
                         <div class="team-playoff">
@@ -504,8 +571,13 @@ class NFLGameTracker {
                             <div class="playoff-status">
                                 ${awayPlayoff.scenarios.map(s => `<div class="scenario">${s}</div>`).join('')}
                             </div>
+                            ${awayPlayoff.playoffExplanation ? `
+                                <div class="playoff-explanation">
+                                    ${awayPlayoff.playoffExplanation.map(exp => `<div class="explanation-item">${exp}</div>`).join('')}
+                                </div>
+                            ` : ''}
                             <div class="playoff-path">
-                                <strong>Steps to Super Bowl:</strong>
+                                <strong>Exact Path to Super Bowl:</strong>
                                 ${awayPlayoff.pathToSuperBowl.map(step => `<div class="path-step">${step}</div>`).join('')}
                             </div>
                         </div>
@@ -516,8 +588,13 @@ class NFLGameTracker {
                             <div class="playoff-status">
                                 ${homePlayoff.scenarios.map(s => `<div class="scenario">${s}</div>`).join('')}
                             </div>
+                            ${homePlayoff.playoffExplanation ? `
+                                <div class="playoff-explanation">
+                                    ${homePlayoff.playoffExplanation.map(exp => `<div class="explanation-item">${exp}</div>`).join('')}
+                                </div>
+                            ` : ''}
                             <div class="playoff-path">
-                                <strong>Steps to Super Bowl:</strong>
+                                <strong>Exact Path to Super Bowl:</strong>
                                 ${homePlayoff.pathToSuperBowl.map(step => `<div class="path-step">${step}</div>`).join('')}
                             </div>
                         </div>
