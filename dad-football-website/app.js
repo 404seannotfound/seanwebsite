@@ -50,6 +50,7 @@ class NFLGameTracker {
             ]);
             this.allGames = games;
             this.standings = standings;
+            console.log('Loaded standings:', standings);
 
             loading.style.display = 'none';
 
@@ -557,14 +558,31 @@ class NFLGameTracker {
     }
 
     renderFullStandingsTable(conference) {
-        if (!this.standings || !conference) return '';
+        if (!this.standings || !conference) {
+            console.log('No standings or conference:', this.standings, conference);
+            return '';
+        }
         
         const conf = conference.toLowerCase();
+        
+        if (!this.standings[conf] || !this.standings[conf].divisions) {
+            console.log('Conference not found:', conf, this.standings);
+            return '';
+        }
+        
         const allConfTeams = [];
         
         // Get all teams in this conference
         for (const divName in this.standings[conf].divisions) {
-            allConfTeams.push(...this.standings[conf].divisions[divName]);
+            const teams = this.standings[conf].divisions[divName];
+            if (Array.isArray(teams)) {
+                allConfTeams.push(...teams);
+            }
+        }
+        
+        if (allConfTeams.length === 0) {
+            console.log('No teams found for conference:', conf);
+            return '';
         }
         
         // Sort by playoff seed
