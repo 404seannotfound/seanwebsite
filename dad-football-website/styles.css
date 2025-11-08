@@ -241,7 +241,7 @@ body::before {
 }
 
 /* Default card (no conference) */
-.game-card:not(.afc-card):not(.nfc-card) {
+.game-card:not(.afc-card):not(.nfc-card):not(.inter-conference-card) {
     background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
     border: 2px solid transparent;
 }
@@ -264,17 +264,18 @@ body::before {
 
 .game-card.afc-card:hover,
 .game-card.nfc-card:hover,
-.game-card:not(.afc-card):not(.nfc-card):hover {
+.game-card.inter-conference-card:hover,
+.game-card:not(.afc-card):not(.nfc-card):not(.inter-conference-card):hover {
     transform: translateY(-10px) scale(1.02);
 }
 
-.game-card:not(.afc-card):not(.nfc-card):hover {
+.game-card:not(.afc-card):not(.nfc-card):not(.inter-conference-card):hover {
     background: linear-gradient(135deg, rgba(255,193,7,0.2) 0%, rgba(76,175,80,0.2) 100%);
     box-shadow: 0 15px 40px rgba(255,193,7,0.4), 0 0 20px rgba(76,175,80,0.3);
     border-color: rgba(255,193,7,0.5);
 }
 
-.game-card:not(.afc-card):not(.nfc-card).selected {
+.game-card:not(.afc-card):not(.nfc-card):not(.inter-conference-card).selected {
     border-color: #4CAF50;
     background: rgba(76,175,80,0.2);
 }
@@ -466,6 +467,13 @@ body::before {
     color: #FFD700;
     font-weight: 600;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+}
+
+.odds-label {
+    font-size: 0.75rem;
+    opacity: 0.8;
+    font-weight: normal;
+    color: rgba(255,255,255,0.7);
 }
 
 .team-score {
@@ -716,7 +724,7 @@ body::before {
 }
 
 /* Default panel (no conference) */
-.game-panel:not(.afc-panel):not(.nfc-panel) {
+.game-panel:not(.afc-panel):not(.nfc-panel):not(.inter-conference-panel) {
     background: rgba(255,255,255,0.05);
     border: 2px solid rgba(255,255,255,0.1);
 }

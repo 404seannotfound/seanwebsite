@@ -945,7 +945,9 @@ class NFLGameTracker {
         // Handle moneyline odds
         if (odds.moneyLine) {
             const ml = odds.moneyLine;
-            return `💰 ${ml > 0 ? '+' : ''}${ml}`;
+            const isFavorite = ml < 0;
+            const label = isFavorite ? 'Favorite' : 'Underdog';
+            return `💰 ${ml > 0 ? '+' : ''}${ml} <span class="odds-label">(${label})</span>`;
         }
         
         // Handle spread
