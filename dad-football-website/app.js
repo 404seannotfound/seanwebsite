@@ -82,6 +82,11 @@ class NFLGameTracker {
                 const homeTeam = competition.competitors.find(t => t.homeAway === 'home');
                 const awayTeam = competition.competitors.find(t => t.homeAway === 'away');
                 
+                // Extract odds if available
+                const odds = competition.odds?.[0];
+                const homeOdds = odds?.homeTeamOdds;
+                const awayOdds = odds?.awayTeamOdds;
+                
                 return {
                     id: event.id,
                     name: event.name,
@@ -91,13 +96,15 @@ class NFLGameTracker {
                     statusDetail: competition.status.type.detail,
                     isLive: competition.status.type.state === 'in',
                     isCompleted: competition.status.type.completed,
+                    isPregame: competition.status.type.state === 'pre',
                     homeTeam: {
                         id: homeTeam.team.id,
                         name: homeTeam.team.displayName,
                         shortName: homeTeam.team.abbreviation,
                         score: homeTeam.score,
                         logo: homeTeam.team.logo,
-                        record: homeTeam.records?.[0]?.summary || 'N/A'
+                        record: homeTeam.records?.[0]?.summary || 'N/A',
+                        odds: homeOdds
                     },
                     awayTeam: {
                         id: awayTeam.team.id,
@@ -105,11 +112,13 @@ class NFLGameTracker {
                         shortName: awayTeam.team.abbreviation,
                         score: awayTeam.score,
                         logo: awayTeam.team.logo,
-                        record: awayTeam.records?.[0]?.summary || 'N/A'
+                        record: awayTeam.records?.[0]?.summary || 'N/A',
+                        odds: awayOdds
                     },
                     venue: competition.venue?.fullName || 'TBD',
                     broadcast: competition.broadcasts?.[0]?.names?.[0] || 'N/A',
-                    links: event.links || []
+                    links: event.links || [],
+                    odds: odds
                 };
             });
         } catch (error) {
@@ -277,19 +286,34 @@ class NFLGameTracker {
 
         const statusClass = game.isLive ? 'live' : '';
         const statusText = game.isLive ? '🔴 LIVE' : game.status;
+        
+        // Calculate countdown for pregame
+        let countdownHTML = '';
+        if (game.isPregame) {
+            const countdown = this.getCountdown(game.date);
+            if (countdown) {
+                countdownHTML = `<div class="countdown">⏱️ ${countdown}</div>`;
+            }
+        }
 
         // Get team standings
         const awayStanding = this.getTeamStanding(game.awayTeam.id);
         const homeStanding = this.getTeamStanding(game.homeTeam.id);
+        
+        // Format odds
+        const awayOddsHTML = game.awayTeam.odds ? `<div class="team-odds">${this.formatOdds(game.awayTeam.odds)}</div>` : '';
+        const homeOddsHTML = game.homeTeam.odds ? `<div class="team-odds">${this.formatOdds(game.homeTeam.odds)}</div>` : '';
 
         card.innerHTML = `
             <div class="game-status ${statusClass}">${statusText}</div>
+            ${countdownHTML}
             <div class="game-matchup">
                 <div class="team">
                     <img src="${game.awayTeam.logo}" alt="${game.awayTeam.name}" class="team-logo">
                     <div class="team-name">${game.awayTeam.name}</div>
                     <div class="team-record">${game.awayTeam.record}</div>
                     ${awayStanding ? `<div class="team-division">${awayStanding.division}</div>` : ''}
+                    ${awayOddsHTML}
                     <div class="team-score">${game.awayTeam.score}</div>
                 </div>
                 <div class="vs">@</div>
@@ -298,6 +322,7 @@ class NFLGameTracker {
                     <div class="team-name">${game.homeTeam.name}</div>
                     <div class="team-record">${game.homeTeam.record}</div>
                     ${homeStanding ? `<div class="team-division">${homeStanding.division}</div>` : ''}
+                    ${homeOddsHTML}
                     <div class="team-score">${game.homeTeam.score}</div>
                 </div>
             </div>
@@ -500,6 +525,45 @@ class NFLGameTracker {
                 </div>
             </div>
         `;
+    }
+
+    getCountdown(gameDate) {
+        const now = new Date();
+        const diff = gameDate - now;
+        
+        if (diff <= 0) return null;
+        
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        
+        if (days > 0) {
+            return `Starts in ${days}d ${hours}h`;
+        } else if (hours > 0) {
+            return `Starts in ${hours}h ${minutes}m`;
+        } else if (minutes > 0) {
+            return `Starts in ${minutes}m`;
+        } else {
+            return 'Starting soon!';
+        }
+    }
+    
+    formatOdds(odds) {
+        if (!odds) return '';
+        
+        // Handle moneyline odds
+        if (odds.moneyLine) {
+            const ml = odds.moneyLine;
+            return `<span class="odds-label">ML:</span> ${ml > 0 ? '+' : ''}${ml}`;
+        }
+        
+        // Handle spread
+        if (odds.spreadOdds) {
+            const spread = odds.spreadOdds;
+            return `<span class="odds-label">Spread:</span> ${spread > 0 ? '+' : ''}${spread}`;
+        }
+        
+        return '';
     }
 
     renderPanelLinks(game) {
