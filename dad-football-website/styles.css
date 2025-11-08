@@ -1239,6 +1239,22 @@ body::before {
     color: #64B5F6;
 }
 
+.loading-history, .no-history, .error-history {
+    text-align: center;
+    padding: 20px;
+    font-style: italic;
+    color: rgba(255,255,255,0.6);
+}
+
+.loading-history {
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
 /* Team Standings Section */
 .standings-section {
     margin-bottom: 20px;

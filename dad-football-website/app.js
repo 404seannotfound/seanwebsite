@@ -130,10 +130,43 @@ class NFLGameTracker {
 
     async fetchTeamHistory(team1Id, team2Id) {
         try {
-            // Fetch head-to-head history
-            const response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${team1Id}/record?vs=${team2Id}`);
+            // Fetch recent games between these two teams
+            const response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${team1Id}/schedule`);
             const data = await response.json();
-            return data;
+            
+            if (!data.events) return null;
+            
+            // Filter for games against team2
+            const matchups = data.events.filter(event => {
+                const competition = event.competitions?.[0];
+                if (!competition) return false;
+                
+                const competitors = competition.competitors || [];
+                return competitors.some(c => c.team.id === team2Id);
+            }).map(event => {
+                const competition = event.competitions[0];
+                const homeTeam = competition.competitors.find(c => c.homeAway === 'home');
+                const awayTeam = competition.competitors.find(c => c.homeAway === 'away');
+                
+                return {
+                    date: new Date(event.date),
+                    year: new Date(event.date).getFullYear(),
+                    awayTeam: {
+                        id: awayTeam.team.id,
+                        name: awayTeam.team.abbreviation,
+                        score: parseInt(awayTeam.score) || 0
+                    },
+                    homeTeam: {
+                        id: homeTeam.team.id,
+                        name: homeTeam.team.abbreviation,
+                        score: parseInt(homeTeam.score) || 0
+                    },
+                    completed: competition.status.type.completed
+                };
+            }).filter(game => game.completed) // Only completed games
+              .slice(0, 5); // Last 5 games
+            
+            return matchups;
         } catch (error) {
             console.error('Error fetching team history:', error);
             return null;
@@ -686,18 +719,52 @@ class NFLGameTracker {
             return '';
         }
         
-        // Generate sample historical matchup data (in a real app, this would come from API)
-        const historicalGames = this.generateSampleHistory(game.awayTeam.shortName, game.homeTeam.shortName);
-        
-        return `
+        // Fetch real historical data
+        const historyHTML = `
             <div class="matchup-history">
                 <h3>📈 Matchup Insights & Fun Facts</h3>
                 <div class="fun-facts">
                     ${funFacts.map(fact => `<div class="fun-fact">${fact}</div>`).join('')}
                 </div>
-                ${this.renderHistoricalChart(historicalGames, game.awayTeam, game.homeTeam)}
+                <div class="historical-chart" id="history-${game.id}">
+                    <div class="loading-history">Loading historical matchup data...</div>
+                </div>
             </div>
         `;
+        
+        // Fetch history asynchronously and update
+        this.loadHistoricalData(game);
+        
+        return historyHTML;
+    }
+
+    async loadHistoricalData(game) {
+        const container = document.getElementById(`history-${game.id}`);
+        if (!container) return;
+        
+        try {
+            const history = await this.fetchTeamHistory(game.awayTeam.id, game.homeTeam.id);
+            
+            if (!history || history.length === 0) {
+                container.innerHTML = '<div class="no-history">No recent matchup history available</div>';
+                return;
+            }
+            
+            // Transform API data to chart format
+            const chartGames = history.map(h => ({
+                year: h.year,
+                awayScore: h.awayTeam.id === game.awayTeam.id ? h.awayTeam.score : h.homeTeam.score,
+                homeScore: h.homeTeam.id === game.homeTeam.id ? h.homeTeam.score : h.awayTeam.score,
+                winner: h.awayTeam.score > h.homeTeam.score ? 
+                    (h.awayTeam.id === game.awayTeam.id ? game.awayTeam.shortName : game.homeTeam.shortName) :
+                    (h.homeTeam.id === game.homeTeam.id ? game.homeTeam.shortName : game.awayTeam.shortName)
+            }));
+            
+            container.innerHTML = this.renderHistoricalChart(chartGames, game.awayTeam, game.homeTeam);
+        } catch (error) {
+            console.error('Error loading historical data:', error);
+            container.innerHTML = '<div class="error-history">Unable to load matchup history</div>';
+        }
     }
 
     generateSampleHistory(awayTeam, homeTeam) {
@@ -765,7 +832,7 @@ class NFLGameTracker {
                     `).join('')}
                 </div>
                 <div class="chart-note">
-                    💡 <em>Sample data shown - Real historical data integration coming soon!</em>
+                    📅 <em>Showing actual head-to-head results from ESPN data</em>
                 </div>
             </div>
         `;
