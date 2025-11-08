@@ -143,9 +143,50 @@ class NFLGameTracker {
             if (data.children) {
                 console.log('Found children:', data.children.length);
                 data.children.forEach(conference => {
-                    const confName = conference.abbreviation.toLowerCase(); // 'afc' or 'nfc'
+                    console.log('Conference:', conference.abbreviation);
+                    const confName = conference.abbreviation?.toLowerCase(); // 'afc' or 'nfc'
                     
-                    if (conference.children) {
+                    if (!confName || (confName !== 'afc' && confName !== 'nfc')) {
+                        console.log('Skipping non-conference:', confName);
+                        return;
+                    }
+                    
+                    // Try to get standings directly from conference first
+                    if (conference.standings?.entries) {
+                        console.log('Found conference-level standings with', conference.standings.entries.length, 'teams');
+                        // Group teams by division
+                        conference.standings.entries.forEach(entry => {
+                            const team = entry.team;
+                            const stats = {};
+                            entry.stats.forEach(stat => {
+                                stats[stat.name] = stat.value;
+                            });
+                            
+                            // Try to determine division from team data
+                            const divName = `${confName.toUpperCase()} Division`;
+                            
+                            if (!standings[confName].divisions[divName]) {
+                                standings[confName].divisions[divName] = [];
+                            }
+                            
+                            standings[confName].divisions[divName].push({
+                                id: team.id,
+                                name: team.displayName,
+                                abbreviation: team.abbreviation,
+                                logo: team.logos?.[0]?.href,
+                                wins: stats.wins || 0,
+                                losses: stats.losses || 0,
+                                ties: stats.ties || 0,
+                                winPercent: stats.winPercent || 0,
+                                gamesPlayed: stats.gamesPlayed || 0,
+                                pointsFor: stats.pointsFor || 0,
+                                pointsAgainst: stats.pointsAgainst || 0,
+                                divisionRank: stats.divisionRank || 0,
+                                playoffSeed: stats.playoffSeed || 0
+                            });
+                        });
+                    } else if (conference.children) {
+                        console.log('Found division children:', conference.children.length);
                         conference.children.forEach(division => {
                             const divName = division.name; // e.g., "AFC East"
                             const teams = [];
@@ -181,7 +222,8 @@ class NFLGameTracker {
                     }
                 });
             }
-
+            
+            console.log('Final standings:', standings);
             return standings;
         } catch (error) {
             console.error('Error fetching NFL standings:', error);
