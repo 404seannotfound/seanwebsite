@@ -414,7 +414,16 @@ class NFLGameTracker {
 
     createGameCard(game) {
         const card = document.createElement('div');
-        card.className = 'game-card';
+        
+        // Get team standings first to determine conference
+        const awayStanding = this.getTeamStanding(game.awayTeam.id);
+        const homeStanding = this.getTeamStanding(game.homeTeam.id);
+        
+        // Determine conference for card color
+        const conference = awayStanding?.conference || homeStanding?.conference || '';
+        const conferenceClass = conference === 'AFC' ? 'afc-card' : conference === 'NFC' ? 'nfc-card' : '';
+        
+        card.className = `game-card ${conferenceClass}`;
         card.dataset.gameId = game.id;
 
         const statusClass = game.isLive ? 'live' : '';
@@ -428,10 +437,6 @@ class NFLGameTracker {
                 countdownHTML = `<div class="countdown">⏱️ ${countdown}</div>`;
             }
         }
-
-        // Get team standings
-        const awayStanding = this.getTeamStanding(game.awayTeam.id);
-        const homeStanding = this.getTeamStanding(game.homeTeam.id);
         
         // Get playoff scenarios for seed ranking
         const awayPlayoff = this.calculatePlayoffScenario(game.awayTeam.id);

@@ -176,15 +176,56 @@ body::before {
 }
 
 .game-card {
-    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
     backdrop-filter: blur(10px);
     border-radius: 15px;
     padding: 20px;
     cursor: pointer;
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    border: 2px solid transparent;
     position: relative;
     overflow: hidden;
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* AFC Card - Red theme */
+.game-card.afc-card {
+    background: linear-gradient(135deg, rgba(211,47,47,0.2) 0%, rgba(198,40,40,0.15) 100%);
+    border: 2px solid rgba(211,47,47,0.4);
+}
+
+.game-card.afc-card:hover {
+    background: linear-gradient(135deg, rgba(211,47,47,0.3) 0%, rgba(198,40,40,0.25) 100%);
+    border-color: rgba(211,47,47,0.6);
+    box-shadow: 0 15px 40px rgba(211,47,47,0.4), 0 0 20px rgba(211,47,47,0.3);
+}
+
+.game-card.afc-card.selected {
+    background: linear-gradient(135deg, rgba(211,47,47,0.35) 0%, rgba(198,40,40,0.3) 100%);
+    border-color: #EF5350;
+    box-shadow: 0 0 30px rgba(211,47,47,0.6);
+}
+
+/* NFC Card - Blue theme */
+.game-card.nfc-card {
+    background: linear-gradient(135deg, rgba(25,118,210,0.2) 0%, rgba(21,101,192,0.15) 100%);
+    border: 2px solid rgba(25,118,210,0.4);
+}
+
+.game-card.nfc-card:hover {
+    background: linear-gradient(135deg, rgba(25,118,210,0.3) 0%, rgba(21,101,192,0.25) 100%);
+    border-color: rgba(25,118,210,0.6);
+    box-shadow: 0 15px 40px rgba(25,118,210,0.4), 0 0 20px rgba(25,118,210,0.3);
+}
+
+.game-card.nfc-card.selected {
+    background: linear-gradient(135deg, rgba(25,118,210,0.35) 0%, rgba(21,101,192,0.3) 100%);
+    border-color: #42A5F5;
+    box-shadow: 0 0 30px rgba(25,118,210,0.6);
+}
+
+/* Default card (no conference) */
+.game-card:not(.afc-card):not(.nfc-card) {
+    background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%);
+    border: 2px solid transparent;
 }
 
 .game-card::before {
@@ -203,14 +244,19 @@ body::before {
     left: 100%;
 }
 
-.game-card:hover {
+.game-card.afc-card:hover,
+.game-card.nfc-card:hover,
+.game-card:not(.afc-card):not(.nfc-card):hover {
     transform: translateY(-10px) scale(1.02);
+}
+
+.game-card:not(.afc-card):not(.nfc-card):hover {
     background: linear-gradient(135deg, rgba(255,193,7,0.2) 0%, rgba(76,175,80,0.2) 100%);
     box-shadow: 0 15px 40px rgba(255,193,7,0.4), 0 0 20px rgba(76,175,80,0.3);
     border-color: rgba(255,193,7,0.5);
 }
 
-.game-card.selected {
+.game-card:not(.afc-card):not(.nfc-card).selected {
     border-color: #4CAF50;
     background: rgba(76,175,80,0.2);
 }
