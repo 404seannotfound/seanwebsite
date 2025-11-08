@@ -1091,6 +1091,154 @@ body::before {
     font-style: italic;
 }
 
+/* Historical Chart */
+.historical-chart {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 10px;
+}
+
+.historical-chart h4 {
+    color: #FFD700;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 1.1rem;
+}
+
+.head-to-head-record {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+}
+
+.record-item {
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+.away-record {
+    color: #64B5F6;
+}
+
+.home-record {
+    color: #81C784;
+}
+
+.record-divider {
+    color: rgba(255,255,255,0.3);
+    font-size: 1.2rem;
+}
+
+.chart-container {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.game-bar-group {
+    display: grid;
+    grid-template-columns: 60px 1fr;
+    gap: 10px;
+    align-items: center;
+}
+
+.game-year {
+    font-weight: bold;
+    color: #FFD700;
+    text-align: right;
+    font-size: 0.9rem;
+}
+
+.score-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.score-bar-wrapper {
+    display: grid;
+    grid-template-columns: 50px 1fr;
+    gap: 8px;
+    align-items: center;
+}
+
+.team-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: right;
+}
+
+.away-bar-wrapper .team-label {
+    color: #64B5F6;
+}
+
+.home-bar-wrapper .team-label {
+    color: #81C784;
+}
+
+.score-bar {
+    height: 30px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 10px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.away-bar {
+    background: linear-gradient(90deg, rgba(33,150,243,0.4), rgba(33,150,243,0.6));
+    border: 1px solid rgba(33,150,243,0.6);
+}
+
+.home-bar {
+    background: linear-gradient(90deg, rgba(76,175,80,0.4), rgba(76,175,80,0.6));
+    border: 1px solid rgba(76,175,80,0.6);
+}
+
+.winner-bar {
+    box-shadow: 0 0 15px rgba(255,215,0,0.5);
+    border: 2px solid #FFD700;
+}
+
+.winner-bar::after {
+    content: '🏆';
+    position: absolute;
+    left: 8px;
+    font-size: 1.2rem;
+}
+
+.score-value {
+    font-weight: bold;
+    font-size: 0.95rem;
+    color: #fff;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+    z-index: 1;
+}
+
+.score-bar:hover {
+    transform: scaleX(1.02);
+    filter: brightness(1.2);
+}
+
+.chart-note {
+    margin-top: 15px;
+    text-align: center;
+    padding: 8px;
+    background: rgba(33,150,243,0.1);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: #64B5F6;
+}
+
 /* Team Standings Section */
 .standings-section {
     margin-bottom: 20px;

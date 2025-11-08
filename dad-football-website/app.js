@@ -686,14 +686,86 @@ class NFLGameTracker {
             return '';
         }
         
+        // Generate sample historical matchup data (in a real app, this would come from API)
+        const historicalGames = this.generateSampleHistory(game.awayTeam.shortName, game.homeTeam.shortName);
+        
         return `
             <div class="matchup-history">
                 <h3>📈 Matchup Insights & Fun Facts</h3>
                 <div class="fun-facts">
                     ${funFacts.map(fact => `<div class="fun-fact">${fact}</div>`).join('')}
                 </div>
-                <div class="historical-note">
-                    💡 <em>Historical head-to-head records and detailed game history coming soon!</em>
+                ${this.renderHistoricalChart(historicalGames, game.awayTeam, game.homeTeam)}
+            </div>
+        `;
+    }
+
+    generateSampleHistory(awayTeam, homeTeam) {
+        // Generate realistic sample data (in production, fetch from API)
+        const currentYear = new Date().getFullYear();
+        const games = [];
+        
+        // Generate 5 recent matchups
+        for (let i = 0; i < 5; i++) {
+            const year = currentYear - i;
+            const awayScore = Math.floor(Math.random() * 21) + 10; // 10-30 points
+            const homeScore = Math.floor(Math.random() * 21) + 10;
+            const location = Math.random() > 0.5 ? 'Home' : 'Away';
+            
+            games.push({
+                year,
+                awayScore,
+                homeScore,
+                winner: awayScore > homeScore ? awayTeam : homeTeam,
+                location
+            });
+        }
+        
+        return games.reverse(); // Oldest to newest
+    }
+    
+    renderHistoricalChart(games, awayTeam, homeTeam) {
+        if (!games || games.length === 0) return '';
+        
+        const maxScore = Math.max(...games.flatMap(g => [g.awayScore, g.homeScore]));
+        
+        // Calculate head-to-head record
+        const awayWins = games.filter(g => g.winner === awayTeam.shortName).length;
+        const homeWins = games.filter(g => g.winner === homeTeam.shortName).length;
+        
+        return `
+            <div class="historical-chart">
+                <h4>📊 Recent Matchup History (Last ${games.length} Games)</h4>
+                <div class="head-to-head-record">
+                    <span class="record-item away-record">${awayTeam.shortName}: ${awayWins} wins</span>
+                    <span class="record-divider">|</span>
+                    <span class="record-item home-record">${homeTeam.shortName}: ${homeWins} wins</span>
+                </div>
+                <div class="chart-container">
+                    ${games.map(game => `
+                        <div class="game-bar-group">
+                            <div class="game-year">${game.year}</div>
+                            <div class="score-bars">
+                                <div class="score-bar-wrapper away-bar-wrapper">
+                                    <div class="team-label">${awayTeam.shortName}</div>
+                                    <div class="score-bar away-bar ${game.winner === awayTeam.shortName ? 'winner-bar' : ''}" 
+                                         style="width: ${(game.awayScore / maxScore) * 100}%">
+                                        <span class="score-value">${game.awayScore}</span>
+                                    </div>
+                                </div>
+                                <div class="score-bar-wrapper home-bar-wrapper">
+                                    <div class="team-label">${homeTeam.shortName}</div>
+                                    <div class="score-bar home-bar ${game.winner === homeTeam.shortName ? 'winner-bar' : ''}" 
+                                         style="width: ${(game.homeScore / maxScore) * 100}%">
+                                        <span class="score-value">${game.homeScore}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div class="chart-note">
+                    💡 <em>Sample data shown - Real historical data integration coming soon!</em>
                 </div>
             </div>
         `;
