@@ -827,14 +827,41 @@ body::before {
 .full-standings-section {
     margin-bottom: 25px;
     padding: 20px;
-    background: linear-gradient(135deg, rgba(156,39,176,0.15), rgba(103,58,183,0.15));
-    border: 2px solid rgba(156,39,176,0.4);
     border-radius: 12px;
+}
+
+/* AFC Conference - Red theme */
+.full-standings-section.afc-conference {
+    background: linear-gradient(135deg, rgba(211,47,47,0.15), rgba(198,40,40,0.15));
+    border: 2px solid rgba(211,47,47,0.5);
+}
+
+.full-standings-section.afc-conference h3 {
+    color: #EF5350;
+}
+
+.full-standings-section.afc-conference .table-header {
+    background: rgba(211,47,47,0.3);
+    color: #EF5350;
+}
+
+/* NFC Conference - Blue theme */
+.full-standings-section.nfc-conference {
+    background: linear-gradient(135deg, rgba(25,118,210,0.15), rgba(21,101,192,0.15));
+    border: 2px solid rgba(25,118,210,0.5);
+}
+
+.full-standings-section.nfc-conference h3 {
+    color: #42A5F5;
+}
+
+.full-standings-section.nfc-conference .table-header {
+    background: rgba(25,118,210,0.3);
+    color: #42A5F5;
 }
 
 .full-standings-section h3 {
     text-align: center;
-    color: #BA68C8;
     margin-bottom: 15px;
     font-size: 1.2rem;
 }

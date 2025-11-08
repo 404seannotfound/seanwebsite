@@ -639,8 +639,10 @@ class NFLGameTracker {
             return b.wins - a.wins;
         });
         
+        const conferenceClass = conf === 'afc' ? 'afc-conference' : 'nfc-conference';
+        
         return `
-            <div class="full-standings-section">
+            <div class="full-standings-section ${conferenceClass}">
                 <h3>🏆 ${conference} Conference Playoff Seeding</h3>
                 <div class="standings-table">
                     <div class="table-header">
