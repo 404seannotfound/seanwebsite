@@ -420,8 +420,18 @@ class NFLGameTracker {
         const homeStanding = this.getTeamStanding(game.homeTeam.id);
         
         // Determine conference for card color
-        const conference = awayStanding?.conference || homeStanding?.conference || '';
-        const conferenceClass = conference === 'AFC' ? 'afc-card' : conference === 'NFC' ? 'nfc-card' : '';
+        const awayConf = awayStanding?.conference || '';
+        const homeConf = homeStanding?.conference || '';
+        
+        let conferenceClass = '';
+        if (awayConf && homeConf && awayConf !== homeConf) {
+            // Inter-conference matchup (AFC vs NFC)
+            conferenceClass = 'inter-conference-card';
+        } else if (awayConf === 'AFC' || homeConf === 'AFC') {
+            conferenceClass = 'afc-card';
+        } else if (awayConf === 'NFC' || homeConf === 'NFC') {
+            conferenceClass = 'nfc-card';
+        }
         
         card.className = `game-card ${conferenceClass}`;
         card.dataset.gameId = game.id;
@@ -566,8 +576,18 @@ class NFLGameTracker {
         const homeStanding = this.getTeamStanding(game.homeTeam.id);
         
         // Determine conference for panel color
-        const conference = awayStanding?.conference || homeStanding?.conference || '';
-        const conferenceClass = conference === 'AFC' ? 'afc-panel' : conference === 'NFC' ? 'nfc-panel' : '';
+        const awayConf = awayStanding?.conference || '';
+        const homeConf = homeStanding?.conference || '';
+        
+        let conferenceClass = '';
+        if (awayConf && homeConf && awayConf !== homeConf) {
+            // Inter-conference matchup (AFC vs NFC)
+            conferenceClass = 'inter-conference-panel';
+        } else if (awayConf === 'AFC' || homeConf === 'AFC') {
+            conferenceClass = 'afc-panel';
+        } else if (awayConf === 'NFC' || homeConf === 'NFC') {
+            conferenceClass = 'nfc-panel';
+        }
         
         panel.className = `game-panel ${conferenceClass}`;
         panel.dataset.gameId = game.id;
