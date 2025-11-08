@@ -437,6 +437,9 @@ class NFLGameTracker {
         const awayPlayoff = this.calculatePlayoffScenario(game.awayTeam.id);
         const homePlayoff = this.calculatePlayoffScenario(game.homeTeam.id);
         
+        // Calculate game impact
+        const gameImpact = this.calculateGameImpact(awayPlayoff, homePlayoff);
+        
         // Format odds
         const awayOddsHTML = game.awayTeam.odds ? `<div class="team-odds">${this.formatOdds(game.awayTeam.odds)}</div>` : '';
         const homeOddsHTML = game.homeTeam.odds ? `<div class="team-odds">${this.formatOdds(game.homeTeam.odds)}</div>` : '';
@@ -448,6 +451,7 @@ class NFLGameTracker {
         card.innerHTML = `
             <div class="game-status ${statusClass}">${statusText}</div>
             ${countdownHTML}
+            ${gameImpact}
             <div class="game-matchup">
                 <div class="team">
                     <img src="${game.awayTeam.logo}" alt="${game.awayTeam.name}" class="team-logo">
@@ -766,6 +770,51 @@ class NFLGameTracker {
                 </div>
             </div>
         `;
+    }
+
+    calculateGameImpact(awayPlayoff, homePlayoff) {
+        if (!awayPlayoff || !homePlayoff) return '';
+        
+        const awayInPlayoffs = awayPlayoff.inPlayoffs;
+        const homeInPlayoffs = homePlayoff.inPlayoffs;
+        const awayGamesRemaining = awayPlayoff.gamesRemaining;
+        const homeGamesRemaining = homePlayoff.gamesRemaining;
+        
+        // Both teams eliminated
+        if (!awayInPlayoffs && !homeInPlayoffs && awayGamesRemaining < 3 && homeGamesRemaining < 3) {
+            return '<div class="game-impact no-impact">⚪ No playoff impact - Both teams eliminated</div>';
+        }
+        
+        // Both teams locked in playoffs with high seeds
+        if (awayInPlayoffs && homeInPlayoffs && awayPlayoff.currentSeed <= 2 && homePlayoff.currentSeed <= 2) {
+            return '<div class="game-impact high-impact">🔥 HUGE IMPACT - BYE week on the line!</div>';
+        }
+        
+        // One team fighting for playoffs
+        if ((awayInPlayoffs && awayPlayoff.currentSeed >= 6) || (homeInPlayoffs && homePlayoff.currentSeed >= 6)) {
+            return '<div class="game-impact high-impact">🚨 HIGH IMPACT - Playoff spot at risk!</div>';
+        }
+        
+        // One team out, one team in
+        if (!awayInPlayoffs && homeInPlayoffs) {
+            return '<div class="game-impact medium-impact">⚡ MEDIUM IMPACT - Could affect seeding</div>';
+        }
+        
+        if (awayInPlayoffs && !homeInPlayoffs) {
+            return '<div class="game-impact medium-impact">⚡ MEDIUM IMPACT - Could affect seeding</div>';
+        }
+        
+        // Both in playoffs, fighting for position
+        if (awayInPlayoffs && homeInPlayoffs) {
+            const seedDiff = Math.abs(awayPlayoff.currentSeed - homePlayoff.currentSeed);
+            if (seedDiff <= 2) {
+                return '<div class="game-impact high-impact">🔥 HIGH IMPACT - Seeding battle!</div>';
+            }
+            return '<div class="game-impact medium-impact">⚡ MEDIUM IMPACT - Could shift seeds</div>';
+        }
+        
+        // Default - some impact
+        return '<div class="game-impact low-impact">📊 LOW IMPACT - Minor seeding effect</div>';
     }
 
     getCountdown(gameDate) {
