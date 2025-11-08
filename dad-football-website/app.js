@@ -263,8 +263,9 @@ class NFLGameTracker {
         const gameList = document.getElementById('game-list');
         gameList.innerHTML = '';
 
-        games.forEach(game => {
+        games.forEach((game, index) => {
             const card = this.createGameCard(game);
+            card.style.animation = `slideInUp 0.6s ease-out ${index * 0.1}s both`;
             gameList.appendChild(card);
         });
     }
