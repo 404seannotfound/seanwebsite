@@ -333,21 +333,15 @@ body::before {
 }
 
 .team-odds {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     padding: 4px 10px;
     margin: 4px 0;
-    background: linear-gradient(135deg, rgba(76,175,80,0.2), rgba(56,142,60,0.2));
-    border: 1px solid rgba(76,175,80,0.4);
+    background: linear-gradient(135deg, rgba(255,193,7,0.25), rgba(255,152,0,0.25));
+    border: 1px solid rgba(255,193,7,0.5);
     border-radius: 12px;
-    color: #81C784;
+    color: #FFD700;
     font-weight: 600;
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-}
-
-.odds-label {
-    opacity: 0.8;
-    font-size: 0.75rem;
-    margin-right: 4px;
 }
 
 .team-score {

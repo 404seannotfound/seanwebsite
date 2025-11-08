@@ -795,13 +795,13 @@ class NFLGameTracker {
         // Handle moneyline odds
         if (odds.moneyLine) {
             const ml = odds.moneyLine;
-            return `<span class="odds-label">ML:</span> ${ml > 0 ? '+' : ''}${ml}`;
+            return `💰 ${ml > 0 ? '+' : ''}${ml}`;
         }
         
         // Handle spread
         if (odds.spreadOdds) {
             const spread = odds.spreadOdds;
-            return `<span class="odds-label">Spread:</span> ${spread > 0 ? '+' : ''}${spread}`;
+            return `💰 ${spread > 0 ? '+' : ''}${spread}`;
         }
         
         return '';
