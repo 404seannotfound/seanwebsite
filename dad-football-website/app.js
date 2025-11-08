@@ -557,12 +557,17 @@ class NFLGameTracker {
 
     createGamePanel(game) {
         const panel = document.createElement('div');
-        panel.className = 'game-panel';
+        const awayStanding = this.getTeamStanding(game.awayTeam.id);
+        const homeStanding = this.getTeamStanding(game.homeTeam.id);
+        
+        // Determine conference for panel color
+        const conference = awayStanding?.conference || homeStanding?.conference || '';
+        const conferenceClass = conference === 'AFC' ? 'afc-panel' : conference === 'NFC' ? 'nfc-panel' : '';
+        
+        panel.className = `game-panel ${conferenceClass}`;
         panel.dataset.gameId = game.id;
 
         const statusText = game.isLive ? '🔴 LIVE' : game.status;
-        const awayStanding = this.getTeamStanding(game.awayTeam.id);
-        const homeStanding = this.getTeamStanding(game.homeTeam.id);
         const awayPlayoff = this.calculatePlayoffScenario(game.awayTeam.id);
         const homePlayoff = this.calculatePlayoffScenario(game.homeTeam.id);
 

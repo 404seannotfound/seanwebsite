@@ -600,12 +600,45 @@ body::before {
     border-radius: 15px;
     padding: 20px;
     overflow-y: auto;
+    transition: all 0.3s ease;
 }
 
-.panel-header {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 2px solid rgba(255,255,255,0.2);
+/* AFC Panel - Red theme */
+.game-panel.afc-panel {
+    background: linear-gradient(135deg, rgba(211,47,47,0.15), rgba(198,40,40,0.1));
+    border: 2px solid rgba(211,47,47,0.4);
+}
+
+.game-panel.afc-panel:hover {
+    border-color: rgba(211,47,47,0.6);
+    box-shadow: 0 8px 32px rgba(211,47,47,0.2);
+}
+
+.game-panel.afc-panel .panel-status {
+    background: linear-gradient(135deg, rgba(211,47,47,0.3), rgba(198,40,40,0.3));
+    color: #EF5350;
+}
+
+/* NFC Panel - Blue theme */
+.game-panel.nfc-panel {
+    background: linear-gradient(135deg, rgba(25,118,210,0.15), rgba(21,101,192,0.1));
+    border: 2px solid rgba(25,118,210,0.4);
+}
+
+.game-panel.nfc-panel:hover {
+    border-color: rgba(25,118,210,0.6);
+    box-shadow: 0 8px 32px rgba(25,118,210,0.2);
+}
+
+.game-panel.nfc-panel .panel-status {
+    background: linear-gradient(135deg, rgba(25,118,210,0.3), rgba(21,101,192,0.3));
+    color: #42A5F5;
+}
+
+/* Default panel (no conference) */
+.game-panel:not(.afc-panel):not(.nfc-panel) {
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
 }
 
 .panel-status {
