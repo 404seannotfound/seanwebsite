@@ -730,6 +730,116 @@ body::before {
     opacity: 0.7;
 }
 
+/* Full Standings Table */
+.full-standings-section {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(156,39,176,0.15), rgba(103,58,183,0.15));
+    border: 2px solid rgba(156,39,176,0.4);
+    border-radius: 12px;
+}
+
+.full-standings-section h3 {
+    text-align: center;
+    color: #BA68C8;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+}
+
+.standings-table {
+    background: rgba(0,0,0,0.3);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.table-header {
+    display: grid;
+    grid-template-columns: 60px 150px 100px 1fr 100px;
+    gap: 10px;
+    padding: 12px 15px;
+    background: rgba(156,39,176,0.3);
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: #BA68C8;
+}
+
+.table-row {
+    display: grid;
+    grid-template-columns: 60px 150px 100px 1fr 100px;
+    gap: 10px;
+    padding: 10px 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.3s ease;
+}
+
+.table-row:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.table-row.playoff-team {
+    background: rgba(76,175,80,0.1);
+}
+
+.table-row.eliminated {
+    opacity: 0.6;
+}
+
+.col-seed, .col-team, .col-record, .col-division, .col-status {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.seed-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-weight: bold;
+    font-size: 0.85rem;
+}
+
+.seed-badge.bye-seed {
+    background: linear-gradient(135deg, #FFD700, #FFA000);
+    color: #000;
+}
+
+.seed-badge.home-seed {
+    background: linear-gradient(135deg, #4CAF50, #388E3C);
+    color: #fff;
+}
+
+.seed-badge.wild-seed {
+    background: linear-gradient(135deg, #2196F3, #1976D2);
+    color: #fff;
+}
+
+.seed-badge.out-seed {
+    background: rgba(255,255,255,0.1);
+    color: rgba(255,255,255,0.5);
+}
+
+.mini-logo {
+    width: 24px;
+    height: 24px;
+    margin-right: 8px;
+    object-fit: contain;
+}
+
+.standings-legend {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 15px;
+    padding: 12px;
+    background: rgba(0,0,0,0.2);
+    border-radius: 8px;
+    font-size: 0.85rem;
+}
+
+.standings-legend span {
+    color: rgba(255,255,255,0.9);
+}
+
 /* Team Standings Section */
 .standings-section {
     margin-bottom: 20px;

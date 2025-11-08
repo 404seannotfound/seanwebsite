@@ -514,6 +514,7 @@ class NFLGameTracker {
                 </div>
             </div>
             <div class="panel-details">
+                ${this.renderFullStandingsTable(awayStanding?.conference)}
                 ${this.renderTeamStandings(awayStanding, homeStanding)}
                 ${this.renderPlayoffScenarios(game.awayTeam.name, awayPlayoff, game.homeTeam.name, homePlayoff)}
                 ${this.renderPanelLinks(game)}
@@ -521,6 +522,65 @@ class NFLGameTracker {
         `;
 
         return panel;
+    }
+
+    renderFullStandingsTable(conference) {
+        if (!this.standings || !conference) return '';
+        
+        const conf = conference.toLowerCase();
+        const allConfTeams = [];
+        
+        // Get all teams in this conference
+        for (const divName in this.standings[conf].divisions) {
+            allConfTeams.push(...this.standings[conf].divisions[divName]);
+        }
+        
+        // Sort by playoff seed
+        allConfTeams.sort((a, b) => {
+            if (b.winPercent !== a.winPercent) return b.winPercent - a.winPercent;
+            return b.wins - a.wins;
+        });
+        
+        return `
+            <div class="full-standings-section">
+                <h3>🏆 ${conference} Conference Playoff Seeding</h3>
+                <div class="standings-table">
+                    <div class="table-header">
+                        <div class="col-seed">Seed</div>
+                        <div class="col-team">Team</div>
+                        <div class="col-record">Record</div>
+                        <div class="col-division">Division</div>
+                        <div class="col-status">Status</div>
+                    </div>
+                    ${allConfTeams.map((team, index) => {
+                        const seed = index + 1;
+                        const inPlayoffs = seed <= 7;
+                        const statusClass = inPlayoffs ? 'playoff-team' : 'eliminated';
+                        const statusText = inPlayoffs ? (seed <= 2 ? '🎯 BYE' : seed <= 4 ? '🏠 HOME' : '✈️ AWAY') : '❌ OUT';
+                        const seedBadge = seed <= 2 ? 'bye-seed' : seed <= 4 ? 'home-seed' : seed <= 7 ? 'wild-seed' : 'out-seed';
+                        
+                        return `
+                            <div class="table-row ${statusClass}">
+                                <div class="col-seed"><span class="seed-badge ${seedBadge}">#${seed}</span></div>
+                                <div class="col-team">
+                                    <img src="${team.logo}" alt="${team.abbreviation}" class="mini-logo">
+                                    <strong>${team.abbreviation}</strong>
+                                </div>
+                                <div class="col-record">${team.wins}-${team.losses}${team.ties > 0 ? `-${team.ties}` : ''}</div>
+                                <div class="col-division">${team.name.split(' ').slice(-2).join(' ')}</div>
+                                <div class="col-status">${statusText}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+                <div class="standings-legend">
+                    <span><strong>🎯 BYE:</strong> Skip Wild Card</span>
+                    <span><strong>🏠 HOME:</strong> Host playoff game</span>
+                    <span><strong>✈️ AWAY:</strong> Wild Card team</span>
+                    <span><strong>❌ OUT:</strong> Not in playoffs</span>
+                </div>
+            </div>
+        `;
     }
 
     renderTeamStandings(awayStanding, homeStanding) {
