@@ -1039,6 +1039,58 @@ body::before {
     color: rgba(255,255,255,0.9);
 }
 
+/* Matchup History Section */
+.matchup-history {
+    margin-bottom: 25px;
+    padding: 20px;
+    background: linear-gradient(135deg, rgba(255,152,0,0.15), rgba(255,193,7,0.15));
+    border: 2px solid rgba(255,193,7,0.4);
+    border-radius: 12px;
+}
+
+.matchup-history h3 {
+    color: #FFD700;
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+.fun-facts {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 15px;
+}
+
+.fun-fact {
+    background: rgba(0,0,0,0.3);
+    padding: 12px 15px;
+    border-radius: 8px;
+    border-left: 4px solid #FFD700;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    transition: all 0.3s ease;
+}
+
+.fun-fact:hover {
+    background: rgba(0,0,0,0.4);
+    border-left-color: #FFA000;
+    transform: translateX(5px);
+}
+
+.fun-fact strong {
+    color: #FFD700;
+}
+
+.historical-note {
+    text-align: center;
+    padding: 10px;
+    background: rgba(33,150,243,0.15);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: #64B5F6;
+    font-style: italic;
+}
+
 /* Team Standings Section */
 .standings-section {
     margin-bottom: 20px;

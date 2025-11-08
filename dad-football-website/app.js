@@ -128,6 +128,18 @@ class NFLGameTracker {
         }
     }
 
+    async fetchTeamHistory(team1Id, team2Id) {
+        try {
+            // Fetch head-to-head history
+            const response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${team1Id}/record?vs=${team2Id}`);
+            const data = await response.json();
+            return data;
+        } catch (error) {
+            console.error('Error fetching team history:', error);
+            return null;
+        }
+    }
+
     async fetchNFLStandings() {
         try {
             const response = await fetch('https://site.api.espn.com/apis/v2/sports/football/nfl/standings');
@@ -605,6 +617,7 @@ class NFLGameTracker {
                 </div>
             </div>
             <div class="panel-details">
+                ${this.renderMatchupHistory(game)}
                 ${this.renderFullStandingsTable(awayStanding?.conference)}
                 ${this.renderTeamStandings(awayStanding, homeStanding)}
                 ${this.renderPlayoffScenarios(game.awayTeam.name, awayPlayoff, game.homeTeam.name, homePlayoff)}
@@ -613,6 +626,77 @@ class NFLGameTracker {
         `;
 
         return panel;
+    }
+
+    renderMatchupHistory(game) {
+        // Generate fun facts based on available game data
+        const funFacts = [];
+        const awayStanding = this.getTeamStanding(game.awayTeam.id);
+        const homeStanding = this.getTeamStanding(game.homeTeam.id);
+        
+        // Home field advantage fact
+        if (homeStanding) {
+            funFacts.push(`🏟️ <strong>Home Field:</strong> ${game.homeTeam.name} playing at ${game.venue}`);
+        }
+        
+        // Record comparison
+        if (awayStanding && homeStanding) {
+            const awayWinPct = (awayStanding.winPercent * 100).toFixed(1);
+            const homeWinPct = (homeStanding.winPercent * 100).toFixed(1);
+            funFacts.push(`📊 <strong>Win %:</strong> ${game.awayTeam.shortName} (${awayWinPct}%) vs ${game.homeTeam.shortName} (${homeWinPct}%)`);
+            
+            // Points comparison
+            const awayPPG = (awayStanding.pointsFor / awayStanding.gamesPlayed).toFixed(1);
+            const homePPG = (homeStanding.pointsFor / homeStanding.gamesPlayed).toFixed(1);
+            funFacts.push(`⚡ <strong>Avg Points:</strong> ${game.awayTeam.shortName} (${awayPPG}/game) vs ${game.homeTeam.shortName} (${homePPG}/game)`);
+            
+            // Defense comparison
+            const awayPAG = (awayStanding.pointsAgainst / awayStanding.gamesPlayed).toFixed(1);
+            const homePAG = (homeStanding.pointsAgainst / homeStanding.gamesPlayed).toFixed(1);
+            funFacts.push(`🛡️ <strong>Defense:</strong> ${game.awayTeam.shortName} allows ${awayPAG}/game vs ${game.homeTeam.shortName} allows ${homePAG}/game`);
+        }
+        
+        // Division rivalry
+        if (awayStanding && homeStanding && awayStanding.division === homeStanding.division) {
+            funFacts.push(`🔥 <strong>Division Rivalry!</strong> Both teams in ${awayStanding.division}`);
+        }
+        
+        // Conference matchup
+        if (awayStanding && homeStanding) {
+            if (awayStanding.conference !== homeStanding.conference) {
+                funFacts.push(`🌟 <strong>Inter-Conference:</strong> ${awayStanding.conference} vs ${homeStanding.conference} matchup`);
+            }
+        }
+        
+        // Playoff implications
+        const awayPlayoff = this.calculatePlayoffScenario(game.awayTeam.id);
+        const homePlayoff = this.calculatePlayoffScenario(game.homeTeam.id);
+        
+        if (awayPlayoff && homePlayoff) {
+            if (awayPlayoff.inPlayoffs && homePlayoff.inPlayoffs) {
+                funFacts.push(`🏆 <strong>Playoff Clash:</strong> Both teams currently in playoff position!`);
+            }
+            
+            if (awayPlayoff.currentSeed <= 2 || homePlayoff.currentSeed <= 2) {
+                funFacts.push(`🎯 <strong>BYE Week Battle:</strong> Top seed(s) fighting for first-round bye!`);
+            }
+        }
+        
+        if (funFacts.length === 0) {
+            return '';
+        }
+        
+        return `
+            <div class="matchup-history">
+                <h3>📈 Matchup Insights & Fun Facts</h3>
+                <div class="fun-facts">
+                    ${funFacts.map(fact => `<div class="fun-fact">${fact}</div>`).join('')}
+                </div>
+                <div class="historical-note">
+                    💡 <em>Historical head-to-head records and detailed game history coming soon!</em>
+                </div>
+            </div>
+        `;
     }
 
     renderFullStandingsTable(conference) {
