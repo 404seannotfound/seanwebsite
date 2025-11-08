@@ -222,22 +222,22 @@ body::before {
     box-shadow: 0 0 30px rgba(25,118,210,0.6);
 }
 
-/* Inter-Conference Card - Purple/Split theme */
+/* Inter-Conference Card - Gold theme */
 .game-card.inter-conference-card {
-    background: linear-gradient(135deg, rgba(211,47,47,0.2) 0%, rgba(156,39,176,0.2) 50%, rgba(25,118,210,0.2) 100%);
-    border: 2px solid rgba(156,39,176,0.5);
+    background: linear-gradient(135deg, rgba(255,193,7,0.25) 0%, rgba(255,152,0,0.25) 100%);
+    border: 2px solid rgba(255,193,7,0.6);
 }
 
 .game-card.inter-conference-card:hover {
-    background: linear-gradient(135deg, rgba(211,47,47,0.3) 0%, rgba(156,39,176,0.3) 50%, rgba(25,118,210,0.3) 100%);
-    border-color: rgba(156,39,176,0.7);
-    box-shadow: 0 15px 40px rgba(156,39,176,0.4), 0 0 20px rgba(156,39,176,0.3);
+    background: linear-gradient(135deg, rgba(255,193,7,0.35) 0%, rgba(255,152,0,0.35) 100%);
+    border-color: rgba(255,193,7,0.8);
+    box-shadow: 0 15px 40px rgba(255,193,7,0.5), 0 0 20px rgba(255,152,0,0.4);
 }
 
 .game-card.inter-conference-card.selected {
-    background: linear-gradient(135deg, rgba(211,47,47,0.35) 0%, rgba(156,39,176,0.35) 50%, rgba(25,118,210,0.35) 100%);
-    border-color: #BA68C8;
-    box-shadow: 0 0 30px rgba(156,39,176,0.6);
+    background: linear-gradient(135deg, rgba(255,193,7,0.4) 0%, rgba(255,152,0,0.4) 100%);
+    border-color: #FFD700;
+    box-shadow: 0 0 30px rgba(255,193,7,0.7);
 }
 
 /* Default card (no conference) */
@@ -707,20 +707,20 @@ body::before {
     color: #42A5F5;
 }
 
-/* Inter-Conference Panel - Purple/Split theme */
+/* Inter-Conference Panel - Gold theme */
 .game-panel.inter-conference-panel {
-    background: linear-gradient(135deg, rgba(211,47,47,0.15), rgba(156,39,176,0.15), rgba(25,118,210,0.15));
-    border: 2px solid rgba(156,39,176,0.5);
+    background: linear-gradient(135deg, rgba(255,193,7,0.2), rgba(255,152,0,0.15));
+    border: 2px solid rgba(255,193,7,0.5);
 }
 
 .game-panel.inter-conference-panel:hover {
-    border-color: rgba(156,39,176,0.7);
-    box-shadow: 0 8px 32px rgba(156,39,176,0.3);
+    border-color: rgba(255,193,7,0.7);
+    box-shadow: 0 8px 32px rgba(255,193,7,0.4);
 }
 
 .game-panel.inter-conference-panel .panel-status {
-    background: linear-gradient(135deg, rgba(156,39,176,0.3), rgba(123,31,162,0.3));
-    color: #BA68C8;
+    background: linear-gradient(135deg, rgba(255,193,7,0.4), rgba(255,152,0,0.4));
+    color: #FFD700;
 }
 
 /* Default panel (no conference) */
