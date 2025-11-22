@@ -294,19 +294,7 @@ class CollegeGameTracker {
         const awayRankHTML = game.awayTeam.rank ? `<div class="team-seed-badge in-playoffs">Ranked #${game.awayTeam.rank}</div>` : '';
         const homeRankHTML = game.homeTeam.rank ? `<div class="team-seed-badge in-playoffs">Ranked #${game.homeTeam.rank}</div>` : '';
         
-        // Quick stats for live games
-        let quickStatsHTML = '';
-        if (game.isLive && (game.awayTeam.stats || game.homeTeam.stats)) {
-            const awayYards = game.awayTeam.stats?.totalYards || '0';
-            const homeYards = game.homeTeam.stats?.totalYards || '0';
-            quickStatsHTML = `
-                <div style="display: flex; justify-content: space-around; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-top: 10px; font-size: 0.85rem;">
-                    <div><strong>${awayYards}</strong> Total Yds</div>
-                    <div>|</div>
-                    <div><strong>${homeYards}</strong> Total Yds</div>
-                </div>
-            `;
-        }
+        // Remove quick stats from selection view
         
         card.innerHTML = `
             <div class="game-status ${statusClass}">${statusText}</div>
@@ -331,7 +319,6 @@ class CollegeGameTracker {
                     <div class="team-score">${game.homeTeam.score}</div>
                 </div>
             </div>
-            ${quickStatsHTML}
             <div class="game-info">
                 <div>${game.statusDetail}</div>
                 <div>📍 ${game.venue}</div>
@@ -574,15 +561,15 @@ class CollegeGameTracker {
         
         const statCategories = [
             { key: 'totalYards', label: 'Total Yards' },
-            { key: 'passingYards', label: 'Passing Yards' },
-            { key: 'rushingYards', label: 'Rushing Yards' },
-            { key: 'yardsPerPlay', label: 'Yards/Play' },
-            { key: 'firstDowns', label: 'First Downs' },
+            { key: 'passingYards', label: 'Passing' },
+            { key: 'rushingYards', label: 'Rushing' },
+            { key: 'yardsPerPlay', label: 'Yds/Play' },
+            { key: 'firstDowns', label: '1st Downs' },
             { key: 'thirdDownEff', label: '3rd Down' },
             { key: 'fourthDownEff', label: '4th Down' },
             { key: 'turnovers', label: 'Turnovers' },
-            { key: 'possessionTime', label: 'Time of Possession' },
-            { key: 'totalPenaltiesYards', label: 'Penalties-Yards' }
+            { key: 'possessionTime', label: 'TOP' },
+            { key: 'totalPenaltiesYards', label: 'Penalties' }
         ];
         
         const statsRows = statCategories.map(cat => {
@@ -590,24 +577,46 @@ class CollegeGameTracker {
             const homeVal = homeStats[cat.key] || '-';
             
             return `
-                <div class="table-row">
-                    <div style="text-align: right; padding: 8px;">${awayVal}</div>
-                    <div style="text-align: center; padding: 8px; font-weight: bold;">${cat.label}</div>
-                    <div style="text-align: left; padding: 8px;">${homeVal}</div>
+                <div style="display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.1);">
+                    <div style="text-align: right; padding-right: 15px;">
+                        <span style="background: linear-gradient(90deg, transparent, rgba(100,181,246,0.3)); padding: 6px 12px; border-radius: 6px; font-size: 1.1rem; font-weight: bold; color: #64B5F6;">
+                            ${awayVal}
+                        </span>
+                    </div>
+                    <div style="text-align: center; min-width: 120px; font-weight: bold; font-size: 0.85rem; color: #FFD700; text-transform: uppercase;">
+                        ${cat.label}
+                    </div>
+                    <div style="text-align: left; padding-left: 15px;">
+                        <span style="background: linear-gradient(270deg, transparent, rgba(129,199,132,0.3)); padding: 6px 12px; border-radius: 6px; font-size: 1.1rem; font-weight: bold; color: #81C784;">
+                            ${homeVal}
+                        </span>
+                    </div>
                 </div>
             `;
         }).join('');
         
         return `
             <div class="standings-section" style="margin-bottom: 20px;">
-                <h3>📊 Team Stats Comparison</h3>
-                <div style="background: rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
-                    <div class="table-header" style="display: grid; grid-template-columns: 1fr 2fr 1fr; background: rgba(76,175,80,0.3);">
-                        <div style="text-align: center; padding: 10px;">${game.awayTeam.shortName}</div>
-                        <div style="text-align: center; padding: 10px;">Stat</div>
-                        <div style="text-align: center; padding: 10px;">${game.homeTeam.shortName}</div>
+                <h3>📊 Team Stats</h3>
+                <div style="background: rgba(0,0,0,0.4); border-radius: 12px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);">
+                    <div style="display: grid; grid-template-columns: 1fr auto 1fr; padding: 15px; background: linear-gradient(90deg, rgba(100,181,246,0.2), rgba(0,0,0,0.3), rgba(129,199,132,0.2)); border-bottom: 2px solid rgba(255,215,0,0.3);">
+                        <div style="text-align: right; padding-right: 15px;">
+                            <div style="display: flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                                <span style="font-weight: bold; font-size: 1.1rem; color: #64B5F6;">${game.awayTeam.shortName}</span>
+                                <img src="${game.awayTeam.logo}" alt="${game.awayTeam.shortName}" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #64B5F6;">
+                            </div>
+                        </div>
+                        <div style="text-align: center; min-width: 120px; font-size: 0.75rem; color: rgba(255,255,255,0.6); text-transform: uppercase;">
+                            Away vs Home
+                        </div>
+                        <div style="text-align: left; padding-left: 15px;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <img src="${game.homeTeam.logo}" alt="${game.homeTeam.shortName}" style="width: 32px; height: 32px; border-radius: 50%; border: 2px solid #81C784;">
+                                <span style="font-weight: bold; font-size: 1.1rem; color: #81C784;">${game.homeTeam.shortName}</span>
+                            </div>
+                        </div>
                     </div>
-                    <div style="display: grid; grid-template-columns: 1fr 2fr 1fr;">
+                    <div style="padding: 10px;">
                         ${statsRows}
                     </div>
                 </div>
