@@ -425,7 +425,7 @@ class CollegeGameTracker {
                         ${awayPath ? `<div class="panel-team-seed">Rank: #${awayPath.rank}</div>` : ''}
                         <div class="panel-team-score">${game.awayTeam.score}</div>
                         ${this.renderQuarterScores(game.awayTeam.linescores)}
-                        <div style="font-size: 0.8rem; margin-top: 5px;">⏱️ Timeouts: ${game.awayTeam.timeouts}</div>
+                        ${game.awayTeam.timeouts !== null && game.awayTeam.timeouts !== undefined ? `<div style="font-size: 0.8rem; margin-top: 5px;">⏱️ Timeouts: ${game.awayTeam.timeouts}</div>` : ''}
                     </div>
                     <div class="panel-vs">@</div>
                     <div class="panel-team">
@@ -436,7 +436,7 @@ class CollegeGameTracker {
                         ${homePath ? `<div class="panel-team-seed">Rank: #${homePath.rank}</div>` : ''}
                         <div class="panel-team-score">${game.homeTeam.score}</div>
                         ${this.renderQuarterScores(game.homeTeam.linescores)}
-                        <div style="font-size: 0.8rem; margin-top: 5px;">⏱️ Timeouts: ${game.homeTeam.timeouts}</div>
+                        ${game.homeTeam.timeouts !== null && game.homeTeam.timeouts !== undefined ? `<div style="font-size: 0.8rem; margin-top: 5px;">⏱️ Timeouts: ${game.homeTeam.timeouts}</div>` : ''}
                     </div>
                 </div>
                 <div class="panel-info">
