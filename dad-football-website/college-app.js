@@ -518,22 +518,39 @@ class CollegeGameTracker {
             
             const athlete = leader.athlete;
             const displayValue = leader.displayValue || '';
+            const jersey = athlete?.jersey || '';
+            const position = athlete?.position?.abbreviation || '';
             
-            // Determine which team the player is on
+            // Determine which team the player is on and set color
             let teamName = '';
+            let teamColor = '#FFD700'; // default gold
+            let isHome = false;
+            
             if (athlete?.team?.id) {
                 if (String(athlete.team.id) === String(game.homeTeam.id)) {
                     teamName = game.homeTeam.shortName;
+                    teamColor = '#81C784'; // green for home
+                    isHome = true;
                 } else if (String(athlete.team.id) === String(game.awayTeam.id)) {
                     teamName = game.awayTeam.shortName;
+                    teamColor = '#64B5F6'; // blue for away
+                    isHome = false;
                 }
             }
             
             return `
-                <div style="padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; margin: 5px 0;">
-                    <div style="font-weight: bold; color: #FFD700; font-size: 0.9rem;">${category.displayName}</div>
-                    <div style="font-size: 0.85rem; margin-top: 3px;">
-                        ${athlete?.displayName || 'N/A'}${teamName ? ` (${teamName})` : ''}: ${displayValue}
+                <div style="padding: 10px; background: rgba(0,0,0,0.2); border-radius: 6px; margin: 5px 0; border-left: 4px solid ${teamColor};">
+                    <div style="font-weight: bold; color: #FFD700; font-size: 0.9rem; margin-bottom: 4px;">${category.displayName}</div>
+                    <div style="font-size: 0.85rem; display: flex; align-items: center; gap: 8px;">
+                        <span style="background: ${teamColor}; color: #000; padding: 2px 6px; border-radius: 4px; font-weight: bold; font-size: 0.75rem;">
+                            ${teamName}${jersey ? ` #${jersey}` : ''}
+                        </span>
+                        <span style="color: ${teamColor}; font-weight: bold;">
+                            ${athlete?.displayName || 'N/A'}${position ? ` (${position})` : ''}
+                        </span>
+                    </div>
+                    <div style="font-size: 0.85rem; margin-top: 4px; opacity: 0.95;">
+                        ${displayValue}
                     </div>
                 </div>
             `;
