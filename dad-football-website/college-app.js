@@ -79,6 +79,19 @@ class CollegeGameTracker {
                 const homeTeam = competition.competitors.find(t => t.homeAway === 'home');
                 const awayTeam = competition.competitors.find(t => t.homeAway === 'away');
                 
+                // Extract detailed stats
+                const homeStats = this.extractTeamStats(homeTeam);
+                const awayStats = this.extractTeamStats(awayTeam);
+                
+                // Extract situation/drive info
+                const situation = competition.situation || {};
+                
+                // Extract leaders
+                const leaders = competition.leaders || [];
+                
+                // Extract scoring summary
+                const scoringPlays = competition.details?.scoringPlays || [];
+                
                 return {
                     id: event.id,
                     name: event.name,
@@ -89,13 +102,19 @@ class CollegeGameTracker {
                     isLive: competition.status.type.state === 'in',
                     isCompleted: competition.status.type.completed,
                     isPregame: competition.status.type.state === 'pre',
+                    period: competition.status.period || 0,
+                    clock: competition.status.displayClock || '',
                     homeTeam: {
                         id: homeTeam.team.id,
                         name: homeTeam.team.displayName,
                         shortName: homeTeam.team.abbreviation,
                         score: homeTeam.score,
                         logo: homeTeam.team.logo,
-                        record: homeTeam.records?.[0]?.summary || 'N/A'
+                        record: homeTeam.records?.[0]?.summary || 'N/A',
+                        linescores: homeTeam.linescores || [],
+                        timeouts: homeTeam.timeouts || 0,
+                        possession: homeTeam.possession || false,
+                        stats: homeStats
                     },
                     awayTeam: {
                         id: awayTeam.team.id,
@@ -103,8 +122,21 @@ class CollegeGameTracker {
                         shortName: awayTeam.team.abbreviation,
                         score: awayTeam.score,
                         logo: awayTeam.team.logo,
-                        record: awayTeam.records?.[0]?.summary || 'N/A'
+                        record: awayTeam.records?.[0]?.summary || 'N/A',
+                        linescores: awayTeam.linescores || [],
+                        timeouts: awayTeam.timeouts || 0,
+                        possession: awayTeam.possession || false,
+                        stats: awayStats
                     },
+                    situation: {
+                        down: situation.down || null,
+                        distance: situation.distance || null,
+                        yardLine: situation.yardLine || null,
+                        possessionText: situation.possessionText || '',
+                        downDistanceText: situation.downDistanceText || ''
+                    },
+                    leaders: leaders,
+                    scoringPlays: scoringPlays,
                     venue: competition.venue?.fullName || 'TBD',
                     broadcast: competition.broadcasts?.[0]?.names?.[0] || 'N/A',
                     links: event.links || []
@@ -114,6 +146,16 @@ class CollegeGameTracker {
             console.error('Error fetching college games:', error);
             throw error;
         }
+    }
+
+    extractTeamStats(teamData) {
+        const stats = {};
+        if (teamData.statistics) {
+            teamData.statistics.forEach(stat => {
+                stats[stat.name] = stat.displayValue || stat.value || '0';
+            });
+        }
+        return stats;
     }
 
     async fetchCollegeStandings() {
@@ -250,13 +292,28 @@ class CollegeGameTracker {
         const awayRankHTML = awayStanding ? `<div class="team-seed-badge ${awayStanding.rank <= 25 ? 'in-playoffs' : 'out-playoffs'}">Rank: #${awayStanding.rank}</div>` : '';
         const homeRankHTML = homeStanding ? `<div class="team-seed-badge ${homeStanding.rank <= 25 ? 'in-playoffs' : 'out-playoffs'}">Rank: #${homeStanding.rank}</div>` : '';
         
+        // Quick stats for live games
+        let quickStatsHTML = '';
+        if (game.isLive && (game.awayTeam.stats || game.homeTeam.stats)) {
+            const awayYards = game.awayTeam.stats?.totalYards || '0';
+            const homeYards = game.homeTeam.stats?.totalYards || '0';
+            quickStatsHTML = `
+                <div style="display: flex; justify-content: space-around; padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; margin-top: 10px; font-size: 0.85rem;">
+                    <div><strong>${awayYards}</strong> Total Yds</div>
+                    <div>|</div>
+                    <div><strong>${homeYards}</strong> Total Yds</div>
+                </div>
+            `;
+        }
+        
         card.innerHTML = `
             <div class="game-status ${statusClass}">${statusText}</div>
             ${countdownHTML}
+            ${game.isLive && game.situation.downDistanceText ? `<div style="text-align: center; font-size: 0.9rem; color: #FFD700; margin: 5px 0;">${game.situation.downDistanceText}</div>` : ''}
             <div class="game-matchup">
                 <div class="team">
                     <img src="${game.awayTeam.logo}" alt="${game.awayTeam.name}" class="team-logo">
-                    <div class="team-name">${game.awayTeam.name}</div>
+                    <div class="team-name">${game.awayTeam.name} ${game.awayTeam.possession ? '🏈' : ''}</div>
                     <div class="team-record">${game.awayTeam.record}</div>
                     ${awayStanding ? `<div class="team-division">${awayStanding.conference}</div>` : ''}
                     ${awayRankHTML}
@@ -265,13 +322,14 @@ class CollegeGameTracker {
                 <div class="vs">@</div>
                 <div class="team">
                     <img src="${game.homeTeam.logo}" alt="${game.homeTeam.name}" class="team-logo">
-                    <div class="team-name">${game.homeTeam.name}</div>
+                    <div class="team-name">${game.homeTeam.name} ${game.homeTeam.possession ? '🏈' : ''}</div>
                     <div class="team-record">${game.homeTeam.record}</div>
                     ${homeStanding ? `<div class="team-division">${homeStanding.conference}</div>` : ''}
                     ${homeRankHTML}
                     <div class="team-score">${game.homeTeam.score}</div>
                 </div>
             </div>
+            ${quickStatsHTML}
             <div class="game-info">
                 <div>${game.statusDetail}</div>
                 <div>📍 ${game.venue}</div>
@@ -357,23 +415,28 @@ class CollegeGameTracker {
         panel.innerHTML = `
             <div class="panel-header">
                 <div class="panel-status">${statusText}</div>
+                ${this.renderGameSituation(game)}
                 <div class="panel-matchup">
                     <div class="panel-team">
                         <img src="${game.awayTeam.logo}" alt="${game.awayTeam.name}" class="panel-team-logo">
-                        <div class="panel-team-name">${game.awayTeam.name}</div>
+                        <div class="panel-team-name">${game.awayTeam.name} ${game.awayTeam.possession ? '🏈' : ''}</div>
                         <div class="panel-team-record">${game.awayTeam.record}</div>
                         ${awayStanding ? `<div class="panel-team-division">${awayStanding.conference}</div>` : ''}
                         ${awayPath ? `<div class="panel-team-seed">Rank: #${awayPath.rank}</div>` : ''}
                         <div class="panel-team-score">${game.awayTeam.score}</div>
+                        ${this.renderQuarterScores(game.awayTeam.linescores)}
+                        <div style="font-size: 0.8rem; margin-top: 5px;">⏱️ Timeouts: ${game.awayTeam.timeouts}</div>
                     </div>
                     <div class="panel-vs">@</div>
                     <div class="panel-team">
                         <img src="${game.homeTeam.logo}" alt="${game.homeTeam.name}" class="panel-team-logo">
-                        <div class="panel-team-name">${game.homeTeam.name}</div>
+                        <div class="panel-team-name">${game.homeTeam.name} ${game.homeTeam.possession ? '🏈' : ''}</div>
                         <div class="panel-team-record">${game.homeTeam.record}</div>
                         ${homeStanding ? `<div class="panel-team-division">${homeStanding.conference}</div>` : ''}
                         ${homePath ? `<div class="panel-team-seed">Rank: #${homePath.rank}</div>` : ''}
                         <div class="panel-team-score">${game.homeTeam.score}</div>
+                        ${this.renderQuarterScores(game.homeTeam.linescores)}
+                        <div style="font-size: 0.8rem; margin-top: 5px;">⏱️ Timeouts: ${game.homeTeam.timeouts}</div>
                     </div>
                 </div>
                 <div class="panel-info">
@@ -383,12 +446,116 @@ class CollegeGameTracker {
                 </div>
             </div>
             <div class="panel-details">
+                ${this.renderGameLeaders(game)}
+                ${this.renderTeamStats(game)}
                 ${this.renderChampionshipSection(game, awayPath, homePath)}
                 ${this.renderPanelLinks(game)}
             </div>
         `;
         
         return panel;
+    }
+
+    renderGameSituation(game) {
+        if (!game.isLive || !game.situation.downDistanceText) return '';
+        
+        return `
+            <div style="text-align: center; padding: 10px; background: rgba(255,193,7,0.2); border-radius: 8px; margin: 10px 0;">
+                <div style="font-weight: bold; color: #FFD700; font-size: 1.1rem;">
+                    ${game.situation.downDistanceText}
+                </div>
+                ${game.situation.possessionText ? `<div style="font-size: 0.9rem; margin-top: 4px;">${game.situation.possessionText}</div>` : ''}
+            </div>
+        `;
+    }
+
+    renderQuarterScores(linescores) {
+        if (!linescores || linescores.length === 0) return '';
+        
+        const quarters = linescores.map((score, idx) => 
+            `<span style="margin: 0 4px;">${idx + 1}Q: ${score.value || 0}</span>`
+        ).join('');
+        
+        return `<div style="font-size: 0.85rem; margin-top: 5px; opacity: 0.9;">${quarters}</div>`;
+    }
+
+    renderGameLeaders(game) {
+        if (!game.leaders || game.leaders.length === 0) return '';
+        
+        const leadersHTML = game.leaders.slice(0, 3).map(category => {
+            const leader = category.leaders?.[0];
+            if (!leader) return '';
+            
+            const athlete = leader.athlete;
+            const displayValue = leader.displayValue || '';
+            
+            return `
+                <div style="padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; margin: 5px 0;">
+                    <div style="font-weight: bold; color: #FFD700; font-size: 0.9rem;">${category.displayName}</div>
+                    <div style="font-size: 0.85rem; margin-top: 3px;">
+                        ${athlete?.displayName || 'N/A'}: ${displayValue}
+                    </div>
+                </div>
+            `;
+        }).join('');
+        
+        return `
+            <div class="standings-section" style="margin-bottom: 20px;">
+                <h3>🏆 Game Leaders</h3>
+                ${leadersHTML}
+            </div>
+        `;
+    }
+
+    renderTeamStats(game) {
+        const awayStats = game.awayTeam.stats || {};
+        const homeStats = game.homeTeam.stats || {};
+        
+        if (Object.keys(awayStats).length === 0 && Object.keys(homeStats).length === 0) {
+            return '';
+        }
+        
+        const statCategories = [
+            { key: 'totalYards', label: 'Total Yards' },
+            { key: 'passingYards', label: 'Passing Yards' },
+            { key: 'rushingYards', label: 'Rushing Yards' },
+            { key: 'yardsPerPlay', label: 'Yards/Play' },
+            { key: 'firstDowns', label: 'First Downs' },
+            { key: 'thirdDownEff', label: '3rd Down' },
+            { key: 'fourthDownEff', label: '4th Down' },
+            { key: 'turnovers', label: 'Turnovers' },
+            { key: 'possessionTime', label: 'Time of Possession' },
+            { key: 'totalPenaltiesYards', label: 'Penalties-Yards' }
+        ];
+        
+        const statsRows = statCategories.map(cat => {
+            const awayVal = awayStats[cat.key] || '-';
+            const homeVal = homeStats[cat.key] || '-';
+            
+            return `
+                <div class="table-row">
+                    <div style="text-align: right; padding: 8px;">${awayVal}</div>
+                    <div style="text-align: center; padding: 8px; font-weight: bold;">${cat.label}</div>
+                    <div style="text-align: left; padding: 8px;">${homeVal}</div>
+                </div>
+            `;
+        }).join('');
+        
+        return `
+            <div class="standings-section" style="margin-bottom: 20px;">
+                <h3>📊 Team Stats Comparison</h3>
+                <div style="background: rgba(0,0,0,0.3); border-radius: 8px; overflow: hidden;">
+                    <div class="table-header" style="display: grid; grid-template-columns: 1fr 2fr 1fr; background: rgba(76,175,80,0.3);">
+                        <div style="text-align: center; padding: 10px;">${game.awayTeam.shortName}</div>
+                        <div style="text-align: center; padding: 10px;">Stat</div>
+                        <div style="text-align: center; padding: 10px;">${game.homeTeam.shortName}</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 2fr 1fr;">
+                        ${statsRows}
+                    </div>
+                </div>
+            </div>
+        `;
     }
 
     renderChampionshipSection(game, awayPath, homePath) {
