@@ -111,6 +111,7 @@ class CollegeGameTracker {
                         score: homeTeam.score,
                         logo: homeTeam.team.logo,
                         record: homeTeam.records?.[0]?.summary || 'N/A',
+                        rank: homeTeam.curatedRank?.current || null,
                         linescores: homeTeam.linescores || [],
                         timeouts: homeTeam.timeouts || 0,
                         possession: homeTeam.possession || false,
@@ -123,6 +124,7 @@ class CollegeGameTracker {
                         score: awayTeam.score,
                         logo: awayTeam.team.logo,
                         record: awayTeam.records?.[0]?.summary || 'N/A',
+                        rank: awayTeam.curatedRank?.current || null,
                         linescores: awayTeam.linescores || [],
                         timeouts: awayTeam.timeouts || 0,
                         possession: awayTeam.possession || false,
@@ -289,8 +291,8 @@ class CollegeGameTracker {
         const awayStanding = this.getTeamStanding(game.awayTeam.id);
         const homeStanding = this.getTeamStanding(game.homeTeam.id);
         
-        const awayRankHTML = awayStanding ? `<div class="team-seed-badge ${awayStanding.rank <= 25 ? 'in-playoffs' : 'out-playoffs'}">Rank: #${awayStanding.rank}</div>` : '';
-        const homeRankHTML = homeStanding ? `<div class="team-seed-badge ${homeStanding.rank <= 25 ? 'in-playoffs' : 'out-playoffs'}">Rank: #${homeStanding.rank}</div>` : '';
+        const awayRankHTML = game.awayTeam.rank ? `<div class="team-seed-badge in-playoffs">Ranked #${game.awayTeam.rank}</div>` : '';
+        const homeRankHTML = game.homeTeam.rank ? `<div class="team-seed-badge in-playoffs">Ranked #${game.homeTeam.rank}</div>` : '';
         
         // Quick stats for live games
         let quickStatsHTML = '';
@@ -450,7 +452,7 @@ class CollegeGameTracker {
                         <div class="panel-team-name">${game.awayTeam.name} ${game.awayTeam.possession ? '🏈' : ''}</div>
                         <div class="panel-team-record">${game.awayTeam.record}</div>
                         ${awayStanding ? `<div class="panel-team-division">${awayStanding.conference}</div>` : ''}
-                        ${awayPath ? `<div class="panel-team-seed">Rank: #${awayPath.rank}</div>` : ''}
+                        ${game.awayTeam.rank ? `<div class="panel-team-seed">Ranked #${game.awayTeam.rank}</div>` : ''}
                         <div class="panel-team-score">${game.awayTeam.score}</div>
                         ${this.renderQuarterScores(game.awayTeam.linescores)}
                         ${game.awayTeam.timeouts !== null && game.awayTeam.timeouts !== undefined ? `<div style="font-size: 0.8rem; margin-top: 5px;">⏱️ Timeouts: ${game.awayTeam.timeouts}</div>` : ''}
@@ -461,7 +463,7 @@ class CollegeGameTracker {
                         <div class="panel-team-name">${game.homeTeam.name} ${game.homeTeam.possession ? '🏈' : ''}</div>
                         <div class="panel-team-record">${game.homeTeam.record}</div>
                         ${homeStanding ? `<div class="panel-team-division">${homeStanding.conference}</div>` : ''}
-                        ${homePath ? `<div class="panel-team-seed">Rank: #${homePath.rank}</div>` : ''}
+                        ${game.homeTeam.rank ? `<div class="panel-team-seed">Ranked #${game.homeTeam.rank}</div>` : ''}
                         <div class="panel-team-score">${game.homeTeam.score}</div>
                         ${this.renderQuarterScores(game.homeTeam.linescores)}
                         ${game.homeTeam.timeouts !== null && game.homeTeam.timeouts !== undefined ? `<div style="font-size: 0.8rem; margin-top: 5px;">⏱️ Timeouts: ${game.homeTeam.timeouts}</div>` : ''}
