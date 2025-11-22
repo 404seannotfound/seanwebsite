@@ -385,7 +385,7 @@ class CollegeGameTracker {
         this.stopAutoUpdate();
     }
 
-    renderLivePanels() {
+    async renderLivePanels() {
         const panelsContainer = document.getElementById('game-panels');
         panelsContainer.innerHTML = '';
         
@@ -393,10 +393,38 @@ class CollegeGameTracker {
         
         const selectedGameData = this.allGames.filter(game => this.selectedGames.has(game.id));
         
-        selectedGameData.forEach(game => {
+        // Fetch detailed stats for each selected game
+        for (const game of selectedGameData) {
+            await this.fetchGameDetails(game);
             const panel = this.createGamePanel(game);
             panelsContainer.appendChild(panel);
-        });
+        }
+    }
+
+    async fetchGameDetails(game) {
+        try {
+            const response = await fetch(`https://site.api.espn.com/apis/site/v2/sports/football/college-football/summary?event=${game.id}`);
+            const data = await response.json();
+            
+            if (data.boxscore?.teams) {
+                data.boxscore.teams.forEach(teamData => {
+                    const isHome = teamData.homeAway === 'home';
+                    const teamKey = isHome ? 'homeTeam' : 'awayTeam';
+                    
+                    // Extract detailed stats
+                    const stats = {};
+                    if (teamData.statistics) {
+                        teamData.statistics.forEach(stat => {
+                            stats[stat.name] = stat.displayValue || stat.value || '0';
+                        });
+                    }
+                    
+                    game[teamKey].stats = stats;
+                });
+            }
+        } catch (error) {
+            console.error(`Error fetching details for game ${game.id}:`, error);
+        }
     }
 
     createGamePanel(game) {
@@ -717,13 +745,14 @@ class CollegeGameTracker {
             
             const selectedGameData = games.filter(game => this.selectedGames.has(game.id));
             
-            selectedGameData.forEach(game => {
+            for (const game of selectedGameData) {
+                await this.fetchGameDetails(game);
                 const panel = document.querySelector(`.game-panel[data-game-id="${game.id}"]`);
                 if (panel) {
                     const newPanel = this.createGamePanel(game);
                     panel.replaceWith(newPanel);
                 }
-            });
+            }
         } catch (error) {
             console.error('Error updating college live panels:', error);
         }
