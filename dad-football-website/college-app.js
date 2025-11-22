@@ -519,11 +519,21 @@ class CollegeGameTracker {
             const athlete = leader.athlete;
             const displayValue = leader.displayValue || '';
             
+            // Determine which team the player is on
+            let teamName = '';
+            if (athlete?.team?.id) {
+                if (String(athlete.team.id) === String(game.homeTeam.id)) {
+                    teamName = game.homeTeam.shortName;
+                } else if (String(athlete.team.id) === String(game.awayTeam.id)) {
+                    teamName = game.awayTeam.shortName;
+                }
+            }
+            
             return `
                 <div style="padding: 8px; background: rgba(0,0,0,0.2); border-radius: 6px; margin: 5px 0;">
                     <div style="font-weight: bold; color: #FFD700; font-size: 0.9rem;">${category.displayName}</div>
                     <div style="font-size: 0.85rem; margin-top: 3px;">
-                        ${athlete?.displayName || 'N/A'}: ${displayValue}
+                        ${athlete?.displayName || 'N/A'}${teamName ? ` (${teamName})` : ''}: ${displayValue}
                     </div>
                 </div>
             `;
