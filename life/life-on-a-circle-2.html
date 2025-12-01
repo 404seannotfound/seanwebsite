@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Life on a Circle</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #faf9f6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+        }
+        #container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        canvas {
+            cursor: pointer;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        button {
+            background: none;
+            border: 2px solid #2a2a2a;
+            padding: 8px 16px;
+            font-family: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 0;
+            transition: all 0.2s;
+        }
+        button:hover {
+            background: #2a2a2a;
+            color: #faf9f6;
+        }
+        .stats {
+            font-size: 12px;
+            color: #666;
+            letter-spacing: 1px;
+        }
+        .hint {
+            font-size: 11px;
+            color: #999;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <canvas id="world"></canvas>
+        <div class="controls">
+            <button id="pauseBtn">pause</button>
+            <button id="resetBtn">reset</button>
+            <span class="stats">life: <span id="popCount">0</span> · holds: <span id="holdCount">0</span> · towers: <span id="buildingCount">0</span></span>
+        </div>
+        <div class="hint">click anywhere to add life — it falls toward the world</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('world');
+        const ctx = canvas.getContext('2d');
+        
+        // Setup canvas
+        const size = Math.min(window.innerWidth * 0.8, window.innerHeight * 0.7, 600);
+        canvas.width = size;
+        canvas.height = size;
+        
+        const centerX = size / 2;
+        const centerY = size / 2;
+        const radius = size * 0.38;
+        
+        let paused = false;
+        let creatures = [];
+        let buildings = [];
+        let fallingCreatures = [];
+        let holds = [];
+        let bombs = [];
+        let explosions = [];
+        let craters = [];
+        let generators = [];
+        let domes = [];
+        let labyrinths = [];
+        
+        // War state
+        let warActive = false;
+        let warTimer = 0;
+        let warDuration = 800 + Math.random() * 400;
+        let factions = { blue: [], green: [] };
+        
+        // Helper for angle wraparound - defined early so classes can use it
+        function angleDiff(a1, a2) {
+            let diff = a1 - a2;
+            while (diff > Math.PI) diff -= Math.PI * 2;
+            while (diff < -Math.PI) diff += Math.PI * 2;
+            return diff;
+        }
+        
+        // Bomb class
+        class Bomb {
+            constructor(fromAngle, toAngle, faction) {
+                this.fromAngle = fromAngle;
+                this.toAngle = toAngle;
+                this.faction = faction; // 'blue' or 'green'
+                this.progress = 0;
+                this.speed = 0.015 + Math.random() * 0.01;
+                this.arcHeight = 30 + Math.random() * 40;
+                this.size = 2 + Math.random() * 2;
+            }
+            
+            get currentAngle() {
+                // Interpolate between from and to
+                let diff = this.toAngle - this.fromAngle;
+                while (diff > Math.PI) diff -= Math.PI * 2;
+                while (diff < -Math.PI) diff += Math.PI * 2;
+                return this.fromAngle + diff * this.progress;
+            }
+            
+            get x() {
+                const angle = this.currentAngle;
+                const arc = Math.sin(this.progress * Math.PI) * this.arcHeight;
+                return centerX + Math.cos(angle) * (radius + arc);
+            }
+            
+            get y() {
+                const angle = this.currentAngle;
+                const arc = Math.sin(this.progress * Math.PI) * this.arcHeight;
+                return centerY + Math.sin(angle) * (radius + arc);
+            }
+            
+            update() {
+                if (paused) return true;
+                
+                this.progress += this.speed;
+                
+                if (this.progress >= 1) {
+                    // Explode at target
+                    explosions.push(new Explosion(this.toAngle));
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.fillStyle = this.faction === 'blue' ? '#2255aa' : '#22aa55';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Trail
+                ctx.globalAlpha = 0.3;
+                for (let i = 1; i <= 3; i++) {
+                    const trailProgress = Math.max(0, this.progress - i * 0.03);
+                    let diff = this.toAngle - this.fromAngle;
+                    while (diff > Math.PI) diff -= Math.PI * 2;
+                    while (diff < -Math.PI) diff += Math.PI * 2;
+                    const trailAngle = this.fromAngle + diff * trailProgress;
+                    const trailArc = Math.sin(trailProgress * Math.PI) * this.arcHeight;
+                    const tx = centerX + Math.cos(trailAngle) * (radius + trailArc);
+                    const ty = centerY + Math.sin(trailAngle) * (radius + trailArc);
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, this.size * (1 - i * 0.2), 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+        }
+        
+        // Explosion class - orange mushroom cloud
+        class Explosion {
+            constructor(angle) {
+                this.angle = angle;
+                this.age = 0;
+                this.duration = 60;
+                this.maxRadius = 20 + Math.random() * 15;
+                
+                // Mushroom cloud properties
+                this.stemHeight = 0;
+                this.maxStemHeight = 25 + Math.random() * 20;
+                this.cloudRadius = 0;
+                this.maxCloudRadius = 15 + Math.random() * 10;
+                
+                // Damage nearby things
+                this.causeDamage();
+            }
+            
+            get x() {
+                return centerX + Math.cos(this.angle) * radius;
+            }
+            
+            get y() {
+                return centerY + Math.sin(this.angle) * radius;
+            }
+            
+            causeDamage() {
+                const damageRange = 0.12;
+                
+                // Check if location is protected by dome
+                const isLocationProtected = domes.some(d => d.containsAngle(this.angle));
+                
+                // Destroy holds in range (unprotected get destroyed, protected just damaged)
+                holds.forEach(h => {
+                    const diff = Math.abs(angleDiff(h.angle, this.angle));
+                    if (diff < damageRange) {
+                        if (!isLocationProtected) {
+                            h.markedForDestruction = true;
+                        }
+                    }
+                });
+                
+                // Damage buildings in range - much more damage without dome protection
+                buildings.forEach(b => {
+                    const diff = Math.abs(angleDiff(b.angle, this.angle));
+                    if (diff < damageRange) {
+                        const damage = isLocationProtected ? 20 : 80; // 4x damage without dome
+                        b.health = (b.health || 100) - damage;
+                        if (b.health <= 0) {
+                            b.markedForDestruction = true;
+                        }
+                    }
+                });
+                
+                // Kill creatures in range - more die without protection
+                creatures.forEach(c => {
+                    const diff = Math.abs(angleDiff(c.angle, this.angle));
+                    const killRange = isLocationProtected ? damageRange * 0.3 : damageRange * 0.7;
+                    if (diff < killRange) {
+                        c.markedForRemoval = true;
+                    }
+                });
+                
+                // Create crater (bigger without dome)
+                craters.push({
+                    angle: this.angle,
+                    width: isLocationProtected ? 0.04 : 0.1 + Math.random() * 0.05,
+                    depth: isLocationProtected ? 3 : 6 + Math.random() * 6,
+                    age: 0
+                });
+            }
+            
+            update() {
+                if (paused) return true;
+                
+                this.age++;
+                
+                // Grow mushroom cloud
+                const progress = this.age / this.duration;
+                this.stemHeight = this.maxStemHeight * Math.min(1, progress * 2);
+                this.cloudRadius = this.maxCloudRadius * Math.min(1, progress * 1.5);
+                
+                return this.age < this.duration;
+            }
+            
+            draw() {
+                const progress = this.age / this.duration;
+                const fade = 1 - progress;
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.angle + Math.PI / 2);
+                
+                // Stem of mushroom cloud
+                ctx.fillStyle = `rgba(255, 140, 0, ${fade * 0.8})`;
+                ctx.beginPath();
+                const stemWidth = 6 + this.cloudRadius * 0.3;
+                ctx.moveTo(-stemWidth/2, 0);
+                ctx.lineTo(-stemWidth/3, -this.stemHeight);
+                ctx.lineTo(stemWidth/3, -this.stemHeight);
+                ctx.lineTo(stemWidth/2, 0);
+                ctx.fill();
+                
+                // Main cloud puff
+                ctx.fillStyle = `rgba(255, 100, 0, ${fade * 0.9})`;
+                ctx.beginPath();
+                ctx.arc(0, -this.stemHeight, this.cloudRadius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Secondary puffs
+                ctx.fillStyle = `rgba(255, 160, 50, ${fade * 0.7})`;
+                ctx.beginPath();
+                ctx.arc(-this.cloudRadius * 0.6, -this.stemHeight * 0.9, this.cloudRadius * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.beginPath();
+                ctx.arc(this.cloudRadius * 0.6, -this.stemHeight * 0.9, this.cloudRadius * 0.6, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Top puff
+                ctx.fillStyle = `rgba(255, 200, 100, ${fade * 0.6})`;
+                ctx.beginPath();
+                ctx.arc(0, -this.stemHeight - this.cloudRadius * 0.5, this.cloudRadius * 0.5, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Ground flash/ring
+                ctx.strokeStyle = `rgba(255, 80, 0, ${fade * 0.5})`;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.arc(0, 0, this.maxRadius * progress, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Inner flash
+                ctx.fillStyle = `rgba(255, 255, 200, ${fade * 0.4 * (1 - progress)})`;
+                ctx.beginPath();
+                ctx.arc(0, 0, this.maxRadius * 0.5 * (1 - progress), 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.restore();
+            }
+        }
+        
+        // Generator class - continuously drops critters
+        class Generator {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.timer = 0;
+                this.spawnRate = 60 + Math.random() * 30; // Frames between spawns
+                this.pulse = 0;
+            }
+            
+            update() {
+                if (paused) return true;
+                
+                this.timer++;
+                this.pulse = Math.sin(this.timer * 0.1) * 0.5 + 0.5;
+                
+                // Spawn a falling creature periodically
+                if (this.timer % Math.floor(this.spawnRate) === 0) {
+                    const offsetX = (Math.random() - 0.5) * 10;
+                    const offsetY = (Math.random() - 0.5) * 10;
+                    fallingCreatures.push(new FallingCreature(this.x + offsetX, this.y + offsetY));
+                }
+                
+                return true;
+            }
+            
+            draw() {
+                ctx.save();
+                
+                // Pulsing circle
+                const pulseSize = 8 + this.pulse * 4;
+                
+                ctx.strokeStyle = '#2a2a2a';
+                ctx.lineWidth = 1;
+                ctx.globalAlpha = 0.6 + this.pulse * 0.3;
+                
+                // Outer ring
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, pulseSize, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                // Inner dot
+                ctx.fillStyle = '#2a2a2a';
+                ctx.globalAlpha = 0.8;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Little lines radiating out (sketchy)
+                ctx.globalAlpha = 0.4;
+                for (let i = 0; i < 4; i++) {
+                    const angle = (i / 4) * Math.PI * 2 + this.timer * 0.02;
+                    ctx.beginPath();
+                    ctx.moveTo(
+                        this.x + Math.cos(angle) * (pulseSize + 2),
+                        this.y + Math.sin(angle) * (pulseSize + 2)
+                    );
+                    ctx.lineTo(
+                        this.x + Math.cos(angle) * (pulseSize + 6),
+                        this.y + Math.sin(angle) * (pulseSize + 6)
+                    );
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+        }
+        
+        // Dome class - shield protecting 5+ connected towers
+        class Dome {
+            constructor(towerCluster) {
+                this.towers = towerCluster;
+                this.age = 0;
+                this.pulse = 0;
+                this.hitFlash = 0;
+                this.updateBounds();
+            }
+            
+            updateBounds() {
+                if (this.towers.length === 0) return;
+                
+                const angles = this.towers.map(b => b.angle);
+                angles.sort((a, b) => a - b);
+                
+                // Find the angular span
+                let minAngle = angles[0];
+                let maxAngle = angles[angles.length - 1];
+                
+                // Check for wraparound (gap bigger than the span)
+                let maxGap = 0;
+                let gapEnd = 0;
+                for (let i = 0; i < angles.length; i++) {
+                    const next = (i + 1) % angles.length;
+                    let gap = angles[next] - angles[i];
+                    if (next === 0) gap = (Math.PI * 2 - angles[i]) + angles[next];
+                    if (gap > maxGap) {
+                        maxGap = gap;
+                        gapEnd = next;
+                    }
+                }
+                
+                // If gap is larger than span, we wrap around
+                if (maxGap > Math.PI) {
+                    minAngle = angles[gapEnd];
+                    maxAngle = angles[(gapEnd - 1 + angles.length) % angles.length] + Math.PI * 2;
+                }
+                
+                this.startAngle = minAngle - 0.08;
+                this.endAngle = maxAngle + 0.08;
+                
+                // Dome height
+                const maxHeight = Math.max(...this.towers.map(b => b.height || 30));
+                this.domeHeight = maxHeight + 15;
+            }
+            
+            containsAngle(angle) {
+                let a = angle;
+                while (a < 0) a += Math.PI * 2;
+                while (a >= Math.PI * 2) a -= Math.PI * 2;
+                
+                let start = this.startAngle;
+                let end = this.endAngle;
+                while (start < 0) start += Math.PI * 2;
+                while (end < 0) end += Math.PI * 2;
+                
+                if (end > Math.PI * 2) {
+                    return a >= start || a <= (end - Math.PI * 2);
+                }
+                return a >= start && a <= end;
+            }
+            
+            update() {
+                if (paused) return true;
+                
+                this.age++;
+                this.pulse = Math.sin(this.age * 0.08) * 0.5 + 0.5;
+                if (this.hitFlash > 0) this.hitFlash--;
+                
+                // Remove destroyed towers
+                this.towers = this.towers.filter(b => !b.markedForDestruction && buildings.includes(b));
+                this.updateBounds();
+                
+                // Dome needs 5+ towers to exist
+                return this.towers.length >= 5;
+            }
+            
+            draw() {
+                if (this.towers.length < 5) return;
+                
+                ctx.save();
+                
+                // Draw dome arc over the towers
+                const arcRadius = radius + this.domeHeight;
+                
+                ctx.strokeStyle = this.hitFlash > 0 ? '#5588ff' : '#2a2a2a';
+                ctx.lineWidth = this.hitFlash > 0 ? 2 : 1;
+                ctx.globalAlpha = 0.3 + this.pulse * 0.2 + (this.hitFlash > 0 ? 0.3 : 0);
+                
+                // Main dome arc
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, arcRadius, this.startAngle, this.endAngle > Math.PI * 2 ? this.endAngle - Math.PI * 2 : this.endAngle);
+                ctx.stroke();
+                
+                // Inner decorative arc
+                ctx.globalAlpha *= 0.5;
+                ctx.beginPath();
+                ctx.arc(centerX, centerY, arcRadius - 5, this.startAngle, this.endAngle > Math.PI * 2 ? this.endAngle - Math.PI * 2 : this.endAngle);
+                ctx.stroke();
+                
+                // Vertical lines at edges
+                ctx.globalAlpha = 0.4;
+                const startX = centerX + Math.cos(this.startAngle) * radius;
+                const startY = centerY + Math.sin(this.startAngle) * radius;
+                const startOutX = centerX + Math.cos(this.startAngle) * arcRadius;
+                const startOutY = centerY + Math.sin(this.startAngle) * arcRadius;
+                
+                ctx.beginPath();
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(startOutX, startOutY);
+                ctx.stroke();
+                
+                let endAngleNorm = this.endAngle > Math.PI * 2 ? this.endAngle - Math.PI * 2 : this.endAngle;
+                const endX = centerX + Math.cos(endAngleNorm) * radius;
+                const endY = centerY + Math.sin(endAngleNorm) * radius;
+                const endOutX = centerX + Math.cos(endAngleNorm) * arcRadius;
+                const endOutY = centerY + Math.sin(endAngleNorm) * arcRadius;
+                
+                ctx.beginPath();
+                ctx.moveTo(endX, endY);
+                ctx.lineTo(endOutX, endOutY);
+                ctx.stroke();
+                
+                ctx.restore();
+            }
+        }
+        
+        // Labyrinth class - underground tunnel network that grows horizontally
+        class Labyrinth {
+            constructor(angle, holds, depth = 1) {
+                this.centerAngle = angle;
+                this.connectedHolds = holds || [];
+                this.depth = depth; // Layer depth (1 = first layer, 2 = deeper, etc.)
+                this.age = 0;
+                this.tunnelDepth = 20;
+                this.maxTunnelDepth = 40 + depth * 20;
+                this.tunnels = [];
+                this.farms = [];
+                this.productionTimer = 0;
+                this.baseProductionRate = 60;
+                this.growthTimer = 0;
+                
+                // Generate initial tunnel structure
+                this.generateTunnels();
+            }
+            
+            get span() {
+                if (this.connectedHolds.length < 2) return 0.1;
+                const angles = this.connectedHolds.filter(h => holds.includes(h)).map(h => h.angle);
+                if (angles.length < 2) return 0.1;
+                angles.sort((a, b) => a - b);
+                return angles[angles.length - 1] - angles[0];
+            }
+            
+            get productionRate() {
+                // Faster production based on size and depth
+                const sizeBonus = Math.max(1, this.connectedHolds.length / 2);
+                const depthBonus = this.depth;
+                const tunnelBonus = Math.max(1, this.tunnels.length / 3);
+                return Math.max(10, this.baseProductionRate / (sizeBonus * depthBonus * tunnelBonus));
+            }
+            
+            get density() {
+                // How dense/developed this labyrinth is
+                return this.tunnels.length + this.farms.length * 2 + this.connectedHolds.length;
+            }
+            
+            generateTunnels() {
+                this.tunnels = [];
+                const numTunnels = 3 + Math.floor(Math.random() * 4) + this.depth;
+                
+                for (let i = 0; i < numTunnels; i++) {
+                    const startDepth = 10 + Math.random() * 10;
+                    const endDepth = this.tunnelDepth * (0.5 + Math.random() * 0.5);
+                    const angleOffset = (Math.random() - 0.5) * 0.15;
+                    const width = 2 + Math.random() * 3;
+                    
+                    this.tunnels.push({
+                        angleOffset,
+                        startDepth,
+                        endDepth,
+                        width,
+                        wiggle: Math.random() * Math.PI * 2
+                    });
+                }
+                
+                // Add farms (chambers)
+                this.farms = [];
+                const numFarms = 1 + Math.floor(Math.random() * 2) + Math.floor(this.depth / 2);
+                for (let i = 0; i < numFarms; i++) {
+                    this.farms.push({
+                        angleOffset: (Math.random() - 0.5) * 0.1,
+                        depth: this.tunnelDepth * (0.6 + Math.random() * 0.3),
+                        width: 8 + Math.random() * 6,
+                        height: 6 + Math.random() * 4,
+                        dots: Array(5 + Math.floor(Math.random() * 5)).fill(0).map(() => ({
+                            x: (Math.random() - 0.5) * 0.8,
+                            y: Math.random() * 0.8,
+                            phase: Math.random() * Math.PI * 2
+                        }))
+                    });
+                }
+            }
+            
+            get x() {
+                return centerX + Math.cos(this.centerAngle) * radius;
+            }
+            
+            get y() {
+                return centerY + Math.sin(this.centerAngle) * radius;
+            }
+            
+            update() {
+                if (paused) return true;
+                
+                this.age++;
+                
+                // Grow deeper over time
+                if (this.tunnelDepth < this.maxTunnelDepth) {
+                    this.tunnelDepth += 0.05;
+                    // Regenerate tunnels as we grow
+                    if (this.age % 200 === 0) {
+                        this.generateTunnels();
+                    }
+                }
+                
+                // Horizontal growth toward nearby holds
+                this.growthTimer++;
+                if (this.growthTimer > 80) {
+                    this.growthTimer = 0;
+                    
+                    // Find holds not yet connected
+                    holds.forEach(h => {
+                        if (this.connectedHolds.includes(h)) return;
+                        
+                        // Check if hold is adjacent to any connected hold
+                        const isAdjacent = this.connectedHolds.some(ch => {
+                            if (!holds.includes(ch)) return false;
+                            return Math.abs(angleDiff(h.angle, ch.angle)) < 0.25;
+                        });
+                        
+                        // Or adjacent to center
+                        const nearCenter = Math.abs(angleDiff(h.angle, this.centerAngle)) < 0.3;
+                        
+                        if (isAdjacent || nearCenter) {
+                            this.connectedHolds.push(h);
+                            // Add more tunnels when we grow
+                            if (Math.random() < 0.5) {
+                                this.tunnels.push({
+                                    angleOffset: (Math.random() - 0.5) * 0.15,
+                                    startDepth: 10 + Math.random() * 10,
+                                    endDepth: this.tunnelDepth * (0.5 + Math.random() * 0.5),
+                                    width: 2 + Math.random() * 3,
+                                    wiggle: Math.random() * Math.PI * 2
+                                });
+                            }
+                        }
+                    });
+                }
+                
+                // Produce creatures
+                this.productionTimer++;
+                if (this.productionTimer >= this.productionRate && creatures.length < 250) {
+                    this.productionTimer = 0;
+                    
+                    // Spawn creature at surface near a connected hold or center
+                    let spawnAngle = this.centerAngle;
+                    const validHolds = this.connectedHolds.filter(h => holds.includes(h));
+                    if (validHolds.length > 0) {
+                        spawnAngle = validHolds[Math.floor(Math.random() * validHolds.length)].angle;
+                    }
+                    spawnAngle += (Math.random() - 0.5) * 0.05;
+                    
+                    const newCreature = new Creature(spawnAngle);
+                    newCreature.dna.speed = 0.004 + Math.random() * 0.003;
+                    newCreature.fromLabyrinth = true;
+                    creatures.push(newCreature);
+                }
+                
+                // Labyrinths persist even without holds
+                return true;
+            }
+            
+            draw() {
+                const depthOffset = (this.depth - 1) * 25;
+                
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.centerAngle + Math.PI / 2);
+                
+                // Offset for depth layers
+                ctx.translate(0, depthOffset);
+                
+                ctx.strokeStyle = '#2a2a2a';
+                ctx.fillStyle = '#e8e6e1';
+                ctx.lineWidth = 0.5;
+                ctx.globalAlpha = 0.6 - this.depth * 0.1;
+                
+                // Draw tunnels going down
+                this.tunnels.forEach(tunnel => {
+                    const wiggle = Math.sin(this.age * 0.02 + tunnel.wiggle) * 2;
+                    const xOff = tunnel.angleOffset * radius + wiggle;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(xOff - tunnel.width/2, tunnel.startDepth);
+                    ctx.lineTo(xOff - tunnel.width/2 + wiggle * 0.3, tunnel.endDepth);
+                    ctx.lineTo(xOff + tunnel.width/2 + wiggle * 0.3, tunnel.endDepth);
+                    ctx.lineTo(xOff + tunnel.width/2, tunnel.startDepth);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                });
+                
+                // Draw farms (larger chambers)
+                this.farms.forEach(farm => {
+                    const xOff = farm.angleOffset * radius;
+                    
+                    // Farm chamber
+                    ctx.fillStyle = '#e0ddd5';
+                    ctx.beginPath();
+                    ctx.ellipse(xOff, farm.depth, farm.width/2, farm.height/2, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    // Growing dots inside (creatures/food)
+                    ctx.fillStyle = '#2a2a2a';
+                    ctx.globalAlpha = 0.4;
+                    farm.dots.forEach(dot => {
+                        const pulse = Math.sin(this.age * 0.05 + dot.phase) * 0.3 + 0.7;
+                        const dx = xOff + dot.x * farm.width * 0.4;
+                        const dy = farm.depth - farm.height * 0.3 + dot.y * farm.height * 0.5;
+                        ctx.beginPath();
+                        ctx.arc(dx, dy, 1.5 * pulse, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+                    ctx.globalAlpha = 0.6 - this.depth * 0.1;
+                });
+                
+                // Draw entrance at surface
+                ctx.fillStyle = '#2a2a2a';
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.arc(0, 5 - depthOffset, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Depth indicator for deeper labyrinths
+                if (this.depth > 1) {
+                    ctx.font = '8px monospace';
+                    ctx.fillText(`-${this.depth}`, -6, this.tunnelDepth + 10);
+                }
+                
+                ctx.restore();
+            }
+        }
+        
+        // Hold class - underground chambers that preserve life
+        class Hold {
+            constructor(angle, founders) {
+                this.angle = angle;
+                this.depth = 0;
+                this.targetDepth = 12 + Math.random() * 8;
+                this.width = 10 + Math.random() * 6;
+                this.stored = []; // Creatures inside (up to 10)
+                this.age = 0;
+                this.pulse = 0;
+                
+                // The 5 founders become the hold walls
+                this.founders = founders.length;
+            }
+            
+            get x() {
+                return centerX + Math.cos(this.angle) * radius;
+            }
+            
+            get y() {
+                return centerY + Math.sin(this.angle) * radius;
+            }
+            
+            get isFull() {
+                return this.stored.length >= 10;
+            }
+            
+            canAccept() {
+                return this.stored.length < 10 && this.depth >= this.targetDepth * 0.8;
+            }
+            
+            addCreature(creature) {
+                if (this.stored.length < 10) {
+                    this.stored.push({
+                        size: creature.dna.size,
+                        legs: creature.dna.legs,
+                        offset: Math.random() * Math.PI * 2
+                    });
+                    return true;
+                }
+                return false;
+            }
+            
+            update() {
+                if (paused) return true;
+                
+                this.age++;
+                this.pulse = Math.sin(this.age * 0.05) * 0.5 + 0.5;
+                
+                // Grow downward
+                if (this.depth < this.targetDepth) {
+                    this.depth += 0.2;
+                }
+                
+                // When full (10 creatures), spawn a building directly above this hold
+                if (this.isFull && Math.random() < 0.02) {
+                    // Check if building already exists at THIS hold's position (very close)
+                    const existsHere = buildings.some(b => {
+                        const diff = Math.abs(angleDiff(b.angle, this.angle));
+                        return diff < 0.04; // Only block if tower is right here
+                    });
+                    
+                    if (!existsHere && buildings.length < 50) {
+                        // Consume the 10 stored creatures to make building
+                        buildings.push(new Building(this.angle, this));
+                        this.stored = [];
+                    }
+                }
+                
+                return true;
+            }
+            
+            draw() {
+                const x = this.x;
+                const y = this.y;
+                const outwardAngle = this.angle;
+                
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(outwardAngle + Math.PI / 2);
+                
+                // Color based on faction
+                let mainColor = '#2a2a2a';
+                if (this.faction === 'blue') {
+                    mainColor = '#2255aa';
+                } else if (this.faction === 'green') {
+                    mainColor = '#22aa55';
+                }
+                
+                ctx.strokeStyle = mainColor;
+                ctx.fillStyle = '#faf9f6';
+                ctx.lineWidth = 0.8;
+                
+                const w = this.width;
+                const d = this.depth;
+                
+                // Draw hold cavity (going inward/down into the circle)
+                ctx.beginPath();
+                
+                // Rounded hold shape
+                ctx.moveTo(-w/2, 0);
+                ctx.lineTo(-w/2 - 1, d * 0.3);
+                ctx.quadraticCurveTo(-w/2 - 2, d, 0, d + 2);
+                ctx.quadraticCurveTo(w/2 + 2, d, w/2 + 1, d * 0.3);
+                ctx.lineTo(w/2, 0);
+                
+                ctx.fill();
+                ctx.stroke();
+                
+                // Draw stored creatures as little dots inside
+                this.stored.forEach((c, i) => {
+                    const row = Math.floor(i / 3);
+                    const col = i % 3;
+                    const cx = -w/3 + col * (w/3) + Math.sin(this.age * 0.03 + c.offset) * 1;
+                    const cy = d * 0.4 + row * 4 + Math.cos(this.age * 0.02 + c.offset) * 0.5;
+                    
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, c.size * 0.5, 0, Math.PI * 2);
+                    ctx.fillStyle = mainColor;
+                    ctx.globalAlpha = 0.5 + this.pulse * 0.3;
+                    ctx.fill();
+                    ctx.globalAlpha = 1;
+                });
+                
+                // Draw hold walls (the founders)
+                ctx.fillStyle = mainColor;
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.moveTo(-w/2 - 2, 0);
+                ctx.lineTo(-w/2 - 3, d * 0.5);
+                ctx.lineTo(-w/2 - 1, d * 0.5);
+                ctx.lineTo(-w/2, 0);
+                ctx.fill();
+                
+                ctx.beginPath();
+                ctx.moveTo(w/2 + 2, 0);
+                ctx.lineTo(w/2 + 3, d * 0.5);
+                ctx.lineTo(w/2 + 1, d * 0.5);
+                ctx.lineTo(w/2, 0);
+                ctx.fill();
+                
+                ctx.globalAlpha = 1;
+                ctx.restore();
+            }
+        }
+        
+        // Falling creature - gets pulled toward the circle
+        class FallingCreature {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.vx = (Math.random() - 0.5) * 2;
+                this.vy = (Math.random() - 0.5) * 2;
+                this.size = 2 + Math.random() * 3;
+                this.rotation = Math.random() * Math.PI * 2;
+                this.rotationSpeed = (Math.random() - 0.5) * 0.2;
+                this.legs = Math.floor(Math.random() * 4);
+                this.wiggle = 0;
+            }
+            
+            update() {
+                if (paused) return true;
+                
+                // Calculate direction to center
+                const dx = centerX - this.x;
+                const dy = centerY - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                // Avoid divide by zero
+                if (dist < 1) {
+                    const angle = Math.random() * Math.PI * 2;
+                    const newCreature = new Creature(angle);
+                    newCreature.dna.size = this.size;
+                    newCreature.dna.legs = this.legs;
+                    creatures.push(newCreature);
+                    return false;
+                }
+                
+                // Gravity toward center
+                const gravity = 0.15;
+                this.vx += (dx / dist) * gravity;
+                this.vy += (dy / dist) * gravity;
+                
+                // Apply velocity with some drag
+                this.vx *= 0.98;
+                this.vy *= 0.98;
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Rotate and wiggle as it falls
+                this.rotation += this.rotationSpeed;
+                this.wiggle = Math.sin(Date.now() * 0.01) * 0.3;
+                
+                // Check if reached the surface
+                if (dist <= radius + 5) {
+                    // Convert to surface creature
+                    const angle = Math.atan2(this.y - centerY, this.x - centerX);
+                    const newCreature = new Creature(angle);
+                    newCreature.dna.size = this.size;
+                    newCreature.dna.legs = this.legs;
+                    creatures.push(newCreature);
+                    return false; // Remove falling creature
+                }
+                
+                return true;
+            }
+            
+            draw() {
+                ctx.save();
+                ctx.translate(this.x, this.y);
+                ctx.rotate(this.rotation);
+                
+                ctx.strokeStyle = '#2a2a2a';
+                ctx.fillStyle = '#2a2a2a';
+                ctx.lineWidth = 0.5;
+                ctx.globalAlpha = 0.7;
+                
+                // Draw body
+                ctx.beginPath();
+                const s = this.size;
+                for (let i = 0; i <= 8; i++) {
+                    const a = (i / 8) * Math.PI * 2;
+                    const r = s * (0.8 + Math.sin(a * 3 + this.wiggle) * 0.2);
+                    const px = Math.cos(a) * r;
+                    const py = Math.sin(a) * r * 0.7;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                ctx.fill();
+                
+                // Draw flailing legs
+                if (this.legs > 0) {
+                    for (let i = 0; i < this.legs; i++) {
+                        const legAngle = (i / this.legs) * Math.PI * 2;
+                        const flail = Math.sin(Date.now() * 0.02 + i * 2) * 0.5;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(Math.cos(legAngle) * s * 0.5, Math.sin(legAngle) * s * 0.5);
+                        ctx.lineTo(
+                            Math.cos(legAngle + flail) * s * 1.8,
+                            Math.sin(legAngle + flail) * s * 1.8
+                        );
+                        ctx.stroke();
+                    }
+                }
+                
+                ctx.restore();
+            }
+        }
+        
+        // Creature class - lives on the circle's surface
+        class Creature {
+            constructor(angle, dna = null) {
+                this.angle = angle;
+                this.dna = dna || {
+                    speed: 0.002 + Math.random() * 0.008,
+                    size: 2 + Math.random() * 4,
+                    wiggle: Math.random() * 0.3,
+                    legs: Math.floor(Math.random() * 5),
+                    direction: Math.random() > 0.5 ? 1 : -1,
+                    lifespan: 800 + Math.random() * 1200,
+                    reproRate: 0.001 + Math.random() * 0.003
+                };
+                this.age = 0;
+                this.wiggleOffset = Math.random() * Math.PI * 2;
+                this.energy = 50 + Math.random() * 50;
+            }
+            
+            get x() {
+                const wobble = Math.sin(this.age * 0.1 + this.wiggleOffset) * this.dna.wiggle * 3;
+                return centerX + Math.cos(this.angle) * (radius + wobble);
+            }
+            
+            get y() {
+                const wobble = Math.sin(this.age * 0.1 + this.wiggleOffset) * this.dna.wiggle * 3;
+                return centerY + Math.sin(this.angle) * (radius + wobble);
+            }
+            
+            update() {
+                if (paused) return true;
+                
+                this.age++;
+                this.angle += this.dna.speed * this.dna.direction;
+                
+                // Keep angle in bounds
+                if (this.angle > Math.PI * 2) this.angle -= Math.PI * 2;
+                if (this.angle < 0) this.angle += Math.PI * 2;
+                
+                // Tower-spawned creatures stay on course, others may wander
+                if (!this.fromTower && Math.random() < 0.001) {
+                    this.dna.direction *= -1;
+                }
+                
+                // Reduced natural reproduction - towers are main life source
+                this.energy += 0.05;
+                if (this.energy > 100 && Math.random() < this.dna.reproRate * 0.3 && creatures.length < 80) {
+                    this.reproduce();
+                }
+                
+                // Death
+                if (this.age > this.dna.lifespan || this.energy < 0) {
+                    return false;
+                }
+                
+                return true;
+            }
+            
+            reproduce() {
+                this.energy -= 40;
+                const childDna = { ...this.dna };
+                
+                // Mutations
+                if (Math.random() < 0.3) childDna.speed *= 0.8 + Math.random() * 0.4;
+                if (Math.random() < 0.3) childDna.size *= 0.8 + Math.random() * 0.4;
+                if (Math.random() < 0.2) childDna.legs = Math.max(0, Math.min(6, childDna.legs + (Math.random() > 0.5 ? 1 : -1)));
+                if (Math.random() < 0.3) childDna.wiggle *= 0.7 + Math.random() * 0.6;
+                if (Math.random() < 0.1) childDna.direction *= -1;
+                
+                childDna.size = Math.max(1.5, Math.min(8, childDna.size));
+                childDna.speed = Math.max(0.001, Math.min(0.015, childDna.speed));
+                
+                creatures.push(new Creature(this.angle + (Math.random() - 0.5) * 0.2, childDna));
+            }
+            
+            draw() {
+                const x = this.x;
+                const y = this.y;
+                const s = this.dna.size;
+                const outwardAngle = this.angle;
+                
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(outwardAngle + Math.PI / 2);
+                
+                // Sketch-like opacity based on age
+                const lifeRatio = 1 - (this.age / this.dna.lifespan);
+                ctx.globalAlpha = 0.4 + lifeRatio * 0.5;
+                
+                ctx.strokeStyle = '#2a2a2a';
+                ctx.fillStyle = '#2a2a2a';
+                ctx.lineWidth = 0.5;
+                
+                // Draw body - sketchy blob
+                ctx.beginPath();
+                const bodyPoints = 8;
+                for (let i = 0; i <= bodyPoints; i++) {
+                    const a = (i / bodyPoints) * Math.PI * 2;
+                    const r = s * (0.8 + Math.sin(a * 3 + this.age * 0.2) * 0.2);
+                    const px = Math.cos(a) * r;
+                    const py = Math.sin(a) * r * 0.7;
+                    if (i === 0) ctx.moveTo(px, py);
+                    else ctx.lineTo(px, py);
+                }
+                ctx.closePath();
+                ctx.fill();
+                
+                // Draw legs
+                if (this.dna.legs > 0) {
+                    for (let i = 0; i < this.dna.legs; i++) {
+                        const legAngle = (i / this.dna.legs) * Math.PI - Math.PI / 2;
+                        const legWiggle = Math.sin(this.age * 0.3 + i) * 0.3;
+                        
+                        ctx.beginPath();
+                        ctx.moveTo(Math.cos(legAngle) * s * 0.5, Math.sin(legAngle) * s * 0.3);
+                        ctx.lineTo(
+                            Math.cos(legAngle + legWiggle) * s * 1.5,
+                            Math.sin(legAngle + legWiggle) * s * 1.2
+                        );
+                        ctx.stroke();
+                    }
+                }
+                
+                // Draw antennae/feelers on top
+                if (this.dna.legs > 0) {
+                    const feelerWiggle = Math.sin(this.age * 0.2) * 0.2;
+                    ctx.beginPath();
+                    ctx.moveTo(-s * 0.3, -s * 0.5);
+                    ctx.lineTo(-s * 0.5 + feelerWiggle * s, -s * 1.2);
+                    ctx.moveTo(s * 0.3, -s * 0.5);
+                    ctx.lineTo(s * 0.5 - feelerWiggle * s, -s * 1.2);
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+            }
+        }
+        
+        // Building class - emerges from full holds, produces life, attracts creatures
+        class Building {
+            constructor(angle, parentHold) {
+                this.angle = angle;
+                this.height = 0;
+                this.targetHeight = 20 + Math.random() * 35;
+                this.width = 5 + Math.random() * 7;
+                this.age = 0;
+                this.parentHold = parentHold;
+                this.wobble = Math.random() * 0.1;
+                this.productionTimer = 0;
+                this.attractionRadius = 0.6; // Stronger pull radius
+                this.creaturesAttracted = 0;
+                this.lastSpawnSide = 1; // Alternate sides for expansion
+                this.windows = [];
+                
+                // Plague state
+                this.isPlague = false;
+                this.plagueTimer = 0;
+                this.plagueDuration = 400 + Math.random() * 300;
+                
+                // Generate window pattern
+                const windowRows = Math.floor(this.targetHeight / 6);
+                const windowCols = Math.floor(this.width / 3);
+                for (let r = 0; r < windowRows; r++) {
+                    for (let c = 0; c < windowCols; c++) {
+                        if (Math.random() > 0.3) {
+                            this.windows.push({
+                                row: r,
+                                col: c,
+                                lit: Math.random() > 0.5
+                            });
+                        }
+                    }
+                }
+            }
+            
+            get x() {
+                return centerX + Math.cos(this.angle) * radius;
+            }
+            
+            get y() {
+                return centerY + Math.sin(this.angle) * radius;
+            }
+            
+            get isFullyGrown() {
+                return this.height >= this.targetHeight;
+            }
+            
+            attractCreatures() {
+                creatures.forEach(c => {
+                    const diff = angleDiff(c.angle, this.angle);
+                    
+                    // Strong attraction zone
+                    if (Math.abs(diff) < this.attractionRadius && Math.abs(diff) > 0.04) {
+                        // Stronger pull the closer they are
+                        const pullStrength = 0.005 * (1 - Math.abs(diff) / this.attractionRadius);
+                        if (diff > 0) {
+                            c.angle -= pullStrength;
+                        } else {
+                            c.angle += pullStrength;
+                        }
+                        c.attracted = true; // Mark as being pulled
+                    }
+                    
+                    // Count creatures that arrived
+                    if (Math.abs(diff) < 0.04) {
+                        this.creaturesAttracted++;
+                    }
+                });
+            }
+            
+            trySpawnAdjacentHold() {
+                // More aggressive hold spawning when creatures gather
+                if (this.creaturesAttracted >= 2 && Math.random() < 0.025) {
+                    // Alternate sides to grow city evenly
+                    this.lastSpawnSide *= -1;
+                    const holdAngle = this.angle + this.lastSpawnSide * (0.07 + Math.random() * 0.03);
+                    
+                    const holdExists = holds.some(h => {
+                        return Math.abs(angleDiff(h.angle, holdAngle)) < 0.08;
+                    });
+                    
+                    const buildingExists = buildings.some(b => {
+                        if (b === this) return false;
+                        return Math.abs(angleDiff(b.angle, holdAngle)) < 0.08;
+                    });
+                    
+                    if (!holdExists && !buildingExists && holds.length < 50) {
+                        const nearbyCreatures = creatures.filter(c => {
+                            return Math.abs(angleDiff(c.angle, this.angle)) < 0.15;
+                        });
+                        
+                        if (nearbyCreatures.length >= 5) {
+                            const founders = nearbyCreatures.slice(0, 5);
+                            founders.forEach(f => {
+                                const idx = creatures.indexOf(f);
+                                if (idx > -1) creatures.splice(idx, 1);
+                            });
+                            
+                            holds.push(new Hold(holdAngle, founders));
+                            this.creaturesAttracted = 0;
+                        }
+                    }
+                }
+            }
+            
+            update() {
+                if (paused) return true;
+                
+                this.age++;
+                this.creaturesAttracted = 0; // Reset each frame
+                
+                if (this.height < this.targetHeight) {
+                    this.height += 0.4;
+                }
+                
+                // Plague logic
+                if (this.isPlague) {
+                    this.plagueTimer++;
+                    
+                    // Attack nearby buildings and holds
+                    this.plagueAttack();
+                    
+                    // Plague ends after duration
+                    if (this.plagueTimer > this.plagueDuration) {
+                        this.isPlague = false;
+                        this.plagueTimer = 0;
+                    }
+                }
+                
+                // Production rate (double when plague)
+                const productionRate = this.isPlague ? 60 : 120;
+                
+                if (this.isFullyGrown) {
+                    this.attractCreatures();
+                    if (!this.isPlague) {
+                        this.trySpawnAdjacentHold();
+                    }
+                    
+                    this.productionTimer++;
+                    // Spawn one creature at a time, heading outward
+                    if (this.productionTimer > productionRate && creatures.length < 200) {
+                        this.productionTimer = 0;
+                        
+                        // Find the direction with fewer buildings (frontier)
+                        let leftBuildings = 0, rightBuildings = 0;
+                        buildings.forEach(b => {
+                            if (b === this) return;
+                            const diff = angleDiff(b.angle, this.angle);
+                            if (diff > 0 && diff < Math.PI) leftBuildings++;
+                            else if (diff < 0 && diff > -Math.PI) rightBuildings++;
+                        });
+                        
+                        // Prefer heading toward frontier (or toward enemies if plague)
+                        const spawnSide = leftBuildings <= rightBuildings ? 1 : -1;
+                        const newCreature = new Creature(this.angle + spawnSide * 0.08);
+                        newCreature.dna.direction = spawnSide;
+                        newCreature.dna.speed = 0.006 + Math.random() * 0.003;
+                        newCreature.fromTower = true;
+                        newCreature.isAggressive = this.isPlague; // Plague creatures are aggressive
+                        creatures.push(newCreature);
+                        
+                        this.windows.forEach(w => w.lit = true);
+                        setTimeout(() => {
+                            this.windows.forEach(w => w.lit = Math.random() > 0.5);
+                        }, 200);
+                    }
+                }
+                
+                if (Math.random() < 0.02) {
+                    const idx = Math.floor(Math.random() * this.windows.length);
+                    if (this.windows[idx]) {
+                        this.windows[idx].lit = !this.windows[idx].lit;
+                    }
+                }
+                
+                return true;
+            }
+            
+            plagueAttack() {
+                const attackRange = 0.15;
+                
+                // Destroy nearby holds
+                holds.forEach(h => {
+                    const diff = Math.abs(angleDiff(h.angle, this.angle));
+                    if (diff < attackRange && diff > 0.02) {
+                        if (Math.random() < 0.03) {
+                            h.markedForDestruction = true;
+                        }
+                    }
+                });
+                
+                // Damage nearby non-plague buildings
+                buildings.forEach(b => {
+                    if (b === this || b.isPlague) return;
+                    const diff = Math.abs(angleDiff(b.angle, this.angle));
+                    if (diff < attackRange && diff > 0.02) {
+                        if (Math.random() < 0.02) {
+                            b.health = (b.health || 100) - 15;
+                        }
+                    }
+                });
+            }
+            
+            draw() {
+                // Check if building should be removed due to damage
+                if (this.health !== undefined && this.health <= 0) {
+                    this.markedForDestruction = true;
+                    return;
+                }
+                
+                const x = this.x;
+                const y = this.y;
+                const outwardAngle = this.angle;
+                
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(outwardAngle + Math.PI / 2);
+                
+                // Color based on state: plague (red), war faction (blue/green), normal (black)
+                let mainColor = '#2a2a2a';
+                if (this.isPlague) {
+                    mainColor = '#8b0000';
+                } else if (this.faction === 'blue') {
+                    mainColor = '#2255aa';
+                } else if (this.faction === 'green') {
+                    mainColor = '#22aa55';
+                }
+                
+                ctx.strokeStyle = mainColor;
+                ctx.fillStyle = '#faf9f6';
+                ctx.lineWidth = (this.isPlague || this.faction) ? 1.2 : 0.8;
+                
+                const sway = Math.sin(this.age * 0.02 + this.wobble) * this.height * 0.015;
+                
+                const w = this.width;
+                const h = this.height;
+                
+                ctx.beginPath();
+                ctx.moveTo(-w/2 + Math.random() * 0.5, 0);
+                ctx.lineTo(-w/2 + sway + Math.random() * 0.5, -h);
+                ctx.lineTo(w/2 + sway + Math.random() * 0.5, -h);
+                ctx.lineTo(w/2 + Math.random() * 0.5, 0);
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+                
+                ctx.globalAlpha = 0.3;
+                ctx.beginPath();
+                ctx.moveTo(-w/2 + 0.5, 0.5);
+                ctx.lineTo(-w/2 + sway + 0.5, -h + 0.5);
+                ctx.lineTo(w/2 + sway + 0.5, -h + 0.5);
+                ctx.lineTo(w/2 + 0.5, 0.5);
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+                
+                const windowRows = Math.floor(h / 6);
+                this.windows.forEach(win => {
+                    if (win.row < windowRows) {
+                        const wx = -w/2 + 2 + win.col * 3 + sway * (win.row / windowRows);
+                        const wy = -4 - win.row * 6;
+                        
+                        if (win.lit) {
+                            ctx.fillStyle = mainColor;
+                            ctx.fillRect(wx, wy, 1.5, 2);
+                        } else {
+                            ctx.strokeStyle = mainColor;
+                            ctx.strokeRect(wx, wy, 1.5, 2);
+                        }
+                    }
+                });
+                
+                ctx.restore();
+            }
+        }
+        
+        // Check for creature clusters to form holds (wilderness only)
+        function checkForClusters() {
+            if (paused) return;
+            
+            const segments = 50;
+            const segmentCreatures = new Array(segments).fill(null).map(() => []);
+            
+            creatures.forEach(c => {
+                let seg = Math.floor((c.angle / (Math.PI * 2)) * segments);
+                seg = Math.max(0, Math.min(segments - 1, seg));
+                segmentCreatures[seg].push(c);
+            });
+            
+            for (let i = 0; i < segments; i++) {
+                const creaturesHere = segmentCreatures[i];
+                
+                if (creaturesHere.length >= 5 && Math.random() < 0.003) {
+                    const angle = (i / segments) * Math.PI * 2;
+                    
+                    // Skip if near a building (cities handle their own holds)
+                    const nearBuilding = buildings.some(b => {
+                        return Math.abs(angleDiff(b.angle, angle)) < 0.25;
+                    });
+                    if (nearBuilding) continue;
+                    
+                    const holdExists = holds.some(h => {
+                        return Math.abs(angleDiff(h.angle, angle)) < 0.15;
+                    });
+                    
+                    if (!holdExists && holds.length < 40) {
+                        const founders = creaturesHere.splice(0, 5);
+                        founders.forEach(f => {
+                            const idx = creatures.indexOf(f);
+                            if (idx > -1) creatures.splice(idx, 1);
+                        });
+                        
+                        holds.push(new Hold(angle, founders));
+                    }
+                }
+            }
+            
+            // Creatures enter nearby holds
+            creatures.forEach(c => {
+                holds.forEach(h => {
+                    if (h.canAccept()) {
+                        const diff = Math.abs(angleDiff(c.angle, h.angle));
+                        if (diff < 0.06 && Math.random() < 0.04) {
+                            if (h.addCreature(c)) {
+                                c.markedForRemoval = true;
+                            }
+                        }
+                    }
+                });
+            });
+            
+            creatures = creatures.filter(c => !c.markedForRemoval);
+        }
+        
+        // Draw sketchy circle
+        function drawWorld() {
+            ctx.clearRect(0, 0, size, size);
+            
+            // Paper texture effect
+            ctx.fillStyle = '#faf9f6';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Main circle - multiple sketchy strokes
+            ctx.strokeStyle = '#2a2a2a';
+            ctx.lineWidth = 1.5;
+            ctx.lineCap = 'round';
+            
+            // Draw multiple slightly imperfect circles for sketch effect
+            for (let stroke = 0; stroke < 3; stroke++) {
+                ctx.beginPath();
+                const offset = stroke * 0.3;
+                for (let i = 0; i <= 100; i++) {
+                    const angle = (i / 100) * Math.PI * 2;
+                    const wobble = Math.sin(angle * 8 + stroke) * 1.5 + Math.sin(angle * 13) * 0.8;
+                    const r = radius + wobble + (Math.random() - 0.5) * 0.5;
+                    const x = centerX + Math.cos(angle) * r;
+                    const y = centerY + Math.sin(angle) * r;
+                    
+                    if (i === 0) {
+                        ctx.moveTo(x, y);
+                    } else {
+                        ctx.lineTo(x, y);
+                    }
+                }
+                ctx.globalAlpha = 0.3 + stroke * 0.25;
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+            
+            // Light shading on one side
+            ctx.beginPath();
+            ctx.arc(centerX - radius * 0.2, centerY - radius * 0.2, radius * 0.7, 0, Math.PI * 2);
+            const gradient = ctx.createRadialGradient(
+                centerX - radius * 0.3, centerY - radius * 0.3, 0,
+                centerX - radius * 0.3, centerY - radius * 0.3, radius
+            );
+            gradient.addColorStop(0, 'rgba(255,255,255,0.3)');
+            gradient.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // Draw craters (before holds) - permanent scars on the world
+            craters.forEach(crater => {
+                const cx = centerX + Math.cos(crater.angle) * radius;
+                const cy = centerY + Math.sin(crater.angle) * radius;
+                
+                ctx.save();
+                ctx.translate(cx, cy);
+                ctx.rotate(crater.angle + Math.PI / 2);
+                
+                // Crater is a dip in the surface - fades but never disappears
+                ctx.strokeStyle = '#2a2a2a';
+                ctx.fillStyle = '#e8e6e1';
+                ctx.lineWidth = 0.5;
+                // Fade to a minimum of 0.2 opacity (weathered but visible)
+                ctx.globalAlpha = Math.max(0.2, 0.8 - crater.age * 0.0003);
+                
+                const w = crater.width * radius;
+                const d = crater.depth * Math.max(0.4, 1 - crater.age * 0.0002); // Craters shallow out slightly
+                
+                ctx.beginPath();
+                ctx.moveTo(-w/2, 0);
+                ctx.quadraticCurveTo(0, d, w/2, 0);
+                ctx.fill();
+                ctx.stroke();
+                
+                // Add some sketchy weathering marks for older craters
+                if (crater.age > 500) {
+                    ctx.globalAlpha *= 0.5;
+                    ctx.beginPath();
+                    ctx.moveTo(-w/3, d * 0.3);
+                    ctx.lineTo(w/4, d * 0.5);
+                    ctx.stroke();
+                }
+                
+                ctx.restore();
+                
+                crater.age++;
+            });
+            
+            // Craters never disappear - they're permanent scars
+            
+            // Draw labyrinths (deep underground)
+            labyrinths.forEach(l => l.draw());
+            
+            // Draw holds (inside the circle)
+            holds.forEach(p => p.draw());
+            
+            // Draw falling creatures
+            fallingCreatures.forEach(f => f.draw());
+            
+            // Draw generators
+            generators.forEach(g => g.draw());
+            
+            // Draw all buildings
+            buildings.forEach(b => b.draw());
+            
+            // Draw domes over protected clusters
+            domes.forEach(d => d.draw());
+            
+            // Draw all creatures
+            creatures.forEach(c => c.draw());
+            
+            // Draw bombs
+            bombs.forEach(b => b.draw());
+            
+            // Draw explosions
+            explosions.forEach(e => e.draw());
+            
+            // Update stats
+            document.getElementById('popCount').textContent = creatures.length;
+            document.getElementById('holdCount').textContent = holds.length;
+            document.getElementById('buildingCount').textContent = buildings.length;
+        }
+        
+        // Check and trigger plagues
+        function checkPlagues() {
+            if (paused || warActive) return; // No plagues during war
+            
+            // Count active plagues
+            const activePlagues = buildings.filter(b => b.isPlague).length;
+            
+            // Maybe start a new plague (max 2 at a time)
+            if (activePlagues < 2 && buildings.length >= 3 && Math.random() < 0.0008) {
+                // Pick a random fully grown non-plague building
+                const candidates = buildings.filter(b => b.isFullyGrown && !b.isPlague);
+                if (candidates.length > 0) {
+                    const victim = candidates[Math.floor(Math.random() * candidates.length)];
+                    victim.isPlague = true;
+                    victim.plagueTimer = 0;
+                }
+            }
+        }
+        
+        // Find connected city clusters
+        function findCityClusters() {
+            const clusters = [];
+            const visited = new Set();
+            const connectionDistance = 0.25; // How close buildings need to be to be "connected"
+            
+            buildings.forEach(b => {
+                if (visited.has(b)) return;
+                
+                // BFS to find all connected buildings
+                const cluster = [];
+                const queue = [b];
+                
+                while (queue.length > 0) {
+                    const current = queue.shift();
+                    if (visited.has(current)) continue;
+                    
+                    visited.add(current);
+                    cluster.push(current);
+                    
+                    // Find connected buildings
+                    buildings.forEach(other => {
+                        if (!visited.has(other)) {
+                            const diff = Math.abs(angleDiff(current.angle, other.angle));
+                            if (diff < connectionDistance) {
+                                queue.push(other);
+                            }
+                        }
+                    });
+                }
+                
+                if (cluster.length > 0) {
+                    clusters.push(cluster);
+                }
+            });
+            
+            return clusters;
+        }
+        
+        // Check and trigger wars
+        function checkWar() {
+            if (paused) return;
+            
+            if (warActive) {
+                warTimer++;
+                
+                // Helper to check if tower is protected by dome
+                const isProtected = (tower) => {
+                    return domes.some(d => d.containsAngle(tower.angle));
+                };
+                
+                // Prefer targeting unprotected towers
+                const getTarget = (faction) => {
+                    const unprotected = faction.filter(t => !isProtected(t));
+                    if (unprotected.length > 0 && Math.random() < 0.8) {
+                        return unprotected[Math.floor(Math.random() * unprotected.length)];
+                    }
+                    return faction[Math.floor(Math.random() * faction.length)];
+                };
+                
+                // More frequent attacks during war
+                if (Math.random() < 0.05) {
+                    // Blue shoots at green
+                    if (factions.blue.length > 0 && factions.green.length > 0) {
+                        const shooter = factions.blue[Math.floor(Math.random() * factions.blue.length)];
+                        const target = getTarget(factions.green);
+                        if (shooter && target && !shooter.markedForDestruction) {
+                            bombs.push(new Bomb(shooter.angle, target.angle, 'blue'));
+                        }
+                    }
+                }
+                
+                if (Math.random() < 0.05) {
+                    // Green shoots at blue
+                    if (factions.green.length > 0 && factions.blue.length > 0) {
+                        const shooter = factions.green[Math.floor(Math.random() * factions.green.length)];
+                        const target = getTarget(factions.blue);
+                        if (shooter && target && !shooter.markedForDestruction) {
+                            bombs.push(new Bomb(shooter.angle, target.angle, 'green'));
+                        }
+                    }
+                }
+                
+                // Unprotected towers take passive war damage
+                buildings.forEach(b => {
+                    if (b.faction && !isProtected(b) && Math.random() < 0.005) {
+                        b.health = (b.health || 100) - 5;
+                    }
+                });
+                
+                // Clean up destroyed faction members
+                factions.blue = factions.blue.filter(b => !b.markedForDestruction && buildings.includes(b));
+                factions.green = factions.green.filter(b => !b.markedForDestruction && buildings.includes(b));
+                
+                // War ends after duration or if one side is eliminated
+                if (warTimer > warDuration || factions.blue.length === 0 || factions.green.length === 0) {
+                    endWar();
+                }
+            } else {
+                // Maybe start a war
+                if (buildings.length >= 4 && Math.random() < 0.0003) {
+                    const clusters = findCityClusters();
+                    
+                    // Need at least 2 separate clusters to have a war
+                    if (clusters.length >= 2) {
+                        startWar(clusters);
+                    }
+                }
+            }
+        }
+        
+        function startWar(clusters) {
+            warActive = true;
+            warTimer = 0;
+            warDuration = 600 + Math.random() * 500;
+            
+            // Pick two clusters to fight
+            const shuffled = clusters.sort(() => Math.random() - 0.5);
+            factions.blue = shuffled[0] || [];
+            factions.green = shuffled[1] || [];
+            
+            // Mark buildings with their faction
+            factions.blue.forEach(b => b.faction = 'blue');
+            factions.green.forEach(b => b.faction = 'green');
+            
+            // Mark associated holds
+            holds.forEach(h => {
+                factions.blue.forEach(b => {
+                    if (Math.abs(angleDiff(h.angle, b.angle)) < 0.15) {
+                        h.faction = 'blue';
+                    }
+                });
+                factions.green.forEach(b => {
+                    if (Math.abs(angleDiff(h.angle, b.angle)) < 0.15) {
+                        h.faction = 'green';
+                    }
+                });
+            });
+        }
+        
+        function endWar() {
+            warActive = false;
+            warTimer = 0;
+            
+            // Clear factions
+            buildings.forEach(b => b.faction = null);
+            holds.forEach(h => h.faction = null);
+            factions = { blue: [], green: [] };
+        }
+        
+        // Check for dome formation (5+ connected towers)
+        function checkDomes() {
+            if (paused) return;
+            
+            const clusters = findCityClusters();
+            
+            // For each cluster with 5+ towers, ensure there's a dome
+            clusters.forEach(cluster => {
+                if (cluster.length >= 5) {
+                    // Check if dome already exists for this cluster
+                    const existingDome = domes.find(d => {
+                        // Dome covers this cluster if most towers overlap
+                        const overlap = cluster.filter(t => d.towers.includes(t)).length;
+                        return overlap >= cluster.length * 0.5;
+                    });
+                    
+                    if (!existingDome) {
+                        domes.push(new Dome(cluster));
+                    } else {
+                        // Update existing dome's towers
+                        existingDome.towers = cluster;
+                        existingDome.updateBounds();
+                    }
+                }
+            });
+            
+            // Update and filter domes
+            domes = domes.filter(d => d.update());
+        }
+        
+        // Check for labyrinth formation and deeper layers
+        function checkLabyrinths() {
+            if (paused) return;
+            
+            // Find clusters of holds for new labyrinths
+            const holdClusters = [];
+            const visited = new Set();
+            const connectionDistance = 0.2;
+            
+            holds.forEach(h => {
+                if (visited.has(h)) return;
+                
+                // Check if this hold is already in a labyrinth
+                const inLabyrinth = labyrinths.some(l => l.connectedHolds.includes(h));
+                if (inLabyrinth) {
+                    visited.add(h);
+                    return;
+                }
+                
+                const cluster = [];
+                const queue = [h];
+                
+                while (queue.length > 0) {
+                    const current = queue.shift();
+                    if (visited.has(current)) continue;
+                    
+                    visited.add(current);
+                    cluster.push(current);
+                    
+                    holds.forEach(other => {
+                        if (!visited.has(other)) {
+                            const diff = Math.abs(angleDiff(current.angle, other.angle));
+                            if (diff < connectionDistance) {
+                                queue.push(other);
+                            }
+                        }
+                    });
+                }
+                
+                if (cluster.length >= 2) {
+                    holdClusters.push(cluster);
+                }
+            });
+            
+            // Form new labyrinths from hold clusters
+            holdClusters.forEach(cluster => {
+                const avgAngle = cluster.reduce((sum, h) => sum + h.angle, 0) / cluster.length;
+                
+                // Check if there's a tower nearby (labyrinths form in wilderness)
+                const nearTower = buildings.some(b => {
+                    const diff = Math.abs(angleDiff(b.angle, avgAngle));
+                    return diff < 0.1;
+                });
+                
+                if (!nearTower && Math.random() < 0.003 && labyrinths.length < 20) {
+                    labyrinths.push(new Labyrinth(avgAngle, cluster, 1));
+                }
+            });
+            
+            // Check for dense labyrinths that should spawn deeper layers
+            labyrinths.forEach(lab => {
+                // Dense labyrinths (many tunnels/farms/connections) can spawn deeper layers
+                if (lab.density > 12 && lab.age > 500 && Math.random() < 0.0005) {
+                    const nextDepth = lab.depth + 1;
+                    
+                    // Check if deeper layer already exists at this location
+                    const existsDeeper = labyrinths.some(l => 
+                        l.depth === nextDepth && 
+                        Math.abs(angleDiff(l.centerAngle, lab.centerAngle)) < 0.2
+                    );
+                    
+                    if (!existsDeeper && nextDepth <= 4) {
+                        const deeperLab = new Labyrinth(lab.centerAngle, [], nextDepth);
+                        // Inherit some connections
+                        deeperLab.connectedHolds = [...lab.connectedHolds];
+                        labyrinths.push(deeperLab);
+                    }
+                }
+            });
+            
+            // Check for nearby labyrinths at same depth that should merge
+            for (let i = 0; i < labyrinths.length; i++) {
+                for (let j = i + 1; j < labyrinths.length; j++) {
+                    const l1 = labyrinths[i];
+                    const l2 = labyrinths[j];
+                    
+                    if (l1.depth !== l2.depth) continue;
+                    
+                    const dist = Math.abs(angleDiff(l1.centerAngle, l2.centerAngle));
+                    
+                    if (dist < 0.25) {
+                        // Merge l2 into l1
+                        l1.connectedHolds = [...l1.connectedHolds, ...l2.connectedHolds];
+                        l1.tunnels = [...l1.tunnels, ...l2.tunnels];
+                        l1.farms = [...l1.farms, ...l2.farms];
+                        l1.centerAngle = (l1.centerAngle + l2.centerAngle) / 2;
+                        labyrinths.splice(j, 1);
+                        j--;
+                    }
+                }
+            }
+            
+            // Update labyrinths
+            labyrinths = labyrinths.filter(l => l.update());
+        }
+        
+        // Check if bomb hits a dome (returns true if deflected)
+        // Only deflects if shooter is OUTSIDE the dome
+        // Battle inside a dome destroys the dome
+        function checkBombDomeCollision(bomb) {
+            for (let i = domes.length - 1; i >= 0; i--) {
+                const dome = domes[i];
+                // Check if target is inside this dome
+                if (dome.containsAngle(bomb.toAngle)) {
+                    // Check if shooter is also inside - civil war destroys dome
+                    if (dome.containsAngle(bomb.fromAngle)) {
+                        // Both inside same dome - dome is destroyed by civil war!
+                        domes.splice(i, 1);
+                        return false; // Bomb hits, no deflection
+                    }
+                    // Shooter outside, target inside - deflect!
+                    dome.hitFlash = 15;
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // Main loop
+        function update() {
+            // Update and filter creatures (including war casualties)
+            creatures = creatures.filter(c => {
+                if (c.markedForRemoval) return false;
+                return c.update();
+            });
+            
+            buildings.forEach(b => b.update());
+            buildings = buildings.filter(b => !b.markedForDestruction);
+            holds.forEach(h => h.update());
+            holds = holds.filter(h => !h.markedForDestruction);
+            fallingCreatures = fallingCreatures.filter(f => f.update());
+            
+            // Update generators
+            generators.forEach(g => g.update());
+            
+            // Update bombs - handle dome deflection properly
+            bombs = bombs.filter(b => {
+                if (paused) return true;
+                
+                b.progress += b.speed;
+                
+                // Bomb reached target
+                if (b.progress >= 1) {
+                    // Check if protected by dome
+                    if (checkBombDomeCollision(b)) {
+                        // Deflected - no explosion
+                        return false;
+                    } else {
+                        // Not protected - EXPLODE!
+                        explosions.push(new Explosion(b.toAngle));
+                        return false;
+                    }
+                }
+                
+                return true;
+            });
+            explosions = explosions.filter(e => e.update());
+            
+            checkForClusters();
+            checkPlagues();
+            checkWar();
+            checkDomes();
+            checkLabyrinths();
+            drawWorld();
+            requestAnimationFrame(update);
+        }
+        
+        // Initialize with some creatures
+        function init() {
+            creatures = [];
+            buildings = [];
+            fallingCreatures = [];
+            holds = [];
+            bombs = [];
+            explosions = [];
+            craters = [];
+            generators = [];
+            domes = [];
+            labyrinths = [];
+            warActive = false;
+            factions = { blue: [], green: [] };
+            for (let i = 0; i < 12; i++) {
+                creatures.push(new Creature(Math.random() * Math.PI * 2));
+            }
+        }
+        
+        // Click to add creature or toggle generator
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // Calculate distance from center
+            const dx = x - centerX;
+            const dy = y - centerY;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            
+            if (dist <= radius + 30) {
+                // Clicking near the circle - add directly to surface
+                const angle = Math.atan2(dy, dx);
+                creatures.push(new Creature(angle));
+            } else {
+                // Clicking outside - check if clicking on existing generator
+                const clickRadius = 15;
+                const existingIndex = generators.findIndex(g => {
+                    const gDist = Math.sqrt((g.x - x) ** 2 + (g.y - y) ** 2);
+                    return gDist < clickRadius;
+                });
+                
+                if (existingIndex >= 0) {
+                    // Remove existing generator
+                    generators.splice(existingIndex, 1);
+                } else {
+                    // Create new generator
+                    generators.push(new Generator(x, y));
+                }
+            }
+        });
+        
+        // Controls
+        document.getElementById('pauseBtn').addEventListener('click', () => {
+            paused = !paused;
+            document.getElementById('pauseBtn').textContent = paused ? 'play' : 'pause';
+        });
+        
+        document.getElementById('resetBtn').addEventListener('click', init);
+        
+        // Start
+        init();
+        update();
+    </script>
+</body>
+</html>
