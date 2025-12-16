@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>YouTube → Calendar</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+:root {
+  color-scheme: dark;
+  --bg: #0f0f0f;
+  --bg-secondary: #181818;
+  --bg-hover: #272727;
+  --card: #212121;
+  --card-border: #383838;
+  --text: #f1f1f1;
+  --muted: #aaaaaa;
+  --primary: #ff0000;
+  --primary-hover: #cc0000;
+  --primary-glow: rgba(255, 0, 0, 0.4);
+  --success: #2ba640;
+  --shadow: 0 4px 32px rgba(0, 0, 0, 0.5);
+  font-family: "Roboto", system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  padding: clamp(1.5rem, 3vw, 3rem);
+  overflow-x: hidden;
+}
+
+.backdrop-pattern {
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(255, 0, 0, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(255, 0, 0, 0.05) 0%, transparent 40%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Floating play button decorations */
+.backdrop-pattern::before,
+.backdrop-pattern::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.03;
+  background: var(--primary);
+}
+
+.backdrop-pattern::before {
+  width: 600px;
+  height: 600px;
+  top: -200px;
+  right: -100px;
+  animation: float 20s ease-in-out infinite;
+}
+
+.backdrop-pattern::after {
+  width: 400px;
+  height: 400px;
+  bottom: -100px;
+  left: -100px;
+  animation: float 15s ease-in-out infinite reverse;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(30px) rotate(5deg); }
+}
+
+.app-shell {
+  width: min(960px, 100%);
+  position: relative;
+  z-index: 1;
+}
+
+.hero {
+  margin-bottom: clamp(1.5rem, 4vw, 3rem);
+  text-align: center;
+}
+
+.hero-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 56px;
+  background: var(--primary);
+  border-radius: 16px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 8px 32px var(--primary-glow);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.hero-icon::after {
+  content: "";
+  width: 0;
+  height: 0;
+  border-left: 18px solid white;
+  border-top: 11px solid transparent;
+  border-bottom: 11px solid transparent;
+  margin-left: 4px;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); box-shadow: 0 8px 32px var(--primary-glow); }
+  50% { transform: scale(1.05); box-shadow: 0 12px 48px var(--primary-glow); }
+}
+
+.eyebrow {
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--primary);
+  background: rgba(255, 0, 0, 0.1);
+  padding: 0.4rem 1rem;
+  border-radius: 20px;
+  margin: 0 0 1rem;
+}
+
+.hero h1 {
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 900;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.hero h1 .yt {
+  color: var(--primary);
+  position: relative;
+}
+
+.hero h1 .teams {
+  background: linear-gradient(135deg, #5b5fc7, #7b83eb);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero h1 .arrow {
+  display: inline-block;
+  color: var(--muted);
+  font-weight: 400;
+  padding: 0 0.3em;
+  animation: bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes bounce {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(5px); }
+}
+
+.hero .lede {
+  max-width: 600px;
+  margin: 1.25rem auto 0;
+  color: var(--muted);
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.tool-card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  padding: clamp(1.5rem, 3vw, 2.5rem);
+  transition: border-color 0.3s ease;
+}
+
+.tool-card:hover {
+  border-color: #484848;
+}
+
+form label {
+  display: block;
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  margin-top: 1.25rem;
+  color: var(--text);
+}
+
+form label:first-of-type {
+  margin-top: 0;
+}
+
+input[type="text"],
+input[type="password"] {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: var(--bg-secondary);
+  color: var(--text);
+  font-size: 1rem;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  font-family: "Roboto", sans-serif;
+}
+
+input[type="text"]:focus,
+input[type="password"]:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--bg-hover);
+  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.15);
+}
+
+.input-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+input[type="url"] {
+  flex: 1 1 280px;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: var(--bg-secondary);
+  color: var(--text);
+  font-size: 1rem;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+input[type="url"]:focus {
+  outline: none;
+  border-color: var(--primary);
+  background: var(--bg-hover);
+  box-shadow: 0 0 0 3px rgba(255, 0, 0, 0.15);
+}
+
+input::placeholder {
+  color: #717171;
+}
+
+button {
+  border: none;
+  border-radius: 20px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.75rem 1.5rem;
+  font-size: 0.95rem;
+  transition: transform 0.15s ease, box-shadow 0.2s ease,
+    background-color 0.2s ease, opacity 0.2s ease;
+}
+
+button.primary {
+  background: var(--primary);
+  color: white;
+  font-weight: 500;
+}
+
+button.primary:hover {
+  background: var(--primary-hover);
+  box-shadow: 0 4px 20px var(--primary-glow);
+}
+
+button.primary:active {
+  transform: scale(0.98);
+}
+
+button.ghost {
+  background: transparent;
+  border: 1px solid var(--card-border);
+  color: var(--text);
+}
+
+button.ghost:hover {
+  background: var(--bg-hover);
+  border-color: #484848;
+}
+
+button.ghost:active {
+  transform: scale(0.98);
+}
+
+button.secondary {
+  background: var(--bg-hover);
+  color: var(--text);
+  border-radius: 20px;
+  padding: 0.85rem 1.4rem;
+  font-size: 0.95rem;
+  width: 100%;
+  border: 1px solid var(--card-border);
+}
+
+button.secondary:hover {
+  background: #333;
+  border-color: #484848;
+}
+
+button.secondary:active {
+  transform: scale(0.99);
+}
+
+.hint {
+  margin-top: 0.8rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.hint a {
+  color: #3ea6ff;
+  text-decoration: none;
+}
+
+.hint a:hover {
+  text-decoration: underline;
+}
+
+.api-hint {
+  margin-bottom: 0.5rem;
+}
+
+#status {
+  min-height: 1.5rem;
+  margin: 1rem 0 0.5rem;
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+}
+
+#status:not(:empty) {
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+  border-left: 3px solid var(--primary);
+}
+
+.results.hidden {
+  display: none;
+}
+
+.results {
+  margin-top: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid var(--card-border);
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.result-header {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.result-header img {
+  width: 200px;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.result-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.result-header p {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.result-header .eyebrow {
+  margin-bottom: 0.5rem;
+}
+
+.info-grid {
+  margin: 1.5rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0.75rem;
+}
+
+.info-grid div {
+  padding: 1rem;
+  border-radius: 10px;
+  background: var(--bg-hover);
+  border: 1px solid var(--card-border);
+  transition: background 0.2s ease;
+}
+
+.info-grid div:hover {
+  background: #333;
+}
+
+.info-grid dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin-bottom: 0.25rem;
+}
+
+.info-grid dd {
+  margin: 0;
+  font-weight: 500;
+  font-size: 0.95rem;
+  word-break: break-word;
+}
+
+.link-box {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, rgba(91, 95, 199, 0.15), rgba(123, 131, 235, 0.1));
+  border: 1px solid rgba(123, 131, 235, 0.3);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.link-box .eyebrow {
+  background: rgba(123, 131, 235, 0.2);
+  color: #a8b0ff;
+  margin-bottom: 0.5rem;
+}
+
+.teams-link {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-weight: 500;
+  color: #a8b0ff;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.teams-link:hover {
+  color: #c4c9ff;
+}
+
+.teams-link::after {
+  content: "→";
+  font-size: 1.1rem;
+  transition: transform 0.2s ease;
+}
+
+.teams-link:hover::after {
+  transform: translateX(4px);
+}
+
+/* Google Calendar link box */
+.link-box.gcal {
+  background: linear-gradient(135deg, rgba(66, 133, 244, 0.15), rgba(52, 168, 83, 0.1));
+  border: 1px solid rgba(66, 133, 244, 0.3);
+}
+
+.link-box.gcal .eyebrow {
+  background: rgba(66, 133, 244, 0.2);
+  color: #8ab4f8;
+}
+
+.gcal-link {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-weight: 500;
+  color: #8ab4f8;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.gcal-link:hover {
+  color: #aecbfa;
+}
+
+.gcal-link::after {
+  content: "→";
+  font-size: 1.1rem;
+  transition: transform 0.2s ease;
+}
+
+.gcal-link:hover::after {
+  transform: translateX(4px);
+}
+
+/* Apple Calendar / iCal link box */
+.link-box.ical {
+  background: linear-gradient(135deg, rgba(255, 59, 48, 0.12), rgba(255, 149, 0, 0.08));
+  border: 1px solid rgba(255, 59, 48, 0.25);
+}
+
+.link-box.ical .eyebrow {
+  background: rgba(255, 59, 48, 0.15);
+  color: #ff6b6b;
+}
+
+.ical-link {
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+  font-weight: 500;
+  color: #ff6b6b;
+  text-decoration: none;
+  font-size: 1rem;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.ical-link:hover {
+  color: #ff8a8a;
+}
+
+.ical-link::after {
+  content: "↓";
+  font-size: 1.1rem;
+  transition: transform 0.2s ease;
+}
+
+.ical-link:hover::after {
+  transform: translateY(2px);
+}
+
+.calendar-options {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.calendar-options .link-box {
+  flex: 1;
+  min-width: 250px;
+}
+
+.channel-actions {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--card-border);
+}
+
+.upcoming-section.hidden {
+  display: none;
+}
+
+.upcoming-section {
+  margin-top: 1.5rem;
+  border-radius: 16px;
+  border: 1px solid var(--card-border);
+  padding: 1.5rem;
+  background: var(--bg-secondary);
+  animation: slideUp 0.3s ease-out;
+}
+
+.section-header h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-header h3::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: var(--primary);
+  border-radius: 50%;
+  animation: blink 1.5s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+.channel-info {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.upcoming-status {
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  min-height: 1.5rem;
+}
+
+.upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.upcoming-item {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  border-radius: 12px;
+  background: var(--bg-hover);
+  border: 1px solid var(--card-border);
+  align-items: center;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.upcoming-item:hover {
+  background: #333;
+  border-color: #484848;
+}
+
+.upcoming-thumb {
+  width: 120px;
+  height: 68px;
+  object-fit: cover;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.upcoming-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.upcoming-info h4 {
+  margin: 0 0 0.35rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.upcoming-time {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin: 0.25rem 0 0;
+}
+
+.upcoming-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.upcoming-actions a,
+.upcoming-actions button {
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  white-space: nowrap;
+  border-radius: 18px;
+}
+
+/* Channel History */
+.channel-history {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--card-border);
+}
+
+.channel-history.hidden {
+  display: none;
+}
+
+.channel-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.channel-history-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.channel-history-header h3::before {
+  content: "⏱";
+  font-size: 1.1rem;
+}
+
+.channel-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.channel-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-hover);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.channel-chip:hover {
+  background: #333;
+  border-color: var(--primary);
+}
+
+.channel-chip:active {
+  transform: scale(0.98);
+}
+
+.channel-chip .channel-chip-name {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.channel-chip .delete-channel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.channel-chip .delete-channel:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.channel-chip .videos-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 10px;
+  background: rgba(255, 0, 0, 0.15);
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.channel-chip .videos-link:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.footnote {
+  margin-top: 2rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.footnote code {
+  background: var(--bg-hover);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--card-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #484848;
+}
+
+@media (max-width: 640px) {
+  .hero-icon {
+    width: 64px;
+    height: 45px;
+    border-radius: 12px;
+  }
+  
+  .hero-icon::after {
+    border-left-width: 14px;
+    border-top-width: 8px;
+    border-bottom-width: 8px;
+    margin-left: 3px;
+  }
+
+  .tool-card,
+  .results {
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+
+  .result-header img {
+    width: 100%;
+  }
+  
+  .upcoming-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .upcoming-thumb {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16/9;
+  }
+  
+  .upcoming-actions {
+    width: 100%;
+  }
+  
+  .upcoming-actions a {
+    flex: 1;
+    text-align: center;
+  }
+}
+    </style>
+  </head>
+  <body>
+    <div class="backdrop-pattern" aria-hidden="true"></div>
+    <main class="app-shell">
+      <header class="hero">
+        <div class="hero-icon" aria-hidden="true"></div>
+        <p class="eyebrow">Stream → Meeting</p>
+        <h1>
+          <span class="yt">YouTube</span>
+          <span class="arrow">→</span>
+          <span class="teams">Calendar</span>
+        </h1>
+        <p class="lede">
+          Paste any YouTube video or live stream link and instantly add it to
+          your calendar with the title, schedule, and video link ready to go.
+        </p>
+      </header>
+
+      <section class="tool-card">
+        <form id="converter-form" autocomplete="off">
+          <label for="api-key">YouTube Data API v3 Key (optional but recommended)</label>
+          <input
+            id="api-key"
+            name="api-key"
+            type="password"
+            placeholder="AIzaSy..."
+            autocomplete="off"
+          />
+          <p class="hint api-hint">
+            Without an API key, scheduled times default to "now". Get a free key from 
+            <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener">Google Cloud Console</a>. 
+            Your key is stored in browser localStorage.
+          </p>
+          
+          <label for="youtube-url">YouTube video or live stream URL</label>
+          <div class="input-row">
+            <input
+              id="youtube-url"
+              name="youtube-url"
+              type="url"
+              placeholder="https://www.youtube.com/live/..."
+              required
+            />
+            <button type="submit" class="primary">Generate</button>
+          </div>
+          <p class="hint">
+            Works with youtube.com, youtu.be, and YouTube Live URLs.
+          </p>
+        </form>
+
+        <div id="status" role="status" aria-live="polite"></div>
+
+        <article id="results" class="results hidden">
+          <div class="result-header">
+            <div>
+              <p class="eyebrow">Video</p>
+              <h2 id="video-title"></h2>
+              <p id="channel-name"></p>
+            </div>
+            <img id="video-thumb" alt="" />
+          </div>
+
+          <dl class="info-grid">
+            <div>
+              <dt>Scheduled start</dt>
+              <dd id="start-time"></dd>
+            </div>
+            <div>
+              <dt>Scheduled end</dt>
+              <dd id="end-time"></dd>
+            </div>
+            <div>
+              <dt>YouTube link</dt>
+              <dd><a id="video-link" target="_blank" rel="noopener">Open video</a></dd>
+            </div>
+            <div>
+              <dt>Meeting subject</dt>
+              <dd id="meeting-subject"></dd>
+            </div>
+          </dl>
+
+          <div class="calendar-options">
+            <div class="link-box">
+              <div>
+                <p class="eyebrow">Teams meeting</p>
+                <a
+                  id="teams-link"
+                  class="teams-link"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Open in Teams
+                </a>
+              </div>
+              <button id="copy-teams-link" class="ghost">Copy</button>
+            </div>
+            <div class="link-box gcal">
+              <div>
+                <p class="eyebrow">Google Calendar</p>
+                <a
+                  id="gcal-link"
+                  class="gcal-link"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  Add to Calendar
+                </a>
+              </div>
+              <button id="copy-gcal-link" class="ghost">Copy</button>
+            </div>
+            <div class="link-box ical">
+              <div>
+                <p class="eyebrow">Apple / iCal</p>
+                <button
+                  id="ical-link"
+                  class="ical-link"
+                  type="button"
+                >
+                  Download .ics
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="channel-actions">
+            <button id="show-upcoming" class="secondary" type="button">
+              Show upcoming live streams from this channel
+            </button>
+          </div>
+        </article>
+
+        <article id="upcoming-section" class="upcoming-section hidden">
+          <div class="section-header">
+            <h3>Upcoming Live Streams</h3>
+            <p id="channel-info" class="channel-info"></p>
+          </div>
+          <div id="upcoming-status" class="upcoming-status"></div>
+          <div id="upcoming-list" class="upcoming-list"></div>
+        </article>
+      </section>
+
+      <section id="channel-history" class="channel-history hidden">
+        <div class="channel-history-header">
+          <h3>Recent Channels</h3>
+        </div>
+        <div id="channel-list" class="channel-list"></div>
+      </section>
+
+      <footer class="footnote">
+        <p>
+          Calendar events include video title, scheduled time, and YouTube link.
+        </p>
+      </footer>
+    </main>
+
+    <script>
+const form = document.getElementById("converter-form");
+const input = document.getElementById("youtube-url");
+const apiKeyInput = document.getElementById("api-key");
+const statusEl = document.getElementById("status");
+const resultsEl = document.getElementById("results");
+const videoTitleEl = document.getElementById("video-title");
+const channelEl = document.getElementById("channel-name");
+const startTimeEl = document.getElementById("start-time");
+const endTimeEl = document.getElementById("end-time");
+const meetingSubjectEl = document.getElementById("meeting-subject");
+const teamsLinkEl = document.getElementById("teams-link");
+const videoLinkEl = document.getElementById("video-link");
+const thumbEl = document.getElementById("video-thumb");
+const copyTeamsBtn = document.getElementById("copy-teams-link");
+const copyGcalBtn = document.getElementById("copy-gcal-link");
+const gcalLinkEl = document.getElementById("gcal-link");
+const icalBtn = document.getElementById("ical-link");
+const showUpcomingBtn = document.getElementById("show-upcoming");
+const upcomingSection = document.getElementById("upcoming-section");
+const upcomingStatus = document.getElementById("upcoming-status");
+const upcomingList = document.getElementById("upcoming-list");
+const channelInfo = document.getElementById("channel-info");
+
+const YOUTUBE_OEMBED = "https://www.youtube.com/oembed";
+const YOUTUBE_API_BASE = "https://www.googleapis.com/youtube/v3/videos";
+const YOUTUBE_SEARCH_BASE = "https://www.googleapis.com/youtube/v3/search";
+const API_KEY_STORAGE = "youtube_api_key";
+const CHANNEL_HISTORY_STORAGE = "youtube_channel_history";
+const MAX_CHANNEL_HISTORY = 10;
+
+const channelHistorySection = document.getElementById("channel-history");
+const channelListEl = document.getElementById("channel-list");
+
+let currentChannelId = null;
+let currentChannelName = null;
+
+apiKeyInput.value = localStorage.getItem(API_KEY_STORAGE) || "";
+loadChannelHistory();
+
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const rawUrl = input.value.trim();
+  const apiKey = apiKeyInput.value.trim();
+
+  if (apiKey) {
+    localStorage.setItem(API_KEY_STORAGE, apiKey);
+  }
+
+  if (!rawUrl) {
+    setStatus("Please enter a YouTube URL.", "error");
+    return;
+  }
+
+  resultsEl.classList.add("hidden");
+  setStatus("Fetching video metadata…", "info");
+
+  try {
+    const normalizedUrl = normalizeYoutubeUrl(rawUrl);
+    const videoId = extractYoutubeId(normalizedUrl);
+
+    if (!videoId) {
+      throw new Error("That doesn't look like a valid YouTube video URL.");
+    }
+
+    const meta = await fetchVideoMetadata(videoId, apiKey);
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+    renderResults({
+      videoUrl,
+      ...meta,
+    });
+    
+    // Save channel to history if we have channel info
+    if (currentChannelId && currentChannelName) {
+      saveChannelToHistory(currentChannelId, currentChannelName);
+    }
+    
+    setStatus("Link ready. Add to your calendar.", "success");
+  } catch (error) {
+    console.error("Error:", error);
+    setStatus(error.message || "Unable to fetch video details right now.", "error");
+  }
+});
+
+copyTeamsBtn.addEventListener("click", async () => {
+  if (!teamsLinkEl.href) return;
+  try {
+    await navigator.clipboard.writeText(teamsLinkEl.href);
+    setStatus("Teams link copied to clipboard.", "success");
+  } catch {
+    setStatus("Couldn't copy link—please copy manually.", "error");
+  }
+});
+
+copyGcalBtn.addEventListener("click", async () => {
+  if (!gcalLinkEl.href) return;
+  try {
+    await navigator.clipboard.writeText(gcalLinkEl.href);
+    setStatus("Google Calendar link copied to clipboard.", "success");
+  } catch {
+    setStatus("Couldn't copy link—please copy manually.", "error");
+  }
+});
+
+let currentIcsData = null;
+
+icalBtn.addEventListener("click", () => {
+  if (!currentIcsData) return;
+  downloadIcsFile(currentIcsData.subject, currentIcsData.icsContent);
+  setStatus("Calendar file downloaded. Open it to add to Apple Calendar.", "success");
+});
+
+showUpcomingBtn.addEventListener("click", async () => {
+  const apiKey = apiKeyInput.value.trim();
+  
+  if (!apiKey) {
+    setUpcomingStatus("YouTube API key required to fetch upcoming streams.", "error");
+    return;
+  }
+  
+  if (!currentChannelId) {
+    setUpcomingStatus("No channel information available.", "error");
+    return;
+  }
+  
+  // Save channel to history
+  saveChannelToHistory(currentChannelId, currentChannelName);
+  
+  await fetchAndShowUpcoming(currentChannelId, currentChannelName, apiKey);
+});
+
+async function fetchAndShowUpcoming(channelId, channelName, apiKey) {
+  upcomingSection.classList.remove("hidden");
+  channelInfo.textContent = `From ${channelName}`;
+  setUpcomingStatus("Fetching upcoming live streams...", "info");
+  upcomingList.innerHTML = "";
+  
+  try {
+    const streams = await fetchUpcomingStreams(channelId, apiKey);
+    
+    if (streams.length === 0) {
+      setUpcomingStatus("No upcoming live streams found for this channel.", "info");
+      return;
+    }
+    
+    setUpcomingStatus(`Found ${streams.length} upcoming stream${streams.length !== 1 ? 's' : ''}`, "success");
+    renderUpcomingStreams(streams);
+  } catch (error) {
+    console.error("Error fetching upcoming streams:", error);
+    setUpcomingStatus(error.message || "Failed to fetch upcoming streams.", "error");
+  }
+}
+
+// Channel History Functions
+function getChannelHistory() {
+  try {
+    return JSON.parse(localStorage.getItem(CHANNEL_HISTORY_STORAGE)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveChannelToHistory(channelId, channelName) {
+  let history = getChannelHistory();
+  
+  // Remove if already exists (to move to front)
+  history = history.filter(ch => ch.id !== channelId);
+  
+  // Add to front
+  history.unshift({ id: channelId, name: channelName, addedAt: Date.now() });
+  
+  // Limit size
+  if (history.length > MAX_CHANNEL_HISTORY) {
+    history = history.slice(0, MAX_CHANNEL_HISTORY);
+  }
+  
+  localStorage.setItem(CHANNEL_HISTORY_STORAGE, JSON.stringify(history));
+  loadChannelHistory();
+}
+
+function removeChannelFromHistory(channelId) {
+  let history = getChannelHistory();
+  history = history.filter(ch => ch.id !== channelId);
+  localStorage.setItem(CHANNEL_HISTORY_STORAGE, JSON.stringify(history));
+  loadChannelHistory();
+}
+
+function loadChannelHistory() {
+  const history = getChannelHistory();
+  
+  if (history.length === 0) {
+    channelHistorySection.classList.add("hidden");
+    return;
+  }
+  
+  channelHistorySection.classList.remove("hidden");
+  channelListEl.innerHTML = "";
+  
+  history.forEach(channel => {
+    const chip = document.createElement("div");
+    chip.className = "channel-chip";
+    chip.innerHTML = `
+      <span class="channel-chip-name">${escapeHtml(channel.name)}</span>
+      <a href="https://www.youtube.com/channel/${channel.id}/videos" target="_blank" rel="noopener" class="videos-link" title="View all videos">Videos</a>
+      <button class="delete-channel" title="Remove from history">&times;</button>
+    `;
+    
+    // Click on chip to fetch upcoming
+    chip.addEventListener("click", (e) => {
+      if (e.target.classList.contains("delete-channel")) return;
+      if (e.target.classList.contains("videos-link")) return;
+      
+      const apiKey = apiKeyInput.value.trim();
+      if (!apiKey) {
+        setStatus("YouTube API key required to fetch upcoming streams.", "error");
+        return;
+      }
+      
+      // Update to front of history
+      saveChannelToHistory(channel.id, channel.name);
+      fetchAndShowUpcoming(channel.id, channel.name, apiKey);
+    });
+    
+    // Delete button
+    chip.querySelector(".delete-channel").addEventListener("click", (e) => {
+      e.stopPropagation();
+      removeChannelFromHistory(channel.id);
+    });
+    
+    // Videos link - stop propagation
+    chip.querySelector(".videos-link").addEventListener("click", (e) => {
+      e.stopPropagation();
+    });
+    
+    channelListEl.appendChild(chip);
+  });
+}
+
+function setStatus(message, variant) {
+  statusEl.textContent = message;
+  statusEl.className = "";
+  statusEl.classList.add("status", `status--${variant}`);
+}
+
+function setUpcomingStatus(message, variant) {
+  upcomingStatus.textContent = message;
+  upcomingStatus.className = "";
+  upcomingStatus.classList.add("upcoming-status", `status--${variant}`);
+}
+
+function scrollToUpcoming() {
+  upcomingSection.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function normalizeYoutubeUrl(url) {
+  if (!/^https?:\/\//i.test(url)) {
+    return `https://${url}`;
+  }
+  return url;
+}
+
+function extractYoutubeId(url) {
+  try {
+    const parsed = new URL(url);
+    if (
+      ["www.youtube.com", "youtube.com", "m.youtube.com"].includes(parsed.hostname)
+    ) {
+      if (parsed.pathname.startsWith("/watch")) {
+        return parsed.searchParams.get("v");
+      }
+      if (parsed.pathname.startsWith("/live/") || parsed.pathname.startsWith("/embed/")) {
+        return parsed.pathname.split("/")[2];
+      }
+      if (parsed.pathname.startsWith("/shorts/")) {
+        return parsed.pathname.split("/")[2];
+      }
+    }
+
+    if (["youtu.be"].includes(parsed.hostname)) {
+      return parsed.pathname.replace("/", "");
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+async function fetchVideoMetadata(videoId, apiKey) {
+  const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+  
+  if (apiKey) {
+    try {
+      const apiUrl = `${YOUTUBE_API_BASE}?part=snippet,liveStreamingDetails&id=${videoId}&key=${apiKey}`;
+      const response = await fetch(apiUrl);
+      
+      if (!response.ok) {
+        throw new Error(`YouTube API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      const video = data.items?.[0];
+      
+      if (!video) {
+        throw new Error("Video not found with API key.");
+      }
+
+      const title = video.snippet.title;
+      const channel = video.snippet.channelTitle;
+      const channelId = video.snippet.channelId;
+      const thumb = video.snippet.thumbnails?.maxres?.url ||
+        video.snippet.thumbnails?.high?.url ||
+        video.snippet.thumbnails?.medium?.url || "";
+
+      currentChannelId = channelId;
+      currentChannelName = channel;
+
+      let startIso = new Date().toISOString();
+      let endIso = addDuration(startIso, { hours: 1 });
+
+      if (video.liveStreamingDetails) {
+        if (video.liveStreamingDetails.scheduledStartTime) {
+          startIso = video.liveStreamingDetails.scheduledStartTime;
+          endIso = video.liveStreamingDetails.scheduledEndTime || addDuration(startIso, { hours: 1 });
+        } else if (video.liveStreamingDetails.actualStartTime) {
+          startIso = video.liveStreamingDetails.actualStartTime;
+          endIso = video.liveStreamingDetails.actualEndTime || addDuration(startIso, { hours: 1 });
+        }
+      } else if (video.snippet.publishedAt) {
+        startIso = video.snippet.publishedAt;
+        endIso = addDuration(startIso, { hours: 1 });
+      }
+
+      return {
+        title,
+        channel,
+        thumb,
+        startIso,
+        endIso,
+        meetingSubject: `${title} — ${channel}`,
+        teamsLink: buildTeamsLink({
+          subject: `${title} — ${channel}`,
+          startIso,
+          endIso,
+          videoUrl,
+        }),
+        gcalLink: buildGoogleCalendarLink({
+          subject: `${title} — ${channel}`,
+          startIso,
+          endIso,
+          videoUrl,
+        }),
+        icsContent: buildIcsContent({
+          subject: `${title} — ${channel}`,
+          startIso,
+          endIso,
+          videoUrl,
+        }),
+      };
+    } catch (error) {
+      console.warn("YouTube Data API failed, falling back to oEmbed:", error);
+    }
+  }
+
+  const oembedUrl = `${YOUTUBE_OEMBED}?url=${encodeURIComponent(videoUrl)}&format=json`;
+  const response = await fetch(oembedUrl);
+  
+  if (!response.ok) {
+    throw new Error("Failed to fetch video metadata from YouTube.");
+  }
+
+  const data = await response.json();
+  const title = data.title;
+  const channel = data.author_name;
+  const thumb = data.thumbnail_url || "";
+
+  const startIso = new Date().toISOString();
+  const endIso = addDuration(startIso, { hours: 1 });
+
+  if (!title || !channel) {
+    throw new Error("Video metadata incomplete—try another URL.");
+  }
+
+  return {
+    title,
+    channel,
+    thumb,
+    startIso,
+    endIso,
+    meetingSubject: `${title} — ${channel}`,
+    teamsLink: buildTeamsLink({
+      subject: `${title} — ${channel}`,
+      startIso,
+      endIso,
+      videoUrl,
+    }),
+    gcalLink: buildGoogleCalendarLink({
+      subject: `${title} — ${channel}`,
+      startIso,
+      endIso,
+      videoUrl,
+    }),
+    icsContent: buildIcsContent({
+      subject: `${title} — ${channel}`,
+      startIso,
+      endIso,
+      videoUrl,
+    }),
+  };
+}
+
+function addDuration(startIso, { hours = 0, minutes = 0 }) {
+  const start = new Date(startIso);
+  if (Number.isNaN(start.getTime())) {
+    return new Date(Date.now() + 60 * 60 * 1000).toISOString();
+  }
+  const end = new Date(start.getTime() + hours * 3600000 + minutes * 60000);
+  return end.toISOString();
+}
+
+function buildTeamsLink({ subject, startIso, endIso, videoUrl }) {
+  const teamsUrl = new URL("msteams://teams.microsoft.com/l/meeting/new");
+  teamsUrl.searchParams.set("subject", subject);
+  teamsUrl.searchParams.set("startTime", startIso);
+  teamsUrl.searchParams.set("endTime", endIso);
+  teamsUrl.searchParams.set(
+    "content",
+    `YouTube link: ${videoUrl}`
+  );
+  return teamsUrl.toString();
+}
+
+function buildGoogleCalendarLink({ subject, startIso, endIso, videoUrl }) {
+  const gcalUrl = new URL("https://calendar.google.com/calendar/render");
+  gcalUrl.searchParams.set("action", "TEMPLATE");
+  gcalUrl.searchParams.set("text", subject);
+  
+  // Google Calendar needs dates in format: YYYYMMDDTHHmmssZ
+  const formatGcalDate = (iso) => {
+    return iso.replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  };
+  
+  gcalUrl.searchParams.set("dates", `${formatGcalDate(startIso)}/${formatGcalDate(endIso)}`);
+  gcalUrl.searchParams.set("details", `YouTube link: ${videoUrl}`);
+  
+  return gcalUrl.toString();
+}
+
+function buildIcsContent({ subject, startIso, endIso, videoUrl }) {
+  // Format dates for ICS: YYYYMMDDTHHmmssZ
+  const formatIcsDate = (iso) => {
+    return iso.replace(/[-:]/g, "").replace(/\.\d{3}/, "");
+  };
+  
+  const uid = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}@youtube-to-calendar`;
+  const now = formatIcsDate(new Date().toISOString());
+  
+  const icsContent = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//YouTube to Calendar//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `UID:${uid}`,
+    `DTSTAMP:${now}`,
+    `DTSTART:${formatIcsDate(startIso)}`,
+    `DTEND:${formatIcsDate(endIso)}`,
+    `SUMMARY:${escapeIcsText(subject)}`,
+    `DESCRIPTION:YouTube link: ${videoUrl}`,
+    `URL:${videoUrl}`,
+    "END:VEVENT",
+    "END:VCALENDAR"
+  ].join("\r\n");
+  
+  return icsContent;
+}
+
+function escapeIcsText(text) {
+  return text.replace(/[\\;,]/g, (match) => "\\" + match).replace(/\n/g, "\\n");
+}
+
+function downloadIcsFile(subject, icsContent) {
+  const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${subject.replace(/[^a-z0-9]/gi, "_").substring(0, 50)}.ics`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function renderResults({
+  title,
+  channel,
+  thumb,
+  startIso,
+  endIso,
+  meetingSubject,
+  teamsLink,
+  gcalLink,
+  icsContent,
+  videoUrl,
+}) {
+  videoTitleEl.textContent = title;
+  channelEl.textContent = channel;
+  thumbEl.src = thumb;
+  thumbEl.alt = `Thumbnail for ${title}`;
+  startTimeEl.textContent = formatDisplayDate(startIso);
+  endTimeEl.textContent = formatDisplayDate(endIso);
+  meetingSubjectEl.textContent = meetingSubject;
+  teamsLinkEl.href = teamsLink;
+  gcalLinkEl.href = gcalLink;
+  videoLinkEl.href = videoUrl;
+  
+  // Store ICS data for download button
+  currentIcsData = { subject: meetingSubject, icsContent };
+
+  resultsEl.classList.remove("hidden");
+}
+
+function formatDisplayDate(isoString) {
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return "Unknown";
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "full",
+    timeStyle: "short",
+  }).format(date);
+}
+
+async function fetchUpcomingStreams(channelId, apiKey) {
+  const searchUrl = `${YOUTUBE_SEARCH_BASE}?part=snippet&channelId=${channelId}&eventType=upcoming&type=video&order=date&maxResults=10&key=${apiKey}`;
+  
+  const searchResponse = await fetch(searchUrl);
+  if (!searchResponse.ok) {
+    throw new Error(`Failed to search for upcoming streams: ${searchResponse.status}`);
+  }
+  
+  const searchData = await searchResponse.json();
+  const videoIds = searchData.items?.map(item => item.id.videoId).filter(Boolean);
+  
+  if (!videoIds || videoIds.length === 0) {
+    return [];
+  }
+  
+  const videosUrl = `${YOUTUBE_API_BASE}?part=snippet,liveStreamingDetails&id=${videoIds.join(',')}&key=${apiKey}`;
+  const videosResponse = await fetch(videosUrl);
+  
+  if (!videosResponse.ok) {
+    throw new Error(`Failed to fetch video details: ${videosResponse.status}`);
+  }
+  
+  const videosData = await videosResponse.json();
+  
+  return videosData.items?.map(video => {
+    const scheduledStart = video.liveStreamingDetails?.scheduledStartTime || video.snippet.publishedAt;
+    const scheduledEnd = video.liveStreamingDetails?.scheduledEndTime || addDuration(scheduledStart, { hours: 1 });
+    
+    return {
+      id: video.id,
+      title: video.snippet.title,
+      thumbnail: video.snippet.thumbnails?.medium?.url || video.snippet.thumbnails?.default?.url || "",
+      scheduledStart,
+      scheduledEnd,
+      channel: video.snippet.channelTitle,
+    };
+  }).filter(Boolean) || [];
+}
+
+function renderUpcomingStreams(streams) {
+  // Sort by scheduled start time (ascending - earliest first)
+  streams.sort((a, b) => new Date(a.scheduledStart) - new Date(b.scheduledStart));
+  
+  upcomingList.innerHTML = "";
+  
+  streams.forEach(stream => {
+    const item = document.createElement("div");
+    item.className = "upcoming-item";
+    
+    const videoUrl = `https://www.youtube.com/watch?v=${stream.id}`;
+    const teamsLink = buildTeamsLink({
+      subject: `${stream.title} — ${stream.channel}`,
+      startIso: stream.scheduledStart,
+      endIso: stream.scheduledEnd,
+      videoUrl,
+    });
+    const gcalLink = buildGoogleCalendarLink({
+      subject: `${stream.title} — ${stream.channel}`,
+      startIso: stream.scheduledStart,
+      endIso: stream.scheduledEnd,
+      videoUrl,
+    });
+    
+    item.innerHTML = `
+      <img src="${stream.thumbnail}" alt="" class="upcoming-thumb" />
+      <div class="upcoming-info">
+        <h4>${escapeHtml(stream.title)}</h4>
+        <p class="upcoming-time">${formatDisplayDate(stream.scheduledStart)}</p>
+      </div>
+      <div class="upcoming-actions">
+        <a href="${teamsLink}" target="_blank" rel="noopener" class="primary">Teams</a>
+        <a href="${gcalLink}" target="_blank" rel="noopener" class="ghost">Google</a>
+        <button type="button" class="ghost ics-download" data-subject="${escapeHtml(stream.title)} — ${escapeHtml(stream.channel)}" data-start="${stream.scheduledStart}" data-end="${stream.scheduledEnd}" data-url="${videoUrl}">iCal</button>
+      </div>
+    `;
+    
+    upcomingList.appendChild(item);
+    
+    // Add click handler for iCal button
+    item.querySelector(".ics-download").addEventListener("click", (e) => {
+      const btn = e.target;
+      const icsContent = buildIcsContent({
+        subject: btn.dataset.subject,
+        startIso: btn.dataset.start,
+        endIso: btn.dataset.end,
+        videoUrl: btn.dataset.url,
+      });
+      downloadIcsFile(btn.dataset.subject, icsContent);
+    });
+  });
+}
+
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+    </script>
+  </body>
+</html>
