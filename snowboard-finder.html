@@ -425,25 +425,31 @@
             </h1>
             <p>Stolen at Snoqualmie Pass while teaching a children's class</p>
             
-            <div class="board-details">
-                <h3>🎯 What We're Looking For</h3>
-                <div class="board-specs">
-                    <div class="spec">
-                        <div class="spec-label">Brand</div>
-                        <div class="spec-value">YES.</div>
+            <div class="board-details" style="display: flex; gap: 25px; flex-wrap: wrap; align-items: center;">
+                <div style="flex-shrink: 0;">
+                    <img src="https://yesnowboard.com/cdn/shop/files/HEL-YES.png?v=1725981781" alt="YES Hel Yes 149cm Snowboard" style="height: 280px; border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.4);">
+                </div>
+                <div style="flex: 1; min-width: 200px;">
+                    <h3 style="margin-top: 0;">🎯 What We're Looking For</h3>
+                    <div class="board-specs">
+                        <div class="spec">
+                            <div class="spec-label">Brand</div>
+                            <div class="spec-value">YES.</div>
+                        </div>
+                        <div class="spec">
+                            <div class="spec-label">Model</div>
+                            <div class="spec-value">Hel Yes</div>
+                        </div>
+                        <div class="spec">
+                            <div class="spec-label">Size</div>
+                            <div class="spec-value">149 cm</div>
+                        </div>
+                        <div class="spec">
+                            <div class="spec-label">Type</div>
+                            <div class="spec-value">Women's</div>
+                        </div>
                     </div>
-                    <div class="spec">
-                        <div class="spec-label">Model</div>
-                        <div class="spec-value">Hel Yes</div>
-                    </div>
-                    <div class="spec">
-                        <div class="spec-label">Size</div>
-                        <div class="spec-value">149 cm</div>
-                    </div>
-                    <div class="spec">
-                        <div class="spec-label">Type</div>
-                        <div class="spec-value">Women's</div>
-                    </div>
+                    <p style="margin-top: 15px; font-size: 0.9rem; opacity: 0.9;">Distinctive artwork with woman's face, teal/coral/black colors, white "YES" lettering</p>
                 </div>
             </div>
         </div>
@@ -489,14 +495,22 @@
         </div>
         
         <div class="manual-links">
-            <h3>🔗 Manual Search Links (for sites we can't auto-fetch)</h3>
-            <div class="links-grid">
-                <a href="https://www.facebook.com/marketplace/seattle/snowboards?query=YES%20snowboard" target="_blank" class="manual-link">📘 FB Marketplace - YES</a>
-                <a href="https://www.facebook.com/marketplace/seattle/snowboards?query=Hel%20YES" target="_blank" class="manual-link">📘 FB Marketplace - Hel YES</a>
-                <a href="https://offerup.com/search/?q=YES%20Hel%20YES%20snowboard" target="_blank" class="manual-link">📱 OfferUp - Hel YES</a>
-                <a href="https://offerup.com/search/?q=YES%20snowboard" target="_blank" class="manual-link">📱 OfferUp - YES</a>
-                <a href="https://www.mercari.com/search/?keyword=YES%20snowboard" target="_blank" class="manual-link">🏷️ Mercari</a>
-                <a href="https://poshmark.com/search?query=YES%20snowboard" target="_blank" class="manual-link">👗 Poshmark</a>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0;">🔗 Manual Search Links</h3>
+                <button onclick="toggleManualConfig()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">⚙️ Configure</button>
+            </div>
+            <div class="links-grid" id="manualLinksGrid"></div>
+            
+            <!-- Manual Links Configuration Panel -->
+            <div id="manualConfig" style="display: none; margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h4 style="margin: 0; color: #ffd700;">🔧 Manual Links Configuration</h4>
+                    <div>
+                        <button onclick="resetManualToDefaults()" style="background: #6c757d; border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; margin-right: 8px;">Reset to Defaults</button>
+                        <button onclick="addNewManualLink()" style="background: var(--success-green); border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">+ Add Link</button>
+                    </div>
+                </div>
+                <div id="manualLinksList" style="display: flex; flex-direction: column; gap: 10px;"></div>
             </div>
         </div>
         
@@ -526,7 +540,7 @@
         ];
         let currentProxyIndex = 0;
         
-        // Default searches
+        // Default searches (auto-fetched via RSS)
         const DEFAULT_SEARCHES = [
             { name: 'eBay - YES Hel YES', source: 'ebay', url: 'https://www.ebay.com/sch/i.html?_nkw=YES+Hel+YES+snowboard&_sacat=0&LH_ItemCondition=3000&_sop=10&_rss=1', enabled: true },
             { name: 'eBay - YES Hel YES 149', source: 'ebay', url: 'https://www.ebay.com/sch/i.html?_nkw=YES+Hel+YES+149+snowboard&_sacat=0&_sop=10&_rss=1', enabled: true },
@@ -538,6 +552,16 @@
             { name: 'Craigslist Spokane - YES', source: 'craigslist', url: 'https://spokane.craigslist.org/search/sga?query=YES+snowboard&format=rss', enabled: true }
         ];
         
+        // Default manual links (click to open)
+        const DEFAULT_MANUAL_LINKS = [
+            { name: '📘 FB Marketplace - YES', url: 'https://www.facebook.com/marketplace/seattle/snowboards?query=YES%20snowboard' },
+            { name: '📘 FB Marketplace - Hel YES', url: 'https://www.facebook.com/marketplace/seattle/snowboards?query=Hel%20YES' },
+            { name: '📱 OfferUp - Hel YES', url: 'https://offerup.com/search/?q=YES%20Hel%20YES%20snowboard' },
+            { name: '📱 OfferUp - YES', url: 'https://offerup.com/search/?q=YES%20snowboard' },
+            { name: '🏷️ Mercari', url: 'https://www.mercari.com/search/?keyword=YES%20snowboard' },
+            { name: '👗 Poshmark', url: 'https://poshmark.com/search?query=YES%20snowboard' }
+        ];
+        
         // State
         let allListings = [];
         let seenIds = new Set();
@@ -546,6 +570,7 @@
         let countdown = 300;
         let countdownInterval;
         let customSearches = [];
+        let manualLinks = [];
         
         // Storage keys
         const STORAGE = {
@@ -554,13 +579,15 @@
             listings: 'nancy_board_listings',
             filter: 'nancy_board_filter',
             lastFetch: 'nancy_board_lastfetch',
-            searches: 'nancy_board_searches'
+            searches: 'nancy_board_searches',
+            manualLinks: 'nancy_board_manual_links'
         };
         
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             loadFromStorage();
             renderSourceList();
+            renderManualLinks();
             fetchAllListings();
             startCountdown();
         });
@@ -585,9 +612,17 @@
                 } else {
                     customSearches = DEFAULT_SEARCHES.map(s => ({...s}));
                 }
+                
+                const storedManualLinks = localStorage.getItem(STORAGE.manualLinks);
+                if (storedManualLinks) {
+                    manualLinks = JSON.parse(storedManualLinks);
+                } else {
+                    manualLinks = DEFAULT_MANUAL_LINKS.map(l => ({...l}));
+                }
             } catch (e) {
                 console.error('Storage load error:', e);
                 customSearches = DEFAULT_SEARCHES.map(s => ({...s}));
+                manualLinks = DEFAULT_MANUAL_LINKS.map(l => ({...l}));
             }
         }
         
@@ -599,8 +634,76 @@
                 localStorage.setItem(STORAGE.filter, currentFilter);
                 localStorage.setItem(STORAGE.lastFetch, new Date().toISOString());
                 localStorage.setItem(STORAGE.searches, JSON.stringify(customSearches));
+                localStorage.setItem(STORAGE.manualLinks, JSON.stringify(manualLinks));
             } catch (e) {
                 console.error('Storage save error:', e);
+            }
+        }
+        
+        // Manual links functions
+        function renderManualLinks() {
+            const container = document.getElementById('manualLinksGrid');
+            container.innerHTML = manualLinks.map(l => 
+                `<a href="${escapeHtml(l.url)}" target="_blank" class="manual-link">${escapeHtml(l.name)}</a>`
+            ).join('');
+        }
+        
+        function toggleManualConfig() {
+            const panel = document.getElementById('manualConfig');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            if (panel.style.display === 'block') {
+                renderManualLinksList();
+            }
+        }
+        
+        function renderManualLinksList() {
+            const container = document.getElementById('manualLinksList');
+            container.innerHTML = manualLinks.map((l, i) => `
+                <div style="display: flex; gap: 10px; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; flex-wrap: wrap;">
+                    <input type="text" value="${escapeHtml(l.name)}" onchange="updateManualName(${i}, this.value)" placeholder="Link name" style="flex: 1; min-width: 150px; padding: 8px 12px; border-radius: 6px; background: rgba(0,0,0,0.3); color: #fff; border: 1px solid rgba(255,255,255,0.2);">
+                    <input type="text" value="${escapeHtml(l.url)}" onchange="updateManualUrl(${i}, this.value)" placeholder="URL" style="flex: 2; min-width: 200px; padding: 8px 12px; border-radius: 6px; background: rgba(0,0,0,0.3); color: #fff; border: 1px solid rgba(255,255,255,0.2); font-size: 0.85rem;">
+                    <button onclick="deleteManualLink(${i})" style="background: var(--alert-red); border: none; color: #fff; padding: 8px 12px; border-radius: 6px; cursor: pointer;">🗑️</button>
+                </div>
+            `).join('');
+        }
+        
+        function updateManualName(index, value) {
+            manualLinks[index].name = value;
+            saveToStorage();
+            renderManualLinks();
+        }
+        
+        function updateManualUrl(index, value) {
+            manualLinks[index].url = value;
+            saveToStorage();
+            renderManualLinks();
+        }
+        
+        function deleteManualLink(index) {
+            if (confirm('Delete this link?')) {
+                manualLinks.splice(index, 1);
+                saveToStorage();
+                renderManualLinks();
+                renderManualLinksList();
+                showToast('🗑️ Link deleted');
+            }
+        }
+        
+        function addNewManualLink() {
+            manualLinks.push({ name: 'New Link', url: '' });
+            saveToStorage();
+            renderManualLinks();
+            renderManualLinksList();
+            showToast('➕ New link added - edit the URL');
+        }
+        
+        function resetManualToDefaults() {
+            if (confirm('Reset manual links to defaults?')) {
+                manualLinks = DEFAULT_MANUAL_LINKS.map(l => ({...l}));
+                saveToStorage();
+                renderManualLinks();
+                renderManualLinksList();
+                showToast('✅ Reset to defaults');
             }
         }
         
