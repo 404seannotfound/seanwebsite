@@ -469,8 +469,23 @@
         </div>
         
         <div class="source-status">
-            <h3>📡 Data Sources</h3>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="margin: 0;">📡 Data Sources</h3>
+                <button onclick="toggleSearchConfig()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">⚙️ Configure Searches</button>
+            </div>
             <div class="source-list" id="sourceList"></div>
+            
+            <!-- Search Configuration Panel -->
+            <div id="searchConfig" style="display: none; margin-top: 20px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h4 style="margin: 0; color: #ffd700;">🔧 Search Configuration</h4>
+                    <div>
+                        <button onclick="resetToDefaults()" style="background: #6c757d; border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; margin-right: 8px;">Reset to Defaults</button>
+                        <button onclick="addNewSearch()" style="background: var(--success-green); border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">+ Add Search</button>
+                    </div>
+                </div>
+                <div id="searchList" style="display: flex; flex-direction: column; gap: 10px;"></div>
+            </div>
         </div>
         
         <div class="manual-links">
@@ -504,8 +519,21 @@
     <div class="toast" id="toast"></div>
     
     <script>
-        // Proxy server URL - run: cd snowboard-proxy && npm start
+        // Proxy server URLs
         const PROXY_URL = 'http://localhost:3001/api/listings';
+        const DEFAULTS_URL = 'http://localhost:3001/api/defaults';
+        
+        // Default searches (fallback if proxy not available)
+        const FALLBACK_DEFAULTS = [
+            { name: 'eBay - YES Hel YES', source: 'ebay', url: 'https://www.ebay.com/sch/i.html?_nkw=YES+Hel+YES+snowboard&_sacat=0&LH_ItemCondition=3000&_sop=10&_rss=1', enabled: true },
+            { name: 'eBay - YES Hel YES 149', source: 'ebay', url: 'https://www.ebay.com/sch/i.html?_nkw=YES+Hel+YES+149+snowboard&_sacat=0&_sop=10&_rss=1', enabled: true },
+            { name: 'eBay - YES Women Snowboard', source: 'ebay', url: 'https://www.ebay.com/sch/i.html?_nkw=YES+women+snowboard&_sacat=0&LH_ItemCondition=3000&_sop=10&_rss=1', enabled: true },
+            { name: 'Craigslist Seattle - YES', source: 'craigslist', url: 'https://seattle.craigslist.org/search/sga?query=YES+snowboard&format=rss', enabled: true },
+            { name: 'Craigslist Seattle - Hel Yes', source: 'craigslist', url: 'https://seattle.craigslist.org/search/sga?query=Hel+Yes&format=rss', enabled: true },
+            { name: 'Craigslist Seattle - Snowboard 149', source: 'craigslist', url: 'https://seattle.craigslist.org/search/sga?query=snowboard+149&format=rss', enabled: true },
+            { name: 'Craigslist Portland - YES', source: 'craigslist', url: 'https://portland.craigslist.org/search/sga?query=YES+snowboard&format=rss', enabled: true },
+            { name: 'Craigslist Spokane - YES', source: 'craigslist', url: 'https://spokane.craigslist.org/search/sga?query=YES+snowboard&format=rss', enabled: true }
+        ];
         
         // State
         let allListings = [];
@@ -514,7 +542,7 @@
         let currentFilter = 'new';
         let countdown = 300;
         let countdownInterval;
-        let sourceStatuses = {};
+        let customSearches = [];
         
         // Storage keys
         const STORAGE = {
@@ -522,7 +550,8 @@
             dismissed: 'nancy_board_dismissed',
             listings: 'nancy_board_listings',
             filter: 'nancy_board_filter',
-            lastFetch: 'nancy_board_lastfetch'
+            lastFetch: 'nancy_board_lastfetch',
+            searches: 'nancy_board_searches'
         };
         
         // Initialize
@@ -546,8 +575,16 @@
                 
                 const filter = localStorage.getItem(STORAGE.filter);
                 if (filter) currentFilter = filter;
+                
+                const searches = localStorage.getItem(STORAGE.searches);
+                if (searches) {
+                    customSearches = JSON.parse(searches);
+                } else {
+                    customSearches = FALLBACK_DEFAULTS.map(s => ({...s}));
+                }
             } catch (e) {
                 console.error('Storage load error:', e);
+                customSearches = FALLBACK_DEFAULTS.map(s => ({...s}));
             }
         }
         
@@ -558,8 +595,94 @@
                 localStorage.setItem(STORAGE.listings, JSON.stringify(allListings));
                 localStorage.setItem(STORAGE.filter, currentFilter);
                 localStorage.setItem(STORAGE.lastFetch, new Date().toISOString());
+                localStorage.setItem(STORAGE.searches, JSON.stringify(customSearches));
             } catch (e) {
                 console.error('Storage save error:', e);
+            }
+        }
+        
+        // Search configuration functions
+        function toggleSearchConfig() {
+            const panel = document.getElementById('searchConfig');
+            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+            if (panel.style.display === 'block') {
+                renderSearchList();
+            }
+        }
+        
+        function renderSearchList() {
+            const container = document.getElementById('searchList');
+            container.innerHTML = customSearches.map((s, i) => `
+                <div style="display: flex; gap: 10px; align-items: center; padding: 12px; background: rgba(255,255,255,0.05); border-radius: 8px; flex-wrap: wrap;">
+                    <input type="checkbox" ${s.enabled !== false ? 'checked' : ''} onchange="toggleSearch(${i})" style="width: 20px; height: 20px; cursor: pointer;">
+                    <select onchange="updateSearchSource(${i}, this.value)" style="padding: 8px; border-radius: 6px; background: rgba(0,0,0,0.3); color: #fff; border: 1px solid rgba(255,255,255,0.2);">
+                        <option value="ebay" ${s.source === 'ebay' ? 'selected' : ''}>eBay</option>
+                        <option value="craigslist" ${s.source === 'craigslist' ? 'selected' : ''}>Craigslist</option>
+                    </select>
+                    <input type="text" value="${escapeHtml(s.name)}" onchange="updateSearchName(${i}, this.value)" placeholder="Search name" style="flex: 1; min-width: 150px; padding: 8px 12px; border-radius: 6px; background: rgba(0,0,0,0.3); color: #fff; border: 1px solid rgba(255,255,255,0.2);">
+                    <input type="text" value="${escapeHtml(s.url)}" onchange="updateSearchUrl(${i}, this.value)" placeholder="RSS URL" style="flex: 2; min-width: 200px; padding: 8px 12px; border-radius: 6px; background: rgba(0,0,0,0.3); color: #fff; border: 1px solid rgba(255,255,255,0.2); font-size: 0.85rem;">
+                    <button onclick="deleteSearch(${i})" style="background: var(--alert-red); border: none; color: #fff; padding: 8px 12px; border-radius: 6px; cursor: pointer;">🗑️</button>
+                </div>
+            `).join('');
+        }
+        
+        function toggleSearch(index) {
+            customSearches[index].enabled = !customSearches[index].enabled;
+            saveToStorage();
+        }
+        
+        function updateSearchName(index, value) {
+            customSearches[index].name = value;
+            saveToStorage();
+        }
+        
+        function updateSearchUrl(index, value) {
+            customSearches[index].url = value;
+            saveToStorage();
+        }
+        
+        function updateSearchSource(index, value) {
+            customSearches[index].source = value;
+            saveToStorage();
+        }
+        
+        function deleteSearch(index) {
+            if (confirm('Delete this search?')) {
+                customSearches.splice(index, 1);
+                saveToStorage();
+                renderSearchList();
+                showToast('🗑️ Search deleted');
+            }
+        }
+        
+        function addNewSearch() {
+            customSearches.push({
+                name: 'New Search',
+                source: 'ebay',
+                url: '',
+                enabled: true
+            });
+            saveToStorage();
+            renderSearchList();
+            showToast('➕ New search added - edit the URL');
+        }
+        
+        async function resetToDefaults() {
+            if (confirm('Reset all searches to defaults? Your custom searches will be lost.')) {
+                try {
+                    const response = await fetch(DEFAULTS_URL);
+                    if (response.ok) {
+                        const data = await response.json();
+                        customSearches = data.searches.map(s => ({...s, enabled: true}));
+                    } else {
+                        customSearches = FALLBACK_DEFAULTS.map(s => ({...s}));
+                    }
+                } catch (e) {
+                    customSearches = FALLBACK_DEFAULTS.map(s => ({...s}));
+                }
+                saveToStorage();
+                renderSearchList();
+                showToast('✅ Reset to defaults');
             }
         }
         
@@ -588,7 +711,13 @@
             renderSourceList([]);
             
             try {
-                const response = await fetch(PROXY_URL);
+                // Send custom searches via POST
+                const enabledSearches = customSearches.filter(s => s.enabled !== false);
+                const response = await fetch(PROXY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ searches: enabledSearches })
+                });
                 
                 if (!response.ok) {
                     throw new Error(`Proxy returned ${response.status}`);

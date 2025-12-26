@@ -4,8 +4,8 @@ const url = require('url');
 
 const PORT = 3001;
 
-// Search configurations
-const SEARCHES = [
+// Default search configurations
+const DEFAULT_SEARCHES = [
     // eBay RSS feeds
     {
         name: 'eBay - YES Hel YES',
@@ -139,10 +139,10 @@ function decodeEntities(text) {
         .replace(/&nbsp;/g, ' ');
 }
 
-async function fetchAllListings() {
+async function fetchAllListings(searches = DEFAULT_SEARCHES) {
     const results = [];
     
-    for (const search of SEARCHES) {
+    for (const search of searches) {
         try {
             console.log(`Fetching: ${search.name}`);
             const response = await fetchUrl(search.url);
@@ -182,10 +182,25 @@ async function fetchAllListings() {
     return results;
 }
 
+function parseBody(req) {
+    return new Promise((resolve, reject) => {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            try {
+                resolve(body ? JSON.parse(body) : {});
+            } catch (e) {
+                reject(e);
+            }
+        });
+        req.on('error', reject);
+    });
+}
+
 const server = http.createServer(async (req, res) => {
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
     
     if (req.method === 'OPTIONS') {
@@ -196,10 +211,28 @@ const server = http.createServer(async (req, res) => {
     
     const parsedUrl = url.parse(req.url, true);
     
+    // Return default searches
+    if (parsedUrl.pathname === '/api/defaults') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ searches: DEFAULT_SEARCHES }));
+        return;
+    }
+    
     if (parsedUrl.pathname === '/api/listings') {
         try {
+            // Accept custom searches via POST body
+            let searches = DEFAULT_SEARCHES;
+            if (req.method === 'POST') {
+                const body = await parseBody(req);
+                if (body.searches && Array.isArray(body.searches) && body.searches.length > 0) {
+                    // Validate and filter enabled searches
+                    searches = body.searches.filter(s => s.enabled !== false && s.name && s.url && s.source);
+                    console.log(`Using ${searches.length} custom searches`);
+                }
+            }
+            
             console.log('\n--- Fetching all listings ---');
-            const results = await fetchAllListings();
+            const results = await fetchAllListings(searches);
             
             // Flatten and dedupe listings
             const allListings = [];
