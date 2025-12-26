@@ -519,12 +519,15 @@
     <div class="toast" id="toast"></div>
     
     <script>
-        // Proxy server URLs
-        const PROXY_URL = 'http://localhost:3001/api/listings';
-        const DEFAULTS_URL = 'http://localhost:3001/api/defaults';
+        // Public CORS proxies (tries in order until one works)
+        const CORS_PROXIES = [
+            'https://api.allorigins.win/raw?url=',
+            'https://corsproxy.io/?'
+        ];
+        let currentProxyIndex = 0;
         
-        // Default searches (fallback if proxy not available)
-        const FALLBACK_DEFAULTS = [
+        // Default searches
+        const DEFAULT_SEARCHES = [
             { name: 'eBay - YES Hel YES', source: 'ebay', url: 'https://www.ebay.com/sch/i.html?_nkw=YES+Hel+YES+snowboard&_sacat=0&LH_ItemCondition=3000&_sop=10&_rss=1', enabled: true },
             { name: 'eBay - YES Hel YES 149', source: 'ebay', url: 'https://www.ebay.com/sch/i.html?_nkw=YES+Hel+YES+149+snowboard&_sacat=0&_sop=10&_rss=1', enabled: true },
             { name: 'eBay - YES Women Snowboard', source: 'ebay', url: 'https://www.ebay.com/sch/i.html?_nkw=YES+women+snowboard&_sacat=0&LH_ItemCondition=3000&_sop=10&_rss=1', enabled: true },
@@ -580,11 +583,11 @@
                 if (searches) {
                     customSearches = JSON.parse(searches);
                 } else {
-                    customSearches = FALLBACK_DEFAULTS.map(s => ({...s}));
+                    customSearches = DEFAULT_SEARCHES.map(s => ({...s}));
                 }
             } catch (e) {
                 console.error('Storage load error:', e);
-                customSearches = FALLBACK_DEFAULTS.map(s => ({...s}));
+                customSearches = DEFAULT_SEARCHES.map(s => ({...s}));
             }
         }
         
@@ -667,19 +670,9 @@
             showToast('➕ New search added - edit the URL');
         }
         
-        async function resetToDefaults() {
+        function resetToDefaults() {
             if (confirm('Reset all searches to defaults? Your custom searches will be lost.')) {
-                try {
-                    const response = await fetch(DEFAULTS_URL);
-                    if (response.ok) {
-                        const data = await response.json();
-                        customSearches = data.searches.map(s => ({...s, enabled: true}));
-                    } else {
-                        customSearches = FALLBACK_DEFAULTS.map(s => ({...s}));
-                    }
-                } catch (e) {
-                    customSearches = FALLBACK_DEFAULTS.map(s => ({...s}));
-                }
+                customSearches = DEFAULT_SEARCHES.map(s => ({...s}));
                 saveToStorage();
                 renderSearchList();
                 showToast('✅ Reset to defaults');
@@ -689,7 +682,7 @@
         function renderSourceList(sources = []) {
             const container = document.getElementById('sourceList');
             if (sources.length === 0) {
-                container.innerHTML = '<div class="source-item"><div class="status-dot loading"></div><span>Connecting to proxy...</span><span class="count">-</span></div>';
+                container.innerHTML = '<div class="source-item"><div class="status-dot loading"></div><span>Fetching listings...</span><span class="count">-</span></div>';
                 return;
             }
             container.innerHTML = sources.map(s => `
@@ -701,6 +694,65 @@
             `).join('');
         }
         
+        async function fetchWithCorsProxy(url) {
+            for (let i = 0; i < CORS_PROXIES.length; i++) {
+                const proxyIndex = (currentProxyIndex + i) % CORS_PROXIES.length;
+                const proxyUrl = CORS_PROXIES[proxyIndex] + encodeURIComponent(url);
+                try {
+                    const response = await fetch(proxyUrl);
+                    if (response.ok) {
+                        currentProxyIndex = proxyIndex;
+                        return await response.text();
+                    }
+                } catch (e) {
+                    console.log(`Proxy ${proxyIndex} failed:`, e.message);
+                }
+            }
+            throw new Error('All proxies failed');
+        }
+        
+        function parseRSS(xmlText, source, searchName) {
+            const listings = [];
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(xmlText, 'text/xml');
+            const items = doc.querySelectorAll('item');
+            
+            items.forEach(item => {
+                const title = item.querySelector('title')?.textContent || 'No title';
+                const link = item.querySelector('link')?.textContent || '';
+                const description = item.querySelector('description')?.textContent || '';
+                const pubDate = item.querySelector('pubDate')?.textContent || '';
+                
+                let image = null;
+                const imgMatch = description.match(/<img[^>]+src=["']([^"']+)["']/i);
+                if (imgMatch) image = imgMatch[1];
+                
+                let price = null;
+                const priceMatch = (title + ' ' + description).match(/\$[\d,]+(?:\.\d{2})?/);
+                if (priceMatch) price = priceMatch[0];
+                
+                const id = btoa(link).replace(/[^a-zA-Z0-9]/g, '').substring(0, 24);
+                
+                listings.push({
+                    id,
+                    title: decodeHTMLEntities(title),
+                    link,
+                    image,
+                    price,
+                    source,
+                    searchName,
+                    date: pubDate ? new Date(pubDate).toISOString() : new Date().toISOString()
+                });
+            });
+            return listings;
+        }
+        
+        function decodeHTMLEntities(text) {
+            const textarea = document.createElement('textarea');
+            textarea.innerHTML = text;
+            return textarea.value;
+        }
+        
         async function fetchAllListings() {
             const btn = document.getElementById('refreshBtn');
             const loadingStatus = document.getElementById('loadingStatus');
@@ -710,71 +762,75 @@
             loadingStatus.style.display = 'flex';
             renderSourceList([]);
             
-            try {
-                // Send custom searches via POST
-                const enabledSearches = customSearches.filter(s => s.enabled !== false);
-                const response = await fetch(PROXY_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ searches: enabledSearches })
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Proxy returned ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (!data.success) {
-                    throw new Error(data.error || 'Unknown error');
-                }
-                
-                // Update source status display
-                renderSourceList(data.sources);
-                
-                // Merge with existing listings
-                const listingsMap = new Map();
-                allListings.forEach(l => listingsMap.set(l.id, l));
-                data.listings.forEach(l => {
-                    if (!listingsMap.has(l.id)) {
-                        listingsMap.set(l.id, l);
+            const enabledSearches = customSearches.filter(s => s.enabled !== false && s.url);
+            const sourceResults = [];
+            const newListings = [];
+            
+            // Fetch all sources in parallel
+            const results = await Promise.allSettled(
+                enabledSearches.map(async (search) => {
+                    try {
+                        const xml = await fetchWithCorsProxy(search.url);
+                        const listings = parseRSS(xml, search.source, search.name);
+                        return { search, listings, status: 'success' };
+                    } catch (e) {
+                        console.error(`Failed to fetch ${search.name}:`, e);
+                        return { search, listings: [], status: 'error', error: e.message };
                     }
-                });
-                
-                allListings = Array.from(listingsMap.values());
-                allListings.sort((a, b) => new Date(b.date) - new Date(a.date));
-                
-                saveToStorage();
-                renderListings();
-                
-                const newCount = allListings.filter(l => !seenIds.has(l.id) && !dismissedIds.has(l.id)).length;
-                showToast(`✅ Found ${allListings.length} listings (${newCount} new)`);
-                
-            } catch (err) {
-                console.error('Fetch error:', err);
-                renderSourceList([{ name: 'Proxy Error', status: 'error', error: err.message }]);
-                
-                emptyState.innerHTML = `
-                    <div class="icon">⚠️</div>
-                    <h3>Proxy Not Running</h3>
-                    <p>Start the proxy server:</p>
-                    <pre style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; text-align: left; display: inline-block;">cd snowboard-proxy
-npm start</pre>
-                    <p style="margin-top: 15px;">Then click Refresh.</p>
-                `;
-                emptyState.style.display = 'block';
-                document.getElementById('listingsGrid').style.display = 'none';
-                
-                // Still show cached listings if available
-                if (allListings.length > 0) {
-                    renderListings();
-                    showToast('⚠️ Using cached data - proxy not running', true);
+                })
+            );
+            
+            // Process results
+            results.forEach(result => {
+                if (result.status === 'fulfilled') {
+                    const { search, listings, status, error } = result.value;
+                    sourceResults.push({
+                        name: search.name,
+                        status: status,
+                        count: listings.length,
+                        error: error
+                    });
+                    newListings.push(...listings);
                 }
-            }
+            });
+            
+            renderSourceList(sourceResults);
+            
+            // Merge with existing listings
+            const listingsMap = new Map();
+            allListings.forEach(l => listingsMap.set(l.id, l));
+            newListings.forEach(l => {
+                if (!listingsMap.has(l.id)) {
+                    listingsMap.set(l.id, l);
+                }
+            });
+            
+            allListings = Array.from(listingsMap.values());
+            allListings.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            saveToStorage();
+            renderListings();
             
             btn.disabled = false;
             loadingStatus.style.display = 'none';
             countdown = 300;
+            
+            const successCount = sourceResults.filter(s => s.status === 'success').length;
+            const newCount = allListings.filter(l => !seenIds.has(l.id) && !dismissedIds.has(l.id)).length;
+            
+            if (successCount > 0) {
+                showToast(`✅ Found ${allListings.length} listings (${newCount} new)`);
+            } else if (allListings.length > 0) {
+                showToast('⚠️ Fetch failed - showing cached data', true);
+            } else {
+                emptyState.innerHTML = `
+                    <div class="icon">⚠️</div>
+                    <h3>Could not fetch listings</h3>
+                    <p>The CORS proxies may be temporarily unavailable. Try again in a moment.</p>
+                `;
+                emptyState.style.display = 'block';
+                showToast('⚠️ Fetch failed - try again', true);
+            }
         }
         
         function renderListings() {
