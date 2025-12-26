@@ -533,12 +533,13 @@
     <div class="toast" id="toast"></div>
     
     <script>
-        // Public CORS proxies (tries in order until one works)
+        // RSS to JSON API (more reliable than CORS proxies)
+        const RSS2JSON_API = 'https://api.rss2json.com/v1/api.json?rss_url=';
+        
+        // Fallback CORS proxies
         const CORS_PROXIES = [
-            'https://api.codetabs.com/v1/proxy?quest=',
-            'https://corsproxy.io/?',
             'https://api.allorigins.win/raw?url=',
-            'https://thingproxy.freeboard.io/fetch/'
+            'https://corsproxy.io/?'
         ];
         let currentProxyIndex = 0;
         
@@ -799,33 +800,70 @@
             `).join('');
         }
         
-        async function fetchWithCorsProxy(url) {
+        async function fetchRSS(url, source, searchName) {
+            // Try RSS2JSON API first (most reliable)
+            try {
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 15000);
+                const response = await fetch(RSS2JSON_API + encodeURIComponent(url), { signal: controller.signal });
+                clearTimeout(timeout);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.status === 'ok' && data.items) {
+                        return data.items.map(item => {
+                            let image = null;
+                            const imgMatch = (item.description || '').match(/<img[^>]+src=["']([^"']+)["']/i);
+                            if (imgMatch) image = imgMatch[1];
+                            if (!image && item.enclosure?.link) image = item.enclosure.link;
+                            if (!image && item.thumbnail) image = item.thumbnail;
+                            
+                            let price = null;
+                            const priceMatch = ((item.title || '') + ' ' + (item.description || '')).match(/\$[\d,]+(?:\.\d{2})?/);
+                            if (priceMatch) price = priceMatch[0];
+                            
+                            const id = btoa(item.link || item.guid || item.title).replace(/[^a-zA-Z0-9]/g, '').substring(0, 24);
+                            
+                            return {
+                                id,
+                                title: item.title || 'No title',
+                                link: item.link || '',
+                                image,
+                                price,
+                                source,
+                                searchName,
+                                date: item.pubDate ? new Date(item.pubDate).toISOString() : new Date().toISOString()
+                            };
+                        });
+                    }
+                }
+            } catch (e) {
+                console.log('RSS2JSON failed:', e.message);
+            }
+            
+            // Fallback to CORS proxies
             for (let i = 0; i < CORS_PROXIES.length; i++) {
-                const proxyIndex = (currentProxyIndex + i) % CORS_PROXIES.length;
-                const proxy = CORS_PROXIES[proxyIndex];
-                // Some proxies need encoded URL, some don't
-                const proxyUrl = proxy + encodeURIComponent(url);
+                const proxy = CORS_PROXIES[i];
                 try {
                     const controller = new AbortController();
                     const timeout = setTimeout(() => controller.abort(), 10000);
-                    const response = await fetch(proxyUrl, { signal: controller.signal });
+                    const response = await fetch(proxy + encodeURIComponent(url), { signal: controller.signal });
                     clearTimeout(timeout);
                     if (response.ok) {
                         const text = await response.text();
-                        // Verify we got XML/RSS content
                         if (text.includes('<rss') || text.includes('<item') || text.includes('<?xml')) {
-                            currentProxyIndex = proxyIndex;
-                            return text;
+                            return parseRSSXml(text, source, searchName);
                         }
                     }
                 } catch (e) {
-                    console.log(`Proxy ${proxyIndex} (${proxy}) failed:`, e.message);
+                    console.log(`CORS proxy ${i} failed:`, e.message);
                 }
             }
-            throw new Error('All proxies failed');
+            
+            throw new Error('All methods failed');
         }
         
-        function parseRSS(xmlText, source, searchName) {
+        function parseRSSXml(xmlText, source, searchName) {
             const listings = [];
             const parser = new DOMParser();
             const doc = parser.parseFromString(xmlText, 'text/xml');
@@ -884,8 +922,7 @@
             const results = await Promise.allSettled(
                 enabledSearches.map(async (search) => {
                     try {
-                        const xml = await fetchWithCorsProxy(search.url);
-                        const listings = parseRSS(xml, search.source, search.name);
+                        const listings = await fetchRSS(search.url, search.source, search.name);
                         return { search, listings, status: 'success' };
                     } catch (e) {
                         console.error(`Failed to fetch ${search.name}:`, e);
