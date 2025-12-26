@@ -528,11 +528,34 @@
                 <p>Fetching from eBay and Craigslist...</p>
             </div>
         </div>
+        
+        <!-- Debug Log -->
+        <div style="margin-top: 30px; padding: 20px; background: rgba(0,0,0,0.4); border-radius: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h3 style="margin: 0;">🔧 Debug Log</h3>
+                <button onclick="document.getElementById('debugLog').innerHTML=''" style="background: #6c757d; border: none; color: #fff; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem;">Clear</button>
+            </div>
+            <div id="debugLog" style="background: #000; color: #0f0; font-family: monospace; font-size: 12px; padding: 15px; border-radius: 8px; max-height: 300px; overflow-y: auto; white-space: pre-wrap;"></div>
+        </div>
     </div>
     
     <div class="toast" id="toast"></div>
     
     <script>
+        // Debug logging
+        const debugLog = [];
+        function log(msg) {
+            const time = new Date().toLocaleTimeString();
+            const entry = `[${time}] ${msg}`;
+            debugLog.push(entry);
+            const el = document.getElementById('debugLog');
+            if (el) {
+                el.innerHTML = debugLog.slice(-100).join('\n');
+                el.scrollTop = el.scrollHeight;
+            }
+            console.log(entry);
+        }
+        
         // RSS to JSON API (more reliable than CORS proxies)
         const RSS2JSON_API = 'https://api.rss2json.com/v1/api.json?rss_url=';
         
@@ -791,26 +814,70 @@
                 container.innerHTML = '<div class="source-item"><div class="status-dot loading"></div><span>Fetching listings...</span><span class="count">-</span></div>';
                 return;
             }
-            container.innerHTML = sources.map(s => `
-                <div class="source-item">
+            container.innerHTML = sources.map((s, i) => `
+                <div class="source-item" style="display: flex; align-items: center; gap: 8px;">
                     <div class="status-dot ${s.status}"></div>
-                    <span>${s.name}</span>
+                    <span style="flex: 1;">${s.name}</span>
                     <span class="count">${s.status === 'success' ? s.count : (s.error || '✗')}</span>
+                    <button onclick="retrySource(${i})" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">🔄</button>
                 </div>
             `).join('');
         }
         
+        let lastSourceResults = [];
+        
+        async function retrySource(index) {
+            const search = customSearches.filter(s => s.enabled !== false && s.url)[index];
+            if (!search) return;
+            
+            log(`RETRY: ${search.name}`);
+            lastSourceResults[index] = { name: search.name, status: 'loading', count: '-' };
+            renderSourceList(lastSourceResults);
+            
+            try {
+                const listings = await fetchRSS(search.url, search.source, search.name);
+                lastSourceResults[index] = { name: search.name, status: 'success', count: listings.length };
+                
+                // Merge listings
+                const listingsMap = new Map();
+                allListings.forEach(l => listingsMap.set(l.id, l));
+                listings.forEach(l => {
+                    if (!listingsMap.has(l.id)) {
+                        listingsMap.set(l.id, l);
+                    }
+                });
+                allListings = Array.from(listingsMap.values());
+                allListings.sort((a, b) => new Date(b.date) - new Date(a.date));
+                saveToStorage();
+                renderListings();
+                showToast(`✅ ${search.name}: ${listings.length} items`);
+            } catch (e) {
+                lastSourceResults[index] = { name: search.name, status: 'error', error: e.message };
+                showToast(`❌ ${search.name} failed`, true);
+            }
+            renderSourceList(lastSourceResults);
+        }
+        
         async function fetchRSS(url, source, searchName) {
+            log(`Fetching: ${searchName}`);
+            log(`  URL: ${url}`);
+            
             // Try RSS2JSON API first (most reliable)
             try {
+                const apiUrl = RSS2JSON_API + encodeURIComponent(url);
+                log(`  Trying RSS2JSON: ${apiUrl.substring(0, 80)}...`);
                 const controller = new AbortController();
                 const timeout = setTimeout(() => controller.abort(), 15000);
-                const response = await fetch(RSS2JSON_API + encodeURIComponent(url), { signal: controller.signal });
+                const response = await fetch(apiUrl, { signal: controller.signal });
                 clearTimeout(timeout);
+                
+                log(`  RSS2JSON response: ${response.status} ${response.statusText}`);
                 
                 if (response.ok) {
                     const data = await response.json();
+                    log(`  RSS2JSON data status: ${data.status}, items: ${data.items?.length || 0}`);
                     if (data.status === 'ok' && data.items) {
+                        log(`  ✓ SUCCESS via RSS2JSON: ${data.items.length} items`);
                         return data.items.map(item => {
                             let image = null;
                             const imgMatch = (item.description || '').match(/<img[^>]+src=["']([^"']+)["']/i);
@@ -838,28 +905,35 @@
                     }
                 }
             } catch (e) {
-                console.log('RSS2JSON failed:', e.message);
+                log(`  ✗ RSS2JSON failed: ${e.message}`);
             }
             
             // Fallback to CORS proxies
+            log(`  Trying CORS proxies...`);
             for (let i = 0; i < CORS_PROXIES.length; i++) {
                 const proxy = CORS_PROXIES[i];
                 try {
+                    log(`  Trying proxy ${i}: ${proxy.substring(0, 40)}...`);
                     const controller = new AbortController();
                     const timeout = setTimeout(() => controller.abort(), 10000);
                     const response = await fetch(proxy + encodeURIComponent(url), { signal: controller.signal });
                     clearTimeout(timeout);
+                    log(`  Proxy ${i} response: ${response.status}`);
                     if (response.ok) {
                         const text = await response.text();
+                        log(`  Proxy ${i} text length: ${text.length}, has RSS: ${text.includes('<rss') || text.includes('<item')}`);
                         if (text.includes('<rss') || text.includes('<item') || text.includes('<?xml')) {
-                            return parseRSSXml(text, source, searchName);
+                            const listings = parseRSSXml(text, source, searchName);
+                            log(`  ✓ SUCCESS via CORS proxy ${i}: ${listings.length} items`);
+                            return listings;
                         }
                     }
                 } catch (e) {
-                    console.log(`CORS proxy ${i} failed:`, e.message);
+                    log(`  ✗ Proxy ${i} failed: ${e.message}`);
                 }
             }
             
+            log(`  ✗ ALL METHODS FAILED for ${searchName}`);
             throw new Error('All methods failed');
         }
         
@@ -910,11 +984,15 @@
             const loadingStatus = document.getElementById('loadingStatus');
             const emptyState = document.getElementById('emptyState');
             
+            log('=== FETCH ALL LISTINGS STARTED ===');
+            
             btn.disabled = true;
             loadingStatus.style.display = 'flex';
             renderSourceList([]);
             
             const enabledSearches = customSearches.filter(s => s.enabled !== false && s.url);
+            log(`Found ${enabledSearches.length} enabled searches`);
+            
             const sourceResults = [];
             const newListings = [];
             
@@ -925,7 +1003,7 @@
                         const listings = await fetchRSS(search.url, search.source, search.name);
                         return { search, listings, status: 'success' };
                     } catch (e) {
-                        console.error(`Failed to fetch ${search.name}:`, e);
+                        log(`ERROR for ${search.name}: ${e.message}`);
                         return { search, listings: [], status: 'error', error: e.message };
                     }
                 })
@@ -945,7 +1023,10 @@
                 }
             });
             
+            // Save for retry functionality
+            lastSourceResults = sourceResults;
             renderSourceList(sourceResults);
+            log(`=== FETCH COMPLETE: ${newListings.length} total listings ===`);
             
             // Merge with existing listings
             const listingsMap = new Map();
