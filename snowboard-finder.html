@@ -535,8 +535,10 @@
     <script>
         // Public CORS proxies (tries in order until one works)
         const CORS_PROXIES = [
+            'https://api.codetabs.com/v1/proxy?quest=',
+            'https://corsproxy.io/?',
             'https://api.allorigins.win/raw?url=',
-            'https://corsproxy.io/?'
+            'https://thingproxy.freeboard.io/fetch/'
         ];
         let currentProxyIndex = 0;
         
@@ -800,15 +802,24 @@
         async function fetchWithCorsProxy(url) {
             for (let i = 0; i < CORS_PROXIES.length; i++) {
                 const proxyIndex = (currentProxyIndex + i) % CORS_PROXIES.length;
-                const proxyUrl = CORS_PROXIES[proxyIndex] + encodeURIComponent(url);
+                const proxy = CORS_PROXIES[proxyIndex];
+                // Some proxies need encoded URL, some don't
+                const proxyUrl = proxy + encodeURIComponent(url);
                 try {
-                    const response = await fetch(proxyUrl);
+                    const controller = new AbortController();
+                    const timeout = setTimeout(() => controller.abort(), 10000);
+                    const response = await fetch(proxyUrl, { signal: controller.signal });
+                    clearTimeout(timeout);
                     if (response.ok) {
-                        currentProxyIndex = proxyIndex;
-                        return await response.text();
+                        const text = await response.text();
+                        // Verify we got XML/RSS content
+                        if (text.includes('<rss') || text.includes('<item') || text.includes('<?xml')) {
+                            currentProxyIndex = proxyIndex;
+                            return text;
+                        }
                     }
                 } catch (e) {
-                    console.log(`Proxy ${proxyIndex} failed:`, e.message);
+                    console.log(`Proxy ${proxyIndex} (${proxy}) failed:`, e.message);
                 }
             }
             throw new Error('All proxies failed');
