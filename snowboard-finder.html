@@ -814,14 +814,19 @@
                 container.innerHTML = '<div class="source-item"><div class="status-dot loading"></div><span>Fetching listings...</span><span class="count">-</span></div>';
                 return;
             }
-            container.innerHTML = sources.map((s, i) => `
+            const enabledSearches = customSearches.filter(s => s.enabled !== false && s.url);
+            container.innerHTML = sources.map((s, i) => {
+                const search = enabledSearches[i];
+                const directUrl = search ? search.url.replace('&_rss=1', '').replace('&format=rss', '').replace('?format=rss', '') : '#';
+                return `
                 <div class="source-item" style="display: flex; align-items: center; gap: 8px;">
                     <div class="status-dot ${s.status}"></div>
                     <span style="flex: 1;">${s.name}</span>
                     <span class="count">${s.status === 'success' ? s.count : (s.error || '✗')}</span>
+                    <a href="${directUrl}" target="_blank" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 4px 8px; border-radius: 4px; text-decoration: none; font-size: 0.75rem;">🔗</a>
                     <button onclick="retrySource(${i})" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 4px 8px; border-radius: 4px; cursor: pointer; font-size: 0.75rem;">🔄</button>
                 </div>
-            `).join('');
+            `}).join('');
         }
         
         let lastSourceResults = [];
