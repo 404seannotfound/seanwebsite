@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏂 Find Nancy's Stolen Snowboard</title>
+    <style>
+        :root {
+            --alert-red: #dc3545;
+            --success-green: #28a745;
+            --warning-orange: #fd7e14;
+            --info-blue: #17a2b8;
+            --dark-bg: #1a1a2e;
+            --card-bg: #16213e;
+            --accent: #e94560;
+        }
+        
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--dark-bg);
+            color: #fff;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--accent) 0%, #0f3460 100%);
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(233, 69, 96, 0.3);
+        }
+        
+        .header h1 {
+            margin: 0 0 10px 0;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .alert-badge {
+            background: var(--alert-red);
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        .board-details {
+            background: rgba(255,255,255,0.1);
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+        
+        .board-details h3 {
+            margin: 0 0 10px 0;
+            color: #ffd700;
+        }
+        
+        .board-specs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .spec {
+            background: rgba(0,0,0,0.2);
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        
+        .spec-label {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+        
+        .spec-value {
+            font-weight: 700;
+            font-size: 1rem;
+        }
+        
+        .status-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .status-item {
+            background: var(--card-bg);
+            padding: 10px 16px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .status-item.new-items { background: var(--success-green); font-weight: 700; }
+        .status-item.timer { background: var(--info-blue); }
+        .status-item.loading { background: var(--warning-orange); }
+        
+        .refresh-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+        
+        .refresh-btn:hover { opacity: 0.9; }
+        .refresh-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid transparent;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .filter-btn.active { border-color: #fff; }
+        .filter-btn.new { background: var(--success-green); color: #fff; }
+        .filter-btn.all { background: var(--info-blue); color: #fff; }
+        .filter-btn.nope { background: #6c757d; color: #fff; }
+        
+        .source-toggles {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-left: auto;
+        }
+        
+        .source-toggle {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.3);
+            background: transparent;
+            color: #fff;
+        }
+        
+        .source-toggle.active {
+            background: rgba(255,255,255,0.2);
+            border-color: #fff;
+        }
+        
+        .listings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .listing-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s;
+            position: relative;
+        }
+        
+        .listing-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .listing-card.dismissed {
+            opacity: 0.3;
+            filter: grayscale(1);
+        }
+        
+        .listing-card.new::before {
+            content: '✨ NEW';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--success-green);
+            color: #fff;
+            padding: 4px 10px;
+            border-radius: 15px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            z-index: 10;
+        }
+        
+        .listing-image {
+            width: 100%;
+            height: 200px;
+            background: rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .listing-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .listing-image .placeholder {
+            font-size: 3rem;
+            opacity: 0.3;
+        }
+        
+        .listing-content {
+            padding: 15px;
+        }
+        
+        .listing-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        
+        .listing-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .listing-price {
+            font-weight: 700;
+            font-size: 1.2rem;
+            color: var(--success-green);
+        }
+        
+        .listing-source {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        
+        .source-ebay { background: #e53238; }
+        .source-craigslist { background: #5a0a9c; }
+        .source-facebook { background: #1877f2; }
+        .source-offerup { background: #00ab80; }
+        .source-mercari { background: #4dc9ff; }
+        
+        .listing-actions {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .listing-actions button {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        
+        .btn-view { background: var(--info-blue); color: #fff; }
+        .btn-nope { background: var(--alert-red); color: #fff; }
+        .btn-restore { background: var(--success-green); color: #fff; }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0.7;
+        }
+        
+        .empty-state .icon { font-size: 4rem; margin-bottom: 20px; }
+        
+        .source-status {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .source-status h3 {
+            margin: 0 0 15px 0;
+            font-size: 1rem;
+        }
+        
+        .source-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 10px;
+        }
+        
+        .source-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+        }
+        
+        .source-item .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+        
+        .source-item .status-dot.loading { background: var(--warning-orange); animation: pulse 1s infinite; }
+        .source-item .status-dot.success { background: var(--success-green); }
+        .source-item .status-dot.error { background: var(--alert-red); }
+        
+        .source-item .count {
+            margin-left: auto;
+            font-weight: 700;
+        }
+        
+        .back-link {
+            display: inline-block;
+            color: rgba(255,255,255,0.7);
+            text-decoration: none;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .back-link:hover { color: #fff; }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--success-green);
+            color: #fff;
+            padding: 15px 25px;
+            border-radius: 10px;
+            font-weight: 600;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 1000;
+        }
+        
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.error { background: var(--alert-red); }
+        
+        .manual-links {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .manual-links h3 { margin: 0 0 15px 0; }
+        
+        .links-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .manual-link {
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        
+        .manual-link:hover { background: rgba(255,255,255,0.2); }
+        
+        @media (max-width: 768px) {
+            .header h1 { font-size: 1.4rem; }
+            .listings-grid { grid-template-columns: 1fr; }
+            .source-toggles { margin-left: 0; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="index.html" class="back-link">← Back to Sean's Website</a>
+        
+        <div class="header">
+            <h1>
+                🏂 Find Nancy's Stolen Snowboard
+                <span class="alert-badge">🚨 STOLEN 12/25</span>
+            </h1>
+            <p>Stolen at Snoqualmie Pass while teaching a children's class</p>
+            
+            <div class="board-details">
+                <h3>🎯 What We're Looking For</h3>
+                <div class="board-specs">
+                    <div class="spec">
+                        <div class="spec-label">Brand</div>
+                        <div class="spec-value">YES.</div>
+                    </div>
+                    <div class="spec">
+                        <div class="spec-label">Model</div>
+                        <div class="spec-value">Hel Yes</div>
+                    </div>
+                    <div class="spec">
+                        <div class="spec-label">Size</div>
+                        <div class="spec-value">149 cm</div>
+                    </div>
+                    <div class="spec">
+                        <div class="spec-label">Type</div>
+                        <div class="spec-value">Women's</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-item new-items">
+                <span>✨</span>
+                <span id="newCount">0 new</span>
+            </div>
+            <div class="status-item">
+                <span>📦</span>
+                <span id="totalCount">0 total listings</span>
+            </div>
+            <div class="status-item timer">
+                <span>⏱️</span>
+                <span>Refresh in <span id="countdown">300</span>s</span>
+            </div>
+            <div class="status-item" id="loadingStatus" style="display: none;">
+                <span>⏳</span>
+                <span>Fetching...</span>
+            </div>
+            <button class="refresh-btn" onclick="fetchAllListings()" id="refreshBtn">🔄 Refresh Now</button>
+        </div>
+        
+        <div class="source-status">
+            <h3>📡 Data Sources</h3>
+            <div class="source-list" id="sourceList"></div>
+        </div>
+        
+        <div class="manual-links">
+            <h3>🔗 Manual Search Links (for sites we can't auto-fetch)</h3>
+            <div class="links-grid">
+                <a href="https://www.facebook.com/marketplace/seattle/snowboards?query=YES%20snowboard" target="_blank" class="manual-link">📘 FB Marketplace - YES</a>
+                <a href="https://www.facebook.com/marketplace/seattle/snowboards?query=Hel%20YES" target="_blank" class="manual-link">📘 FB Marketplace - Hel YES</a>
+                <a href="https://offerup.com/search/?q=YES%20Hel%20YES%20snowboard" target="_blank" class="manual-link">📱 OfferUp - Hel YES</a>
+                <a href="https://offerup.com/search/?q=YES%20snowboard" target="_blank" class="manual-link">📱 OfferUp - YES</a>
+                <a href="https://www.mercari.com/search/?keyword=YES%20snowboard" target="_blank" class="manual-link">🏷️ Mercari</a>
+                <a href="https://poshmark.com/search?query=YES%20snowboard" target="_blank" class="manual-link">👗 Poshmark</a>
+            </div>
+        </div>
+        
+        <div class="filter-bar">
+            <button class="filter-btn new active" onclick="setFilter('new')" id="filterNew">✨ New Only</button>
+            <button class="filter-btn all" onclick="setFilter('all')" id="filterAll">📋 All</button>
+            <button class="filter-btn nope" onclick="setFilter('nope')" id="filterNope">🚫 Dismissed (<span id="nopeCount">0</span>)</button>
+        </div>
+        
+        <div id="listingsContainer">
+            <div class="listings-grid" id="listingsGrid"></div>
+            <div class="empty-state" id="emptyState">
+                <div class="icon">⏳</div>
+                <h3>Loading listings...</h3>
+                <p>Fetching from eBay and Craigslist...</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="toast" id="toast"></div>
+    
+    <script>
+        // Proxy server URL - run: cd snowboard-proxy && npm start
+        const PROXY_URL = 'http://localhost:3001/api/listings';
+        
+        // State
+        let allListings = [];
+        let seenIds = new Set();
+        let dismissedIds = new Set();
+        let currentFilter = 'new';
+        let countdown = 300;
+        let countdownInterval;
+        let sourceStatuses = {};
+        
+        // Storage keys
+        const STORAGE = {
+            seen: 'nancy_board_seen',
+            dismissed: 'nancy_board_dismissed',
+            listings: 'nancy_board_listings',
+            filter: 'nancy_board_filter',
+            lastFetch: 'nancy_board_lastfetch'
+        };
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromStorage();
+            renderSourceList();
+            fetchAllListings();
+            startCountdown();
+        });
+        
+        function loadFromStorage() {
+            try {
+                const seen = localStorage.getItem(STORAGE.seen);
+                if (seen) seenIds = new Set(JSON.parse(seen));
+                
+                const dismissed = localStorage.getItem(STORAGE.dismissed);
+                if (dismissed) dismissedIds = new Set(JSON.parse(dismissed));
+                
+                const listings = localStorage.getItem(STORAGE.listings);
+                if (listings) allListings = JSON.parse(listings);
+                
+                const filter = localStorage.getItem(STORAGE.filter);
+                if (filter) currentFilter = filter;
+            } catch (e) {
+                console.error('Storage load error:', e);
+            }
+        }
+        
+        function saveToStorage() {
+            try {
+                localStorage.setItem(STORAGE.seen, JSON.stringify([...seenIds]));
+                localStorage.setItem(STORAGE.dismissed, JSON.stringify([...dismissedIds]));
+                localStorage.setItem(STORAGE.listings, JSON.stringify(allListings));
+                localStorage.setItem(STORAGE.filter, currentFilter);
+                localStorage.setItem(STORAGE.lastFetch, new Date().toISOString());
+            } catch (e) {
+                console.error('Storage save error:', e);
+            }
+        }
+        
+        function renderSourceList(sources = []) {
+            const container = document.getElementById('sourceList');
+            if (sources.length === 0) {
+                container.innerHTML = '<div class="source-item"><div class="status-dot loading"></div><span>Connecting to proxy...</span><span class="count">-</span></div>';
+                return;
+            }
+            container.innerHTML = sources.map(s => `
+                <div class="source-item">
+                    <div class="status-dot ${s.status}"></div>
+                    <span>${s.name}</span>
+                    <span class="count">${s.status === 'success' ? s.count : (s.error || '✗')}</span>
+                </div>
+            `).join('');
+        }
+        
+        async function fetchAllListings() {
+            const btn = document.getElementById('refreshBtn');
+            const loadingStatus = document.getElementById('loadingStatus');
+            const emptyState = document.getElementById('emptyState');
+            
+            btn.disabled = true;
+            loadingStatus.style.display = 'flex';
+            renderSourceList([]);
+            
+            try {
+                const response = await fetch(PROXY_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`Proxy returned ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Unknown error');
+                }
+                
+                // Update source status display
+                renderSourceList(data.sources);
+                
+                // Merge with existing listings
+                const listingsMap = new Map();
+                allListings.forEach(l => listingsMap.set(l.id, l));
+                data.listings.forEach(l => {
+                    if (!listingsMap.has(l.id)) {
+                        listingsMap.set(l.id, l);
+                    }
+                });
+                
+                allListings = Array.from(listingsMap.values());
+                allListings.sort((a, b) => new Date(b.date) - new Date(a.date));
+                
+                saveToStorage();
+                renderListings();
+                
+                const newCount = allListings.filter(l => !seenIds.has(l.id) && !dismissedIds.has(l.id)).length;
+                showToast(`✅ Found ${allListings.length} listings (${newCount} new)`);
+                
+            } catch (err) {
+                console.error('Fetch error:', err);
+                renderSourceList([{ name: 'Proxy Error', status: 'error', error: err.message }]);
+                
+                emptyState.innerHTML = `
+                    <div class="icon">⚠️</div>
+                    <h3>Proxy Not Running</h3>
+                    <p>Start the proxy server:</p>
+                    <pre style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 8px; text-align: left; display: inline-block;">cd snowboard-proxy
+npm start</pre>
+                    <p style="margin-top: 15px;">Then click Refresh.</p>
+                `;
+                emptyState.style.display = 'block';
+                document.getElementById('listingsGrid').style.display = 'none';
+                
+                // Still show cached listings if available
+                if (allListings.length > 0) {
+                    renderListings();
+                    showToast('⚠️ Using cached data - proxy not running', true);
+                }
+            }
+            
+            btn.disabled = false;
+            loadingStatus.style.display = 'none';
+            countdown = 300;
+        }
+        
+        function renderListings() {
+            const grid = document.getElementById('listingsGrid');
+            const empty = document.getElementById('emptyState');
+            
+            // Count new and dismissed
+            const newItems = allListings.filter(l => !seenIds.has(l.id) && !dismissedIds.has(l.id));
+            const dismissedItems = allListings.filter(l => dismissedIds.has(l.id));
+            
+            document.getElementById('newCount').textContent = `${newItems.length} new`;
+            document.getElementById('totalCount').textContent = `${allListings.length} total listings`;
+            document.getElementById('nopeCount').textContent = dismissedItems.length;
+            
+            // Filter listings
+            let filtered = [];
+            if (currentFilter === 'new') {
+                filtered = allListings.filter(l => !seenIds.has(l.id) && !dismissedIds.has(l.id));
+            } else if (currentFilter === 'nope') {
+                filtered = allListings.filter(l => dismissedIds.has(l.id));
+            } else {
+                filtered = allListings.filter(l => !dismissedIds.has(l.id));
+            }
+            
+            // Update filter buttons
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`filter${currentFilter.charAt(0).toUpperCase() + currentFilter.slice(1)}`).classList.add('active');
+            
+            if (filtered.length === 0) {
+                grid.style.display = 'none';
+                empty.style.display = 'block';
+                empty.innerHTML = `
+                    <div class="icon">${currentFilter === 'nope' ? '✅' : '🔍'}</div>
+                    <h3>${currentFilter === 'nope' ? 'No dismissed items' : 'No listings to show'}</h3>
+                    <p>${currentFilter === 'new' ? 'All caught up! Check back later.' : 'Try a different filter.'}</p>
+                `;
+            } else {
+                grid.style.display = 'grid';
+                empty.style.display = 'none';
+                
+                grid.innerHTML = filtered.map(listing => {
+                    const isNew = !seenIds.has(listing.id);
+                    const isDismissed = dismissedIds.has(listing.id);
+                    
+                    return `
+                        <div class="listing-card ${isNew && !isDismissed ? 'new' : ''} ${isDismissed ? 'dismissed' : ''}" data-id="${listing.id}">
+                            <div class="listing-image">
+                                ${listing.image 
+                                    ? `<img src="${listing.image}" alt="" onerror="this.parentElement.innerHTML='<span class=\\'placeholder\\'>🏂</span>'">`
+                                    : '<span class="placeholder">🏂</span>'
+                                }
+                            </div>
+                            <div class="listing-content">
+                                <div class="listing-title">${escapeHtml(listing.title)}</div>
+                                <div class="listing-meta">
+                                    <span class="listing-source source-${listing.source}">${listing.source}</span>
+                                    <span>${formatDate(listing.date)}</span>
+                                </div>
+                                ${listing.price ? `<div class="listing-price">${listing.price}</div>` : ''}
+                                <div class="listing-actions">
+                                    <button class="btn-view" onclick="viewListing('${listing.id}')">👁️ View</button>
+                                    ${isDismissed 
+                                        ? `<button class="btn-restore" onclick="restoreListing('${listing.id}')">↩️ Restore</button>`
+                                        : `<button class="btn-nope" onclick="dismissListing('${listing.id}')">🚫 NOPE</button>`
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+        
+        function viewListing(id) {
+            const listing = allListings.find(l => l.id === id);
+            if (listing) {
+                seenIds.add(id);
+                saveToStorage();
+                window.open(listing.link, '_blank');
+                renderListings();
+            }
+        }
+        
+        function dismissListing(id) {
+            dismissedIds.add(id);
+            seenIds.add(id);
+            saveToStorage();
+            renderListings();
+            showToast('🚫 Marked as NOPE');
+        }
+        
+        function restoreListing(id) {
+            dismissedIds.delete(id);
+            saveToStorage();
+            renderListings();
+            showToast('✅ Restored');
+        }
+        
+        function setFilter(filter) {
+            currentFilter = filter;
+            saveToStorage();
+            renderListings();
+        }
+        
+        function startCountdown() {
+            countdownInterval = setInterval(() => {
+                countdown--;
+                document.getElementById('countdown').textContent = countdown;
+                
+                if (countdown <= 0) {
+                    fetchAllListings();
+                }
+            }, 1000);
+        }
+        
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            return `${diffDays}d ago`;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        function showToast(message, isError = false) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = `toast show ${isError ? 'error' : ''}`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

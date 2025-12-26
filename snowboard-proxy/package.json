@@ -1,0 +1,11 @@
+{
+  "name": "snowboard-finder-proxy",
+  "version": "1.0.0",
+  "description": "Proxy server for fetching snowboard listings from eBay and Craigslist",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC"
+}
