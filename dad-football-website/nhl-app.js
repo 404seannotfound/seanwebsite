@@ -15,9 +15,12 @@ class NHLGameTracker {
         return date;
     }
 
-    // Helper function to format time in local timezone
+    // Helper function to format time in local timezone with timezone abbreviation
     formatLocalTime(date) {
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const time = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const timeZoneAbbr = new Date().toLocaleTimeString('en-us', { timeZone, timeZoneName: 'short' }).split(' ').pop();
+        return `${time} ${timeZoneAbbr}`;
     }
 
     // Helper function to format date in local timezone
