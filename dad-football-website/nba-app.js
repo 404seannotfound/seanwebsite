@@ -9,6 +9,22 @@ class NBAGameTracker {
         this.init();
     }
 
+    // Helper function to convert ESPN time (EST/EDT) to local browser time
+    toLocalTime(espnDate) {
+        const date = new Date(espnDate);
+        return date;
+    }
+
+    // Helper function to format time in local timezone
+    formatLocalTime(date) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Helper function to format date in local timezone
+    formatLocalDate(date) {
+        return date.toLocaleDateString();
+    }
+
     init() {
         this.setupEventListeners();
         this.loadGames();
@@ -86,7 +102,7 @@ class NBAGameTracker {
                     id: event.id,
                     name: event.name,
                     shortName: event.shortName,
-                    date: new Date(event.date),
+                    date: this.toLocalTime(new Date(event.date)),
                     status: competition.status.type.description,
                     statusDetail: competition.status.type.detail,
                     isLive: competition.status.type.state === 'in',
@@ -202,7 +218,7 @@ class NBAGameTracker {
             
             if (data.events && data.events.length > 0) {
                 const nextGame = data.events[0];
-                const gameDate = new Date(nextGame.date);
+                const gameDate = this.toLocalTime(new Date(nextGame.date));
                 const competition = nextGame.competitions[0];
                 const homeTeam = competition.competitors.find(t => t.homeAway === 'home');
                 const awayTeam = competition.competitors.find(t => t.homeAway === 'away');
@@ -215,7 +231,7 @@ class NBAGameTracker {
                         <p style="font-size: 1.2rem; margin-bottom: 15px;">⏱️ Next Game</p>
                         <p style="font-size: 1.5rem; font-weight: bold; color: #FF9800; margin-bottom: 10px;">${awayTeam.team.displayName} @ ${homeTeam.team.displayName}</p>
                         <p style="font-size: 1rem; margin-bottom: 8px;">📍 ${competition.venue?.fullName || 'TBD'}</p>
-                        <p style="font-size: 1rem; margin-bottom: 8px;">📅 ${gameDate.toLocaleDateString()} at ${gameDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</p>
+                        <p style="font-size: 1rem; margin-bottom: 8px;">📅 ${this.formatLocalDate(gameDate)} at ${this.formatLocalTime(gameDate)}</p>
                         <p style="font-size: 1rem; margin-bottom: 15px;">📺 ${competition.broadcasts?.[0]?.names?.[0] || 'TBD'}</p>
                         <p style="font-size: 1.3rem; font-weight: bold; color: #FF9800; background: rgba(255,152,0,0.2); padding: 15px; border-radius: 10px; border: 2px solid rgba(255,152,0,0.5);">
                             🏀 ${countdown}
@@ -468,7 +484,7 @@ class NBAGameTracker {
                 <div><strong>${game.statusDetail}</strong></div>
                 <div>📍 ${game.venue}</div>
                 <div>📺 ${game.broadcast}</div>
-                <div>📅 ${game.date.toLocaleDateString()} ${game.date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
+                <div>📅 ${this.formatLocalDate(game.date)} at ${this.formatLocalTime(game.date)}</div>
             </div>
         `;
 

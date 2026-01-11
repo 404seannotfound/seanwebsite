@@ -8,6 +8,22 @@ class MMAFightTracker {
         this.init();
     }
 
+    // Helper function to convert ESPN time (EST/EDT) to local browser time
+    toLocalTime(espnDate) {
+        const date = new Date(espnDate);
+        return date;
+    }
+
+    // Helper function to format time in local timezone
+    formatLocalTime(date) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Helper function to format date in local timezone
+    formatLocalDate(date) {
+        return date.toLocaleDateString();
+    }
+
     init() {
         this.setupEventListeners();
         this.loadFights();
@@ -87,7 +103,7 @@ class MMAFightTracker {
                     id: event.id,
                     name: event.name,
                     shortName: event.shortName,
-                    date: new Date(event.date),
+                    date: this.toLocalTime(new Date(event.date)),
                     status: competition.status.type.description,
                     statusDetail: competition.status.type.detail,
                     isLive: competition.status.type.state === 'in',
@@ -137,7 +153,7 @@ class MMAFightTracker {
 
             if (upcomingEvents.length > 0) {
                 const nextEvent = upcomingEvents[0];
-                const eventDate = new Date(nextEvent.date);
+                const eventDate = this.toLocalTime(new Date(nextEvent.date));
                 const countdown = this.getCountdown(eventDate);
                 const competition = nextEvent.competitions[0];
                 const mainEvent = competition.competitors;
@@ -149,7 +165,7 @@ class MMAFightTracker {
                             <p style="font-size: 1.5rem; font-weight: bold; color: #FFD700; margin-bottom: 10px;">${nextEvent.name}</p>
                             <p style="font-size: 1.2rem; margin-bottom: 8px;">${mainEvent[0].athlete?.displayName} vs ${mainEvent[1].athlete?.displayName}</p>
                             <p style="font-size: 1rem; margin-bottom: 8px;">📍 ${competition.venue?.fullName || 'TBD'}</p>
-                            <p style="font-size: 1rem; margin-bottom: 8px;">📅 ${eventDate.toLocaleDateString()} at ${eventDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</p>
+                            <p style="font-size: 1rem; margin-bottom: 8px;">📅 ${this.formatLocalDate(eventDate)} at ${this.formatLocalTime(eventDate)}</p>
                             <p style="font-size: 1rem; margin-bottom: 15px;">📺 ${competition.broadcasts?.[0]?.names?.[0] || 'PPV'}</p>
                             <p style="font-size: 1.3rem; font-weight: bold; color: #DC143C; background: rgba(220,20,60,0.2); padding: 15px; border-radius: 10px; border: 2px solid rgba(220,20,60,0.5);">
                                 🥊 ${countdown}
@@ -249,7 +265,7 @@ class MMAFightTracker {
                 <div><strong>${fight.statusDetail}</strong></div>
                 <div>📍 ${fight.venue}</div>
                 <div>📺 ${fight.broadcast}</div>
-                <div>📅 ${fight.date.toLocaleDateString()} ${fight.date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
+                <div>📅 ${this.formatLocalDate(fight.date)} at ${this.formatLocalTime(fight.date)}</div>
             </div>
         `;
 

@@ -9,6 +9,22 @@ class CollegeGameTracker {
         this.init();
     }
 
+    // Helper function to convert ESPN time (EST/EDT) to local browser time
+    toLocalTime(espnDate) {
+        const date = new Date(espnDate);
+        return date;
+    }
+
+    // Helper function to format time in local timezone
+    formatLocalTime(date) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Helper function to format date in local timezone
+    formatLocalDate(date) {
+        return date.toLocaleDateString();
+    }
+
     init() {
         this.setupEventListeners();
         this.loadGames();
@@ -96,7 +112,7 @@ class CollegeGameTracker {
                     id: event.id,
                     name: event.name,
                     shortName: event.shortName,
-                    date: new Date(event.date),
+                    date: this.toLocalTime(new Date(event.date)),
                     status: competition.status.type.description,
                     statusDetail: competition.status.type.detail,
                     isLive: competition.status.type.state === 'in',
@@ -321,6 +337,7 @@ class CollegeGameTracker {
             </div>
             <div class="game-info">
                 <div>${game.statusDetail}</div>
+                <div>📅 ${this.formatLocalDate(game.date)} at ${this.formatLocalTime(game.date)}</div>
                 <div>📍 ${game.venue}</div>
                 <div>📺 ${game.broadcast}</div>
             </div>
@@ -458,6 +475,7 @@ class CollegeGameTracker {
                 </div>
                 <div class="panel-info">
                     <div><strong>${game.statusDetail}</strong></div>
+                    <div>📅 ${this.formatLocalDate(game.date)} at ${this.formatLocalTime(game.date)}</div>
                     <div>📍 ${game.venue}</div>
                     <div>📺 ${game.broadcast}</div>
                 </div>

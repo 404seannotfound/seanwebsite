@@ -9,6 +9,22 @@ class NASCARRaceTracker {
         this.init();
     }
 
+    // Helper function to convert ESPN time (EST/EDT) to local browser time
+    toLocalTime(espnDate) {
+        const date = new Date(espnDate);
+        return date;
+    }
+
+    // Helper function to format time in local timezone
+    formatLocalTime(date) {
+        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Helper function to format date in local timezone
+    formatLocalDate(date) {
+        return date.toLocaleDateString();
+    }
+
     init() {
         this.setupEventListeners();
         this.loadRaces();
@@ -89,7 +105,7 @@ class NASCARRaceTracker {
                     id: event.id,
                     name: event.name,
                     shortName: event.shortName,
-                    date: new Date(event.date),
+                    date: this.toLocalTime(new Date(event.date)),
                     status: status.type.description,
                     statusDetail: status.type.detail,
                     isLive: status.type.state === 'in',
@@ -138,7 +154,7 @@ class NASCARRaceTracker {
                     id: event.id,
                     name: event.name,
                     shortName: event.shortName,
-                    date: new Date(event.date),
+                    date: this.toLocalTime(new Date(event.date)),
                     status: '✅ Completed',
                     statusDetail: status.type.detail,
                     isLive: false,
@@ -177,7 +193,7 @@ class NASCARRaceTracker {
 
             if (upcomingRaces.length > 0) {
                 const nextRace = upcomingRaces[0];
-                const raceDate = new Date(nextRace.date);
+                const raceDate = this.toLocalTime(new Date(nextRace.date));
                 const competition = nextRace.competitions[0];
                 
                 const noRacesDiv = document.getElementById('no-races');
@@ -188,7 +204,7 @@ class NASCARRaceTracker {
                         <p style="font-size: 1.2rem; margin-bottom: 15px;">⏱️ Next Race</p>
                         <p style="font-size: 1.5rem; font-weight: bold; color: #FFD700; margin-bottom: 10px;">${nextRace.name}</p>
                         <p style="font-size: 1rem; margin-bottom: 8px;">📍 ${competition.venue?.fullName || 'TBD'}</p>
-                        <p style="font-size: 1rem; margin-bottom: 8px;">📅 ${raceDate.toLocaleDateString()} at ${raceDate.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</p>
+                        <p style="font-size: 1rem; margin-bottom: 8px;">📅 ${this.formatLocalDate(raceDate)} at ${this.formatLocalTime(raceDate)}</p>
                         <p style="font-size: 1rem; margin-bottom: 15px;">📺 ${competition.broadcasts?.[0]?.names?.[0] || 'TBD'}</p>
                         <p style="font-size: 1.3rem; font-weight: bold; color: #FF4500; background: rgba(255,69,0,0.2); padding: 15px; border-radius: 10px; border: 2px solid rgba(255,69,0,0.5);">
                             🏁 ${countdown}
@@ -445,7 +461,7 @@ class NASCARRaceTracker {
                 <div>${race.statusDetail}</div>
                 <div>🏁 Laps: ${race.laps}</div>
                 <div>📺 ${race.broadcast}</div>
-                <div>📅 ${race.date.toLocaleDateString()} ${race.date.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</div>
+                <div>📅 ${this.formatLocalDate(race.date)} at ${this.formatLocalTime(race.date)}</div>
             </div>
             ${topDriversHTML}
         `;
