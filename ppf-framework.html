@@ -379,6 +379,20 @@
             opacity: 0.4;
         }
 
+        /* Flow Diagram */
+        .flow-diagram {
+            margin: 2rem 0 3rem;
+            overflow-x: auto;
+        }
+
+        .protocol-svg {
+            width: 100%;
+            max-width: 700px;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+        }
+
         /* Status Dynamics Section */
         .status-grid {
             display: grid;
@@ -441,6 +455,67 @@
             letter-spacing: 0.05em;
         }
 
+        /* Edge Cases */
+        .edge-case {
+            background: var(--bg-warm);
+            padding: 1.5rem 2rem;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+        }
+
+        .edge-case h4 {
+            font-family: 'Fraunces', Georgia, serif;
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin: 0 0 0.75rem 0;
+            color: var(--text-primary);
+        }
+
+        .edge-case p {
+            margin-bottom: 0;
+            font-size: 0.95rem;
+        }
+
+        /* Tactical Playbook */
+        .tactic {
+            background: white;
+            border: 1px solid var(--border-soft);
+            border-radius: 8px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+            box-shadow: 0 2px 10px var(--shadow-warm);
+        }
+
+        .tactic h4 {
+            font-family: 'Fraunces', Georgia, serif;
+            font-weight: 600;
+            font-size: 1.15rem;
+            margin: 0 0 1rem 0;
+            color: var(--text-primary);
+        }
+
+        .tactic-list {
+            margin: 1rem 0;
+            padding-left: 1.5rem;
+        }
+
+        .tactic-list li {
+            margin-bottom: 0.75rem;
+            line-height: 1.6;
+        }
+
+        .tactic-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .tactic-list strong {
+            color: var(--text-primary);
+        }
+
+        .tactic > p:last-child {
+            margin-bottom: 0;
+        }
+
         /* Responsive */
         @media (max-width: 640px) {
             .protocol-diagram {
@@ -485,11 +560,11 @@
 </head>
 <body>
     <header class="container">
-        <span class="header-label animate-in">Autistic Shorthand for Human Interaction</span>
+        <span class="header-label animate-in">A Protocol Model of Human Conversation</span>
         <h1 class="animate-in delay-1">
             <span class="purr">Purring</span>, <span class="pop">Popping</span>, <span class="flash">Flashing</span>
         </h1>
-        <p class="subtitle animate-in delay-2">A protocol-level framework for understanding human social communication</p>
+        <p class="subtitle animate-in delay-2">For anyone who's ever felt half a second behind in social situations—or just wants to see what's actually happening</p>
     </header>
 
     <main class="container">
@@ -507,6 +582,11 @@
                 <p>For years, I built complex Copernican models of how I believed humans thought—elaborate internal simulations of their intentional states. But people kept veering from their supposed rules. The models were too complicated, too brittle, too focused on the wrong layer.</p>
                 <p>Then I realized: I didn't need to simulate minds. I needed to read the <strong>protocol</strong>.</p>
             </div>
+
+            <h3>Who This Is For</h3>
+            <p>This framework was born from necessity—developed by someone on the autism spectrum who needed to reverse-engineer what neurotypical people do instinctively. But it turns out the model is useful for anyone.</p>
+            <p>Neurotypical readers often react with "this is horrifyingly accurate—I just never thought about it this way." That's because most people <em>run</em> the protocol without <em>seeing</em> it. Making it explicit doesn't just help outsiders learn the rules; it helps insiders understand what they've been doing all along.</p>
+            <p>Use this if you've ever felt socially out of sync. Use it if you've ever wondered why a conversation died. Use it if you want to read status dynamics in groups. Use it if you just like understanding how things work.</p>
         </section>
 
         <!-- The Framework -->
@@ -527,6 +607,41 @@
                     <div class="node-title">Flashing</div>
                     <div class="node-function">Acknowledgment</div>
                 </div>
+            </div>
+
+            <!-- Visual Flow Diagram -->
+            <div class="flow-diagram">
+                <svg viewBox="0 0 800 200" class="protocol-svg">
+                    <!-- Purr circle -->
+                    <circle cx="130" cy="100" r="60" fill="#d4e4d8" stroke="#7b9e87" stroke-width="3"/>
+                    <text x="130" y="95" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="18" font-weight="600" fill="#4a6b52">PURR</text>
+                    <text x="130" y="115" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#5c544a">"Are we synced?"</text>
+                    
+                    <!-- Arrow 1 -->
+                    <path d="M 200 80 Q 260 50 320 80" fill="none" stroke="#5c544a" stroke-width="2" stroke-dasharray="5,3"/>
+                    <polygon points="320,80 310,72 312,82" fill="#5c544a"/>
+                    <text x="260" y="45" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#5c544a">channel open</text>
+                    
+                    <!-- Pop circle -->
+                    <circle cx="400" cy="100" r="60" fill="#f5ddd4" stroke="#c4785e" stroke-width="3"/>
+                    <text x="400" y="95" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="18" font-weight="600" fill="#8b5640">POP</text>
+                    <text x="400" y="115" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#5c544a">"Here's content"</text>
+                    
+                    <!-- Arrow 2 -->
+                    <path d="M 470 80 Q 530 50 590 80" fill="none" stroke="#5c544a" stroke-width="2" stroke-dasharray="5,3"/>
+                    <polygon points="590,80 580,72 582,82" fill="#5c544a"/>
+                    <text x="530" y="45" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#5c544a">transmit</text>
+                    
+                    <!-- Flash circle -->
+                    <circle cx="670" cy="100" r="60" fill="#d8dfe9" stroke="#6b7fa3" stroke-width="3"/>
+                    <text x="670" y="95" text-anchor="middle" font-family="Fraunces, Georgia, serif" font-size="18" font-weight="600" fill="#4a5873">FLASH</text>
+                    <text x="670" y="115" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#5c544a">"Got it"</text>
+                    
+                    <!-- Return arrow -->
+                    <path d="M 620 160 Q 400 200 180 160" fill="none" stroke="#5c544a" stroke-width="2" stroke-dasharray="5,3"/>
+                    <polygon points="180,160 192,162 188,152" fill="#5c544a"/>
+                    <text x="400" y="195" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="9" fill="#5c544a">loop continues (or channel drops)</text>
+                </svg>
             </div>
 
             <!-- PURRING -->
@@ -795,6 +910,111 @@
             <p>The framework works even when you don't speak the language. Strip away semantic content entirely and it still functions—because it was never really <em>about</em> the semantics.</p>
             <p>You're watching: Who's energy-matching whom. Who's holding the floor. Who's signaling receptivity. The actual words were always just the vehicle.</p>
             <p>This is also useful for reading rooms where you <em>do</em> speak the language but the real conversation is happening underneath. Meetings where the words say "we're aligned" but the purring is off. Someone pops and gets no flashes. That silence <em>is</em> data.</p>
+        </section>
+
+        <div class="divider">
+            <span class="divider-symbol">§</span>
+        </div>
+
+        <!-- Edge Cases -->
+        <section>
+            <h2>Edge Cases &amp; Limitations</h2>
+            <p>The model is elegant precisely because it's sparse—three primitives covering enormous ground. But elegance sometimes sacrifices coverage. Here's where the lines blur:</p>
+
+            <div class="edge-case">
+                <h4>Humor, Teasing, and Play-Fighting</h4>
+                <p>A well-timed joke is simultaneously a pop (content), a purr (energy calibration), and a flash-request (laughing together signals receipt). Teasing someone you like operates on all three channels at once. The model still applies—you can decompose these interactions—but they're high-bandwidth, multi-channel transmissions rather than clean single-primitive moves.</p>
+            </div>
+
+            <div class="edge-case">
+                <h4>Flirting</h4>
+                <p>Flirting is mostly purring with plausible deniability. The content often doesn't matter; what matters is the energy escalation and whether the other person matches it. But it also involves micro-pops (compliments, provocations) and micro-flashes (sustained eye contact, laughing at jokes that aren't funny). It's the protocol running hot.</p>
+            </div>
+
+            <div class="edge-case">
+                <h4>Ritual Insult Exchanges</h4>
+                <p>"Talking shit" among close friends looks like aggression but functions as purring—it's actually intimacy signaling. The insults are pops, but the willingness to receive them (and dish back) is a flash that says "we're close enough for this." Misreading this as actual hostility is a common cross-cultural error.</p>
+            </div>
+
+            <div class="edge-case">
+                <h4>Collaborative Ideation</h4>
+                <p>Brainstorming sessions involve rapid pop-flash-pop-flash exchanges where the boundary between "my idea" and "your idea" dissolves. It's less like turn-taking and more like a shared pop—joint transmission. The model handles this, but you have to zoom out and see the group as a single system.</p>
+            </div>
+
+            <div class="edge-case">
+                <h4>Silence</h4>
+                <p>Comfortable silence between close people is a sustained purr with no pops needed. Uncomfortable silence is a channel dying. Same behavior, completely different protocol state. Context is everything.</p>
+            </div>
+
+            <p class="insight">The model doesn't capture every nuance—but it doesn't need to. It's a compression algorithm, not a complete simulation. When interactions feel too complex for the framework, you're usually looking at multiple primitives firing simultaneously or the channel state being ambiguous. That's still useful information.</p>
+        </section>
+
+        <div class="divider">
+            <span class="divider-symbol">§</span>
+        </div>
+
+        <!-- Tactical Playbook -->
+        <section>
+            <h2>Tactical Playbook</h2>
+            <p>Diagnosis is useful. Prescription is better. Here's how to actually use the model in live situations.</p>
+
+            <div class="tactic">
+                <h4>When You're Being Under-Flashed</h4>
+                <p>Your pops aren't landing. Options:</p>
+                <ul class="tactic-list">
+                    <li><strong>Downshift to purring.</strong> Stop trying to transmit content. Match their energy. Say something low-stakes: "Long day, huh?" Re-establish the channel before trying to pop again.</li>
+                    <li><strong>Flash them first.</strong> Acknowledge something they said or did. People are more likely to flash you back after you've flashed them. It's reciprocity, not manipulation.</li>
+                    <li><strong>Pop smaller.</strong> Your pop might be too big—too much content, too high stakes. Break it into smaller chunks that are easier to acknowledge.</li>
+                    <li><strong>Accept the status read.</strong> Sometimes under-flashing is the message. They're telling you where you stand. You can try to change it or you can route around it.</li>
+                </ul>
+            </div>
+
+            <div class="tactic">
+                <h4>When the Channel Is Dying (Arguments)</h4>
+                <p>You've detected no-flash. Now what:</p>
+                <ul class="tactic-list">
+                    <li><strong>Stop popping immediately.</strong> More content won't help. You're transmitting into void.</li>
+                    <li><strong>Name the dynamic (carefully).</strong> "I feel like we're talking past each other" is a meta-purr. It acknowledges the channel problem without blaming.</li>
+                    <li><strong>Radical flash.</strong> Find something—anything—in their position to genuinely acknowledge. "You're right that X is a real concern." This can restart the channel.</li>
+                    <li><strong>Exit gracefully.</strong> "Let's come back to this later" preserves the relationship for future channel establishment. Walking away angry burns the channel harder.</li>
+                </ul>
+            </div>
+
+            <div class="tactic">
+                <h4>When You Need to Pop But Can't Get the Floor</h4>
+                <p>In group settings where your pops get talked over:</p>
+                <ul class="tactic-list">
+                    <li><strong>Secure a flash first.</strong> Make eye contact with someone receptive. Get a small acknowledgment. Then pop—you now have an ally who's already flashing.</li>
+                    <li><strong>Purr into the gap.</strong> Energy-match the group first. Being too different in energy makes your pops easier to ignore.</li>
+                    <li><strong>Draft off someone else's pop.</strong> "Building on what [Name] said..." connects your transmission to one that's already being flashed.</li>
+                    <li><strong>Pop to one person.</strong> If the group won't flash you, find one person who will. Have the conversation with them. Others may tune in.</li>
+                </ul>
+            </div>
+
+            <div class="tactic">
+                <h4>When You Want to Read the Room</h4>
+                <p>Before engaging, observe for 30 seconds:</p>
+                <ul class="tactic-list">
+                    <li>Who's setting the purr frequency?</li>
+                    <li>Whose pops get flashed? Whose get dropped?</li>
+                    <li>What's the flash ratio between different people?</li>
+                    <li>Is there anyone being systematically under-flashed?</li>
+                </ul>
+                <p>This tells you the status structure, who the safe allies are, and how to calibrate your own entry.</p>
+            </div>
+
+            <div class="tactic">
+                <h4>Re-Purring Phrases</h4>
+                <p>When you need to restart a channel, low-stakes purrs that work across contexts:</p>
+                <ul class="tactic-list">
+                    <li>"Hey, how are you holding up?"</li>
+                    <li>"That's a lot to deal with."</li>
+                    <li>"I hear you."</li>
+                    <li>"This is hard."</li>
+                    <li>(In conflict) "I want to understand where you're coming from."</li>
+                </ul>
+                <p>The words matter less than the energy. Softer, slower, lower stakes. You're not transmitting content—you're reopening the channel.</p>
+            </div>
         </section>
 
         <div class="divider">
