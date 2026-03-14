@@ -81,9 +81,9 @@
             <section class="glass-ui p-6 rounded-3xl flex flex-col shadow-2xl space-y-4 order-1 lg:order-2">
                 <div class="flex justify-between items-center">
                     <h2 class="cinzel text-lg text-gold uppercase tracking-wider">The Scribe</h2>
-                    <div class="text-[10px] text-gray-500 font-mono tracking-widest"><span id="count">0</span> / 1200</div>
+                    <div id="count-display" class="text-[10px] text-gray-500 font-mono tracking-widest"><span id="count">0</span> / 1200</div>
                 </div>
-                <textarea id="scribe-input" placeholder="Type your secret... it updates live." 
+                <textarea id="scribe-input" placeholder="Type your secret... it updates live."
                     class="flex-1 min-h-[180px] lg:min-h-[400px] bg-black/40 border border-white/10 rounded-2xl p-4 lg:p-6 text-sm text-white focus:outline-none focus:border-gold transition-all resize-none"
                     maxlength="1200"></textarea>
                 <div class="flex justify-end">
@@ -110,6 +110,9 @@
                     <button id="save-btn" disabled onclick="handleAction('save')" class="w-full py-4 rounded-xl btn-secondary text-[10px] tracking-[0.2em] uppercase opacity-20 transition-all flex items-center justify-center gap-2">
                         <i data-lucide="download" class="w-4 h-4"></i> Save Bottle
                     </button>
+                    <button id="fleet-btn" onclick="toggleFleet()" class="w-full py-3 rounded-xl text-[9px] tracking-[0.2em] uppercase border border-white/5 bg-white/5 hover:bg-white/10 transition-all flex items-center justify-center gap-2 text-gray-600">
+                        <i data-lucide="ship" class="w-3 h-3"></i> Fleet Mode: Off
+                    </button>
                 </div>
             </section>
         </div>
@@ -133,9 +136,42 @@
         const statusText = document.getElementById('status');
         const bottleLabel = document.getElementById('label');
 
+        const CHUNK_SIZE = 800;
+        let fleetMode = false;
+
+        function toggleFleet() {
+            fleetMode = !fleetMode;
+            const btn = document.getElementById('fleet-btn');
+            if (fleetMode) {
+                scribe.removeAttribute('maxlength');
+                btn.innerHTML = '<i data-lucide="ship" class="w-3 h-3"></i> Fleet Mode: On';
+                btn.classList.add('text-gold', 'border-gold/30');
+                btn.classList.remove('text-gray-600');
+            } else {
+                scribe.setAttribute('maxlength', '1200');
+                if (scribe.value.length > 1200) scribe.value = scribe.value.slice(0, 1200);
+                btn.innerHTML = '<i data-lucide="ship" class="w-3 h-3"></i> Fleet Mode: Off';
+                btn.classList.remove('text-gold', 'border-gold/30');
+                btn.classList.add('text-gray-600');
+            }
+            lucide.createIcons();
+            scribe.dispatchEvent(new Event('input'));
+        }
+
+        function updateCountDisplay(len) {
+            document.getElementById('count').textContent = len;
+            const display = document.getElementById('count-display');
+            if (fleetMode) {
+                const codes = Math.ceil(len / CHUNK_SIZE) || 1;
+                display.textContent = `${len} chars · ${codes} code${codes !== 1 ? 's' : ''}`;
+            } else {
+                display.innerHTML = `<span id="count">${len}</span> / 1200`;
+            }
+        }
+
         scribe.addEventListener('input', () => {
             const val = scribe.value;
-            document.getElementById('count').textContent = val.length;
+            updateCountDisplay(val.length);
             if (val.length > 0) {
                 pulse.classList.remove('hidden');
                 statusText.textContent = "Status: Forging...";
@@ -146,23 +182,44 @@
         });
 
         function forge(text) {
+            const chunks = fleetMode ? chunkText(text) : [text];
+            // Show first QR in the bottle
             const qr = qrcode(0, 'Q');
-            qr.addData(text);
+            qr.addData(chunks[0]);
             qr.make();
-            target.innerHTML = qr.createSvgTag(6, 6); 
+            target.innerHTML = qr.createSvgTag(6, 6);
             target.classList.remove('opacity-10');
             target.querySelector('svg').style.width = "100%";
             target.querySelector('svg').style.height = "100%";
             target.appendChild(pulse);
-            
+
             setTimeout(() => {
                 pulse.classList.add('hidden');
-                statusText.textContent = "Status: Sealed & Ready";
-                bottleLabel.textContent = "Sealed Message";
+                if (fleetMode && chunks.length > 1) {
+                    statusText.textContent = `Status: Fleet Ready (${chunks.length} codes)`;
+                    bottleLabel.textContent = `Fleet · ${chunks.length} Codes`;
+                } else {
+                    statusText.textContent = "Status: Sealed & Ready";
+                    bottleLabel.textContent = "Sealed Message";
+                }
                 bottleLabel.classList.remove('opacity-40');
                 sendBtn.disabled = false;
                 saveBtn.disabled = false;
             }, 150);
+        }
+
+        function chunkText(text) {
+            const chunks = [];
+            for (let i = 0; i < text.length; i += CHUNK_SIZE) chunks.push(text.slice(i, i + CHUNK_SIZE));
+            return chunks;
+        }
+
+        function svgTagToImage(svgTag) {
+            return new Promise(resolve => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.src = 'data:image/svg+xml;base64,' + btoa(svgTag);
+            });
         }
 
         function reset() {
@@ -175,42 +232,71 @@
             bottleLabel.classList.add('opacity-40');
         }
 
-        function clearAll() { scribe.value = ''; reset(); document.getElementById('count').textContent = '0'; }
+        function clearAll() { scribe.value = ''; reset(); updateCountDisplay(0); }
 
         async function handleAction(type) {
+            if (fleetMode) { await handleFleetAction(type); return; }
+
             const svg = target.querySelector('svg');
             const canvas = document.createElement('canvas');
             canvas.width = 600; canvas.height = 800;
             const ctx = canvas.getContext('2d');
-            
+
             ctx.fillStyle = '#f4ece1'; ctx.fillRect(0,0,600,800);
             ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 15; ctx.strokeRect(20,20,560,760);
             ctx.fillStyle = '#2d241e'; ctx.font = 'bold 36px Cinzel'; ctx.textAlign = 'center';
             ctx.fillText('MESSAGE IN A BOTTLE', 300, 100);
-            
+
             const svgData = new XMLSerializer().serializeToString(svg);
             const img = new Image();
             img.onload = async () => {
                 ctx.drawImage(img, 100, 180, 400, 400);
                 canvas.toBlob(async (blob) => {
-                    if (type === 'send') {
-                        if (navigator.share) {
-                            const file = new File([blob], 'bottle.png', { type: 'image/png' });
-                            await navigator.share({ files: [file], title: 'Secret Bottle' });
-                        } else {
-                            const item = new ClipboardItem({ "image/png": blob });
-                            navigator.clipboard.write([item]);
-                            alert("Bottle copied to clipboard!");
-                        }
-                    } else if (type === 'save') {
-                        const link = document.createElement('a');
-                        link.download = `secret_bottle_${Date.now()}.png`;
-                        link.href = URL.createObjectURL(blob);
-                        link.click();
-                    }
+                    await shareOrSave(blob, 'bottle.png', 'secret_bottle', type);
                 });
             };
             img.src = 'data:image/svg+xml;base64,' + btoa(svgData);
+        }
+
+        async function handleFleetAction(type) {
+            const chunks = chunkText(scribe.value);
+            const QR_PX = 600;
+            const canvas = document.createElement('canvas');
+            canvas.width = QR_PX;
+            canvas.height = QR_PX * chunks.length;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < chunks.length; i++) {
+                const qr = qrcode(0, 'Q');
+                qr.addData(chunks[i]);
+                qr.make();
+                const img = await svgTagToImage(qr.createSvgTag(1, 0));
+                ctx.drawImage(img, 0, i * QR_PX, QR_PX, QR_PX);
+            }
+
+            canvas.toBlob(async (blob) => {
+                await shareOrSave(blob, 'fleet.png', 'fleet_tape', type);
+            });
+        }
+
+        async function shareOrSave(blob, shareFilename, savePrefix, type) {
+            if (type === 'send') {
+                if (navigator.share) {
+                    const file = new File([blob], shareFilename, { type: 'image/png' });
+                    await navigator.share({ files: [file], title: 'Secret Bottle' });
+                } else {
+                    const item = new ClipboardItem({ "image/png": blob });
+                    navigator.clipboard.write([item]);
+                    alert("Copied to clipboard!");
+                }
+            } else {
+                const link = document.createElement('a');
+                link.download = `${savePrefix}_${Date.now()}.png`;
+                link.href = URL.createObjectURL(blob);
+                link.click();
+            }
         }
 
         // SCANNING LOGIC
@@ -222,7 +308,6 @@
             const w = Math.round(img.width * scale);
             const h = Math.round(img.height * scale);
 
-            // Camera photos often have EXIF rotation that canvas ignores — try all 4 orientations
             for (const deg of [0, 90, 180, 270]) {
                 const swap = deg === 90 || deg === 270;
                 canvas.width  = swap ? h : w;
@@ -238,13 +323,33 @@
             return null;
         }
 
+        function scanTickerTape(img) {
+            // Ticker tapes are square-block stacks: each block = image width tall
+            const blockSize = img.width;
+            const numBlocks = Math.round(img.height / blockSize);
+            const canvas = document.createElement('canvas');
+            canvas.width = blockSize; canvas.height = blockSize;
+            const ctx = canvas.getContext('2d');
+            const results = [];
+
+            for (let i = 0; i < numBlocks; i++) {
+                ctx.clearRect(0, 0, blockSize, blockSize);
+                ctx.drawImage(img, 0, i * blockSize, blockSize, blockSize, 0, 0, blockSize, blockSize);
+                const code = jsQR(ctx.getImageData(0, 0, blockSize, blockSize).data, blockSize, blockSize);
+                if (code) results.push(code.data);
+            }
+            return results.length ? results.join('') : null;
+        }
+
         function loadFromFile(e) {
             const file = e.target.files[0];
+            // reset so the same file can be picked again
+            e.target.value = '';
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image();
                 img.onload = () => {
-                    const result = scanImageForQR(img);
+                    const result = fleetMode ? scanTickerTape(img) : scanImageForQR(img);
                     if (result) showReveal(result); else alert("No secret found.");
                 };
                 img.src = event.target.result;
@@ -262,13 +367,9 @@
                         const url = URL.createObjectURL(blob);
                         const img = new Image();
                         img.onload = () => {
-                            const canvas = document.createElement('canvas');
-                            canvas.width = img.width; canvas.height = img.height;
-                            const ctx = canvas.getContext('2d');
-                            ctx.drawImage(img, 0, 0);
-                            const code = jsQR(ctx.getImageData(0, 0, canvas.width, canvas.height).data, img.width, img.height);
+                            const result = fleetMode ? scanTickerTape(img) : scanImageForQR(img);
                             URL.revokeObjectURL(url);
-                            if (code) showReveal(code.data);
+                            if (result) showReveal(result);
                             else alert("No secret found in clipboard image.");
                         };
                         img.src = url;
