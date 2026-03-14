@@ -11,7 +11,7 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Quicksand:wght@300;500&family=Dancing+Script:wght@600&display=swap');
         :root { --gold: #d4af37; --sea-deep: #020617; --parchment: #f4ece1; }
-        body { background-color: var(--sea-deep); color: white; font-family: 'Quicksand', sans-serif; overflow: hidden; min-height: 100vh; }
+        body { background-color: var(--sea-deep); color: white; font-family: 'Quicksand', sans-serif; overflow-x: hidden; min-height: 100vh; }
         .cinzel { font-family: 'Cinzel', serif; }
         .script { font-family: 'Dancing Script', cursive; }
 
@@ -19,6 +19,10 @@
         .wave { background: url(https://s3-us-west-2.amazonaws.com/s.cdpn.io/85486/wave.svg) repeat-x; position: absolute; top: -198px; width: 6400px; height: 198px; animation: wave 15s linear infinite; }
         @keyframes wave { 0% { margin-left: 0; } 100% { margin-left: -1600px; } }
 
+        @media (max-width: 1024px) {
+            .bottle-frame { width: 180px !important; height: 300px !important; border-radius: 90px 90px 30px 30px !important; }
+            .qr-area { width: 140px !important; height: 140px !important; }
+        }
         .bottle-frame {
             position: relative; width: 260px; height: 420px;
             background: rgba(255, 255, 255, 0.05); border-radius: 130px 130px 40px 40px;
@@ -46,13 +50,13 @@
 
     <div class="max-w-7xl mx-auto relative z-10">
         <header class="text-center mb-8">
-            <h1 class="cinzel text-4xl text-gold tracking-widest mb-1">MESSAGE IN A BOTTLE</h1>
+            <h1 class="cinzel text-2xl md:text-4xl text-gold tracking-widest mb-1">MESSAGE IN A BOTTLE</h1>
             <p id="status" class="text-gray-500 text-[10px] tracking-[0.4em] uppercase">Vessel Status: Waiting</p>
         </header>
 
         <div class="grid lg:grid-cols-3 gap-6">
-            
-            <section class="glass-ui p-6 rounded-3xl flex flex-col space-y-6">
+
+            <section class="glass-ui p-6 rounded-3xl flex flex-col space-y-6 order-3 lg:order-1">
                 <div>
                     <h2 class="cinzel text-xs text-gold mb-4 uppercase tracking-widest">Scanner</h2>
                     <div class="grid grid-cols-1 gap-2">
@@ -74,20 +78,20 @@
                 </div>
             </section>
 
-            <section class="glass-ui p-6 rounded-3xl flex flex-col shadow-2xl space-y-4">
+            <section class="glass-ui p-6 rounded-3xl flex flex-col shadow-2xl space-y-4 order-1 lg:order-2">
                 <div class="flex justify-between items-center">
                     <h2 class="cinzel text-lg text-gold uppercase tracking-wider">The Scribe</h2>
                     <div class="text-[10px] text-gray-500 font-mono tracking-widest"><span id="count">0</span> / 1200</div>
                 </div>
                 <textarea id="scribe-input" placeholder="Type your secret... it updates live." 
-                    class="flex-1 min-h-[400px] bg-black/40 border border-white/10 rounded-2xl p-6 text-sm text-white focus:outline-none focus:border-gold transition-all resize-none"
+                    class="flex-1 min-h-[180px] lg:min-h-[400px] bg-black/40 border border-white/10 rounded-2xl p-4 lg:p-6 text-sm text-white focus:outline-none focus:border-gold transition-all resize-none"
                     maxlength="1200"></textarea>
                 <div class="flex justify-end">
                     <button onclick="clearAll()" class="text-[9px] uppercase tracking-widest text-gray-600 hover:text-red-400">Scuttle Ship</button>
                 </div>
             </section>
 
-            <section class="flex flex-col items-center justify-start py-6">
+            <section class="flex flex-col items-center justify-start py-6 order-2 lg:order-3">
                 <div class="bottle-frame">
                     <div class="absolute top-[-35px] w-[50px] h-[50px] border-2 border-white/10 border-b-0 rounded-t-lg"></div>
                     <div id="qr-target" class="qr-area opacity-10">
@@ -229,7 +233,30 @@
         }
 
         async function scanClipboard() {
-            try { const t = await navigator.clipboard.readText(); if(t) showReveal(t); } catch(e){}
+            try {
+                const items = await navigator.clipboard.read();
+                for (const item of items) {
+                    const imageType = item.types.find(t => t.startsWith('image/'));
+                    if (imageType) {
+                        const blob = await item.getType(imageType);
+                        const url = URL.createObjectURL(blob);
+                        const img = new Image();
+                        img.onload = () => {
+                            const canvas = document.createElement('canvas');
+                            canvas.width = img.width; canvas.height = img.height;
+                            const ctx = canvas.getContext('2d');
+                            ctx.drawImage(img, 0, 0);
+                            const code = jsQR(ctx.getImageData(0, 0, canvas.width, canvas.height).data, img.width, img.height);
+                            URL.revokeObjectURL(url);
+                            if (code) showReveal(code.data);
+                            else alert("No secret found in clipboard image.");
+                        };
+                        img.src = url;
+                        return;
+                    }
+                }
+                alert("No image found in clipboard.");
+            } catch(e) { alert("Could not read clipboard image."); }
         }
 
         function showReveal(text) {
