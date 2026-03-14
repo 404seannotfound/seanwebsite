@@ -214,18 +214,38 @@
         }
 
         // SCANNING LOGIC
+        function scanImageForQR(img) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const MAX = 1024;
+            const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+            const w = Math.round(img.width * scale);
+            const h = Math.round(img.height * scale);
+
+            // Camera photos often have EXIF rotation that canvas ignores — try all 4 orientations
+            for (const deg of [0, 90, 180, 270]) {
+                const swap = deg === 90 || deg === 270;
+                canvas.width  = swap ? h : w;
+                canvas.height = swap ? w : h;
+                ctx.save();
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(deg * Math.PI / 180);
+                ctx.drawImage(img, -w / 2, -h / 2, w, h);
+                ctx.restore();
+                const code = jsQR(ctx.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
+                if (code) return code.data;
+            }
+            return null;
+        }
+
         function loadFromFile(e) {
             const file = e.target.files[0];
             const reader = new FileReader();
             reader.onload = (event) => {
                 const img = new Image();
                 img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width = img.width; canvas.height = img.height;
-                    const ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0);
-                    const code = jsQR(ctx.getImageData(0,0,canvas.width,canvas.height).data, img.width, img.height);
-                    if (code) showReveal(code.data); else alert("No secret found.");
+                    const result = scanImageForQR(img);
+                    if (result) showReveal(result); else alert("No secret found.");
                 };
                 img.src = event.target.result;
             };
