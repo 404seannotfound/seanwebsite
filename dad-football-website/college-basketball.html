@@ -3,16 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NFL Live Game Tracker</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>College Basketball Live Tracker</title>
+    <link rel="stylesheet" href="college-basketball-styles.css">
 </head>
 <body>
     <nav class="sport-nav">
-        <a href="index.html" class="nav-link active">🏈 NFL</a>
+        <a href="index.html" class="nav-link">🏈 NFL</a>
         <a href="nba.html" class="nav-link">🏀 NBA</a>
         <a href="nhl.html" class="nav-link">🏒 NHL</a>
         <a href="college.html" class="nav-link">🎓 CFB</a>
-        <a href="college-basketball.html" class="nav-link">🏀 CBB</a>
+        <a href="college-basketball.html" class="nav-link active">🏀 CBB</a>
         <a href="nascar.html" class="nav-link">🏎️ NASCAR</a>
         <a href="mma.html" class="nav-link">🥊 MMA</a>
     </nav>
@@ -21,41 +21,38 @@
         <div id="selection-screen" class="screen active">
             <header>
                 <div class="header-glow"></div>
-                <h1>🏈 NFL Live Game Tracker</h1>
-                <p class="subtitle">Select games to watch live</p>
-                <p class="hint">💡 Tip: Double-click any game to view it instantly!</p>
+                <h1>🏀 College Basketball Live Tracker</h1>
+                <p class="subtitle">Select games to watch live — March Madness Edition</p>
+                <p class="hint">💡 Tip: Double-click any game to view it instantly! Scroll down for the NCAA Bracket 👇</p>
             </header>
-            
             <div id="loading" class="loading">
                 <div class="spinner"></div>
-                <p>Loading live games...</p>
+                <p>Loading live college basketball games...</p>
             </div>
-            
             <div id="game-list" class="game-list"></div>
-            
             <div id="no-games" class="no-games" style="display: none;">
-                <p>No live games at the moment. Check back during game day!</p>
+                <p>No live games right now. Scroll down for the NCAA Tournament Bracket!</p>
             </div>
-            
             <button id="watch-btn" class="watch-btn" style="display: none;">
                 Watch Selected Games
             </button>
-            
-            <!-- Standings and Details Section -->
+            <!-- Rankings, Standings, and Bracket Section -->
             <div id="standings-details" class="standings-details-section"></div>
         </div>
-        
         <!-- Live View Screen -->
         <div id="live-screen" class="screen">
             <header class="live-header">
-                <h1>🏈 NFL Live</h1>
+                <h1>🏀 CBB Live</h1>
                 <button id="back-btn" class="back-btn">← Back to Selection</button>
             </header>
-            
             <div id="game-panels" class="game-panels"></div>
         </div>
     </div>
-    
-    <script src="app.js"></script>
+    <script>
+        const timestamp = new Date().getTime();
+        const script = document.createElement('script');
+        script.src = 'college-basketball-app.js?t=' + timestamp;
+        document.body.appendChild(script);
+    </script>
 </body>
 </html>
