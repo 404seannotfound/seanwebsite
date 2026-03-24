@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conduct Committee — Incident Scoring Rubric</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#222;padding:24px;max-width:1400px;margin:0 auto}
+h1{font-size:24px;font-weight:600;color:#2C3E50;margin-bottom:4px}
+.subtitle{font-size:14px;color:#777;margin-bottom:20px}
+.header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+button.reset{font-size:13px;padding:6px 16px;border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer;color:#555}
+button.reset:hover{background:#eee}
+.category{margin-bottom:24px}
+.cat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.cat-label{font-size:15px;font-weight:600;color:#2C3E50}
+.cat-score{font-size:13px;font-weight:600;padding:2px 10px;border-radius:12px;display:none}
+.options{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+@media(max-width:900px){.options{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:500px){.options{grid-template-columns:repeat(2,1fr)}}
+.opt{text-align:left;cursor:pointer;padding:10px;border-radius:8px;border:2px solid #e0e0e0;background:#fff;font-size:12.5px;line-height:1.4;color:#333;transition:all .15s ease;position:relative}
+.opt:hover{border-color:#aaa}
+.opt .score-num{display:block;font-weight:700;font-size:12px;color:#999;margin-bottom:3px}
+.opt.selected{border-width:2px}
+.s0{border-color:#A5D6A7;background:#E8F5E9}.s0 .score-num{color:#2E7D32}
+.s1{border-color:#C5E1A5;background:#F1F8E9}.s1 .score-num{color:#558B2F}
+.s2{border-color:#FFE082;background:#FFF8E1}.s2 .score-num{color:#F57F17}
+.s3{border-color:#FFCC80;background:#FFF3E0}.s3 .score-num{color:#E65100}
+.s4{border-color:#EF9A9A;background:#FFEBEE}.s4 .score-num{color:#C62828}
+.s5{border-color:#E57373;background:#FFCDD2}.s5 .score-num{color:#B71C1C}
+.tally{position:sticky;bottom:0;background:#f5f5f5;border-top:1px solid #ddd;padding:16px 0 8px;margin-top:16px}
+.tally-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-radius:12px;border:1px solid #ddd;background:#fff;transition:all .3s ease}
+.total-num{font-size:32px;font-weight:700;color:#2C3E50}
+.total-denom{font-size:14px;color:#999;font-weight:400}
+.total-label{font-size:12px;color:#999;text-transform:uppercase;letter-spacing:1px}
+.tier-box{text-align:right}
+.tier-name{font-size:20px;font-weight:700}
+.tier-response{font-size:13px;color:#555;max-width:420px;line-height:1.4;margin-top:4px}
+.remaining{font-size:13px;color:#999}
+.breakdown{display:flex;gap:12px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.breakdown .pip{font-size:12px;padding:2px 8px;border-radius:10px;background:#eee;color:#666}
+.pip.scored{font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="header-row">
+  <div>
+    <h1>Conduct committee — incident scoring rubric</h1>
+    <div class="subtitle">Select one score per category (0–5). Total updates live below.</div>
+  </div>
+  <button class="reset" onclick="resetAll()">Reset</button>
+</div>
+
+<div id="categories"></div>
+
+<div class="tally">
+  <div class="tally-inner" id="tallyBar">
+    <div>
+      <div class="total-label">Total</div>
+      <div><span class="total-num" id="totalNum">0</span><span class="total-denom"> / 30</span></div>
+    </div>
+    <div class="tier-box" id="tierBox">
+      <span class="remaining" id="remaining">6 categories remaining</span>
+    </div>
+  </div>
+  <div class="breakdown" id="breakdown"></div>
+</div>
+
+<script>
+const cats = [
+  { label:"Consent", d:[
+    "Consent sought and respected. No issue.",
+    "Minor misunderstanding, quickly clarified.",
+    "Didn\u2019t check clearly but no harm resulted.",
+    "Pressured; stopped only when confronted.",
+    "Ignored explicit \u201Cno\u201D or proceeded without asking.",
+    "Coerced participation, violated consent repeatedly."
+  ]},
+  { label:"Harm / Impact", d:[
+    "No harm occurred.",
+    "Brief awkwardness, no lasting effect.",
+    "Emotional discomfort requiring check-in.",
+    "Social harm or minor physical harm.",
+    "Significant emotional or physical harm.",
+    "Serious trauma, injury, or major community disruption."
+  ]},
+  { label:"Power dynamics", d:[
+    "Equal peers. No power gap.",
+    "Slight social imbalance (known vs. newcomer).",
+    "Role imbalance (organizer/attendee, age gap).",
+    "Direct authority (lead/volunteer, mentor/mentee).",
+    "Authority plus situational vulnerability (intoxication, isolation).",
+    "Extreme imbalance: authority over incapacitated person."
+  ]},
+  { label:"Accountability", d:[
+    "Immediate acknowledgment, genuine repair.",
+    "Acknowledged with minor defensiveness.",
+    "Partial acknowledgment, excuses offered.",
+    "Deflection, minimizing, reluctant engagement.",
+    "Denial or blame-shifting.",
+    "Retaliation, intimidation, refusal to engage."
+  ]},
+  { label:"Intent", d:[
+    "Accidental, no foreseeable harm.",
+    "Ignorant but should have known better.",
+    "Careless disregard for foreseeable impact.",
+    "Reckless: aware of risk, proceeded anyway.",
+    "Deliberate targeting or malicious action.",
+    "Predatory, premeditated, or calculated harm."
+  ]},
+  { label:"Pattern", d:[
+    "Isolated, first-time, uncharacteristic.",
+    "Prior informal feedback on related behavior.",
+    "Repeated despite verbal warnings.",
+    "Documented prior incidents.",
+    "Escalating pattern across events or contexts.",
+    "Ongoing predatory behavior, multiple targets."
+  ]}
+];
+
+const tiers = [
+  { max:5, label:"Minimal", color:"#E8F5E9", tc:"#2E7D32", resp:"Check-in conversation. No formal action unless pattern emerges." },
+  { max:10, label:"Low", color:"#F1F8E9", tc:"#558B2F", resp:"Verbal warning, education, self-correction acknowledged. Informal record." },
+  { max:15, label:"Moderate", color:"#FFF8E1", tc:"#F57F17", resp:"Formal warning, mediated conversation, required training or restorative process. Documented." },
+  { max:20, label:"Elevated", color:"#FFF3E0", tc:"#E65100", resp:"Restricted access, temporary suspension from roles or spaces. Review before reinstatement." },
+  { max:25, label:"High", color:"#FFEBEE", tc:"#C62828", resp:"Removal from event. Ban consideration. Documented for cross-event sharing." },
+  { max:30, label:"Severe", color:"#FFCDD2", tc:"#B71C1C", resp:"Immediate removal and ban. Referral to external authorities if warranted." }
+];
+
+const scores = {};
+const container = document.getElementById("categories");
+
+cats.forEach((cat, ci) => {
+  const div = document.createElement("div");
+  div.className = "category";
+  div.innerHTML = `<div class="cat-header"><span class="cat-label">${cat.label}</span><span class="cat-score" id="cs${ci}"></span></div><div class="options" id="opts${ci}"></div>`;
+  container.appendChild(div);
+  const grid = document.getElementById("opts"+ci);
+  cat.d.forEach((desc, si) => {
+    const btn = document.createElement("div");
+    btn.className = "opt";
+    btn.innerHTML = `<span class="score-num">${si}</span>${desc}`;
+    btn.onclick = () => pick(ci, si);
+    btn.id = `o${ci}_${si}`;
+    grid.appendChild(btn);
+  });
+});
+
+function pick(ci, si) {
+  if (scores[ci] === si) {
+    delete scores[ci];
+  } else {
+    scores[ci] = si;
+  }
+  renderCat(ci);
+  renderTally();
+}
+
+function renderCat(ci) {
+  for (let s = 0; s < 6; s++) {
+    const el = document.getElementById(`o${ci}_${s}`);
+    el.className = scores[ci] === s ? `opt selected s${s}` : "opt";
+  }
+  const badge = document.getElementById("cs"+ci);
+  if (scores[ci] !== undefined) {
+    badge.style.display = "inline-block";
+    badge.textContent = scores[ci];
+    const colors = ["#E8F5E9","#F1F8E9","#FFF8E1","#FFF3E0","#FFEBEE","#FFCDD2"];
+    badge.style.background = colors[scores[ci]];
+    badge.style.color = "#333";
+  } else {
+    badge.style.display = "none";
+  }
+}
+
+function renderTally() {
+  const total = Object.values(scores).reduce((a,b) => a+b, 0);
+  const count = Object.keys(scores).length;
+  document.getElementById("totalNum").textContent = total;
+  const bar = document.getElementById("tallyBar");
+  const tierBox = document.getElementById("tierBox");
+
+  if (count === 6) {
+    const tier = tiers.find(t => total <= t.max);
+    bar.style.background = tier.color;
+    bar.style.borderColor = tier.tc+"33";
+    tierBox.innerHTML = `<div class="tier-name" style="color:${tier.tc}">${tier.label}</div><div class="tier-response">${tier.resp}</div>`;
+  } else {
+    bar.style.background = "#fff";
+    bar.style.borderColor = "#ddd";
+    tierBox.innerHTML = `<span class="remaining">${6-count} categor${6-count===1?"y":"ies"} remaining</span>`;
+  }
+
+  const bd = document.getElementById("breakdown");
+  bd.innerHTML = "";
+  cats.forEach((cat, ci) => {
+    const pip = document.createElement("span");
+    pip.className = "pip" + (scores[ci] !== undefined ? " scored" : "");
+    if (scores[ci] !== undefined) {
+      const colors = ["#E8F5E9","#F1F8E9","#FFF8E1","#FFF3E0","#FFEBEE","#FFCDD2"];
+      pip.style.background = colors[scores[ci]];
+      pip.style.color = "#333";
+    }
+    pip.textContent = cat.label + (scores[ci] !== undefined ? ": "+scores[ci] : ": —");
+    bd.appendChild(pip);
+  });
+}
+
+function resetAll() {
+  Object.keys(scores).forEach(k => delete scores[k]);
+  cats.forEach((_, ci) => renderCat(ci));
+  renderTally();
+}
+
+renderTally();
+</script>
+</body>
+</html>
