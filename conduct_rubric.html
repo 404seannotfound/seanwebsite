@@ -7,40 +7,57 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f5;color:#222;padding:24px;max-width:1400px;margin:0 auto}
-h1{font-size:24px;font-weight:600;color:#2C3E50;margin-bottom:4px}
-.subtitle{font-size:14px;color:#777;margin-bottom:20px}
-.header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
+h1{font-size:22px;font-weight:600;color:#2C3E50;margin-bottom:4px}
+.sub{font-size:13px;color:#777;margin-bottom:24px}
+.header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
 button.reset{font-size:13px;padding:6px 16px;border:1px solid #ccc;background:#fff;border-radius:6px;cursor:pointer;color:#555}
 button.reset:hover{background:#eee}
-.category{margin-bottom:24px}
-.cat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
-.cat-label{font-size:15px;font-weight:600;color:#2C3E50}
-.cat-score{font-size:13px;font-weight:600;padding:2px 10px;border-radius:12px;display:none}
-.options{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
-@media(max-width:900px){.options{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:500px){.options{grid-template-columns:repeat(2,1fr)}}
-.opt{text-align:left;cursor:pointer;padding:10px;border-radius:8px;border:2px solid #e0e0e0;background:#fff;font-size:12.5px;line-height:1.4;color:#333;transition:all .15s ease;position:relative}
+
+.section-title{font-weight:700;color:#2C3E50;margin:28px 0 6px;text-transform:uppercase;letter-spacing:1px;font-size:12px}
+.section-desc{font-size:13px;color:#888;margin-bottom:14px;line-height:1.5}
+
+.flags{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.flag{display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:8px;border:2px solid #e0e0e0;background:#fff;cursor:pointer;font-size:13px;color:#333;transition:all .15s;user-select:none}
+.flag:hover{border-color:#bbb}
+.flag.checked{border-color:#C62828;background:#FFEBEE;color:#B71C1C}
+.flag .box{width:18px;height:18px;border-radius:4px;border:2px solid #ccc;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:transparent;transition:all .15s;flex-shrink:0}
+.flag.checked .box{border-color:#C62828;background:#C62828;color:#fff}
+.flag-count{font-size:13px;color:#999;margin-top:4px;margin-bottom:16px;min-height:18px}
+.flag-count.active{color:#C62828;font-weight:600}
+
+.category{margin-bottom:20px}
+.cat-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.cat-label{font-size:14px;font-weight:600;color:#2C3E50}
+.cat-badge{font-size:12px;font-weight:600;padding:2px 10px;border-radius:12px;display:none}
+.options{display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
+@media(max-width:1000px){.options{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:600px){.options{grid-template-columns:repeat(2,1fr)}}
+.opt{text-align:left;cursor:pointer;padding:9px;border-radius:8px;border:2px solid #e0e0e0;background:#fff;font-size:12px;line-height:1.35;color:#333;transition:all .15s}
 .opt:hover{border-color:#aaa}
-.opt .score-num{display:block;font-weight:700;font-size:12px;color:#999;margin-bottom:3px}
-.opt.selected{border-width:2px}
-.s0{border-color:#A5D6A7;background:#E8F5E9}.s0 .score-num{color:#2E7D32}
-.s1{border-color:#C5E1A5;background:#F1F8E9}.s1 .score-num{color:#558B2F}
-.s2{border-color:#FFE082;background:#FFF8E1}.s2 .score-num{color:#F57F17}
-.s3{border-color:#FFCC80;background:#FFF3E0}.s3 .score-num{color:#E65100}
-.s4{border-color:#EF9A9A;background:#FFEBEE}.s4 .score-num{color:#C62828}
-.s5{border-color:#E57373;background:#FFCDD2}.s5 .score-num{color:#B71C1C}
-.tally{position:sticky;bottom:0;background:#f5f5f5;border-top:1px solid #ddd;padding:16px 0 8px;margin-top:16px}
-.tally-inner{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-radius:12px;border:1px solid #ddd;background:#fff;transition:all .3s ease}
-.total-num{font-size:32px;font-weight:700;color:#2C3E50}
-.total-denom{font-size:14px;color:#999;font-weight:400}
-.total-label{font-size:12px;color:#999;text-transform:uppercase;letter-spacing:1px}
-.tier-box{text-align:right}
-.tier-name{font-size:20px;font-weight:700}
-.tier-response{font-size:13px;color:#555;max-width:420px;line-height:1.4;margin-top:4px}
+.opt .sn{display:block;font-weight:700;font-size:11px;color:#999;margin-bottom:2px}
+.opt.sel0{border-color:#A5D6A7;background:#E8F5E9}.opt.sel0 .sn{color:#2E7D32}
+.opt.sel1{border-color:#C5E1A5;background:#F1F8E9}.opt.sel1 .sn{color:#558B2F}
+.opt.sel2{border-color:#FFE082;background:#FFF8E1}.opt.sel2 .sn{color:#F57F17}
+.opt.sel3{border-color:#FFCC80;background:#FFF3E0}.opt.sel3 .sn{color:#E65100}
+.opt.sel4{border-color:#EF9A9A;background:#FFEBEE}.opt.sel4 .sn{color:#C62828}
+.opt.sel5{border-color:#E57373;background:#FFCDD2}.opt.sel5 .sn{color:#B71C1C}
+
+.tally{position:sticky;bottom:0;background:#f5f5f5;border-top:1px solid #ddd;padding:14px 0 8px;margin-top:24px}
+.tally-inner{padding:16px 20px;border-radius:12px;border:1px solid #ddd;background:#fff;transition:all .3s}
+.tally-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.total-label{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:1px}
+.total-num{font-size:30px;font-weight:700;color:#2C3E50}
+.total-denom{font-size:13px;color:#999;font-weight:400}
+.tier-block{text-align:right}
+.tier-name{font-size:18px;font-weight:700}
+.tier-response{font-size:12.5px;color:#555;max-width:420px;line-height:1.4;margin-top:2px}
 .remaining{font-size:13px;color:#999}
-.breakdown{display:flex;gap:12px;align-items:center;margin-top:8px;flex-wrap:wrap}
-.breakdown .pip{font-size:12px;padding:2px 8px;border-radius:10px;background:#eee;color:#666}
-.pip.scored{font-weight:600}
+.escalation-note{font-size:12px;margin-top:10px;padding:8px 12px;border-radius:6px;background:#FFEBEE;color:#B71C1C;display:none;line-height:1.5}
+.pips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.pip{font-size:11px;padding:3px 8px;border-radius:10px;background:#eee;color:#888}
+.pip.has{font-weight:600;color:#333}
+.pip.high{background:#FFEBEE;color:#C62828}
+.pip.max{background:#FFCDD2;color:#B71C1C}
 </style>
 </head>
 <body>
@@ -48,173 +65,302 @@ button.reset:hover{background:#eee}
 <div class="header-row">
   <div>
     <h1>Conduct committee — incident scoring rubric</h1>
-    <div class="subtitle">Select one score per category (0–5). Total updates live below.</div>
+    <div class="sub">Section 1: boolean escalators override everything. Section 2: scored factors (0–5), with severity overrides for high scores.</div>
   </div>
   <button class="reset" onclick="resetAll()">Reset</button>
 </div>
 
-<div id="categories"></div>
+<div class="section-title">Section 1 — Automatic escalators</div>
+<div class="section-desc">Any one checked = minimum Elevated response. Two or more = Severe. These override the scored total.</div>
+<div class="flags" id="flagBox"></div>
+<div class="flag-count" id="flagCount"></div>
+
+<div class="section-title">Section 2 — Scored factors</div>
+<div class="section-desc">One score per factor (0–5). Any single factor at 5 = minimum Elevated. Any factor at 4 = minimum Moderate. Two or more at 4+ = minimum Elevated.</div>
+<div id="catBox"></div>
 
 <div class="tally">
   <div class="tally-inner" id="tallyBar">
-    <div>
-      <div class="total-label">Total</div>
-      <div><span class="total-num" id="totalNum">0</span><span class="total-denom"> / 30</span></div>
+    <div class="tally-top">
+      <div>
+        <div class="total-label">Scored total</div>
+        <div><span class="total-num" id="totalNum">0</span><span class="total-denom"> / 50</span></div>
+      </div>
+      <div class="tier-block" id="tierBlock">
+        <span class="remaining" id="remaining">10 factors remaining</span>
+      </div>
     </div>
-    <div class="tier-box" id="tierBox">
-      <span class="remaining" id="remaining">6 categories remaining</span>
-    </div>
+    <div class="escalation-note" id="escNote"></div>
+    <div class="pips" id="pips"></div>
   </div>
-  <div class="breakdown" id="breakdown"></div>
 </div>
 
 <script>
-const cats = [
+var flagDefs = [
+  "Non-consensual sexual contact",
+  "Physical violence causing injury",
+  "Target was a minor",
+  "Target was incapacitated or unable to consent",
+  "Predatory or premeditated behavior",
+  "Weapons present or threatened",
+  "Retaliation against reporting party",
+  "Prior ban or removal from another event"
+];
+
+var catDefs = [
   { label:"Consent", d:[
-    "Consent sought and respected. No issue.",
-    "Minor misunderstanding, quickly clarified.",
-    "Didn\u2019t check clearly but no harm resulted.",
-    "Pressured; stopped only when confronted.",
-    "Ignored explicit \u201Cno\u201D or proceeded without asking.",
-    "Coerced participation, violated consent repeatedly."
+    "Sought and respected \u2014 no issue",
+    "Minor misunderstanding, quickly clarified",
+    "Not clearly established but no harm resulted",
+    "Ignored a stated boundary",
+    "Proceeded without asking despite opportunity to",
+    "Coerced or forced participation"
   ]},
-  { label:"Harm / Impact", d:[
-    "No harm occurred.",
-    "Brief awkwardness, no lasting effect.",
-    "Emotional discomfort requiring check-in.",
-    "Social harm or minor physical harm.",
-    "Significant emotional or physical harm.",
-    "Serious trauma, injury, or major community disruption."
+  { label:"Physical harm", d:[
+    "None",
+    "Trivial (bumped, jostled, no mark)",
+    "Minor (bruise, scrape, no aid needed)",
+    "Moderate (first aid required on-site)",
+    "Significant (medical attention needed)",
+    "Serious injury (hospitalization, lasting damage)"
   ]},
-  { label:"Power dynamics", d:[
-    "Equal peers. No power gap.",
-    "Slight social imbalance (known vs. newcomer).",
-    "Role imbalance (organizer/attendee, age gap).",
-    "Direct authority (lead/volunteer, mentor/mentee).",
-    "Authority plus situational vulnerability (intoxication, isolation).",
-    "Extreme imbalance: authority over incapacitated person."
+  { label:"Emotional / psychological harm", d:[
+    "None",
+    "Momentary discomfort, self-resolved",
+    "Brief distress, resolved with on-site support",
+    "Significant distress lasting beyond event",
+    "Severe emotional harm, daily functioning affected",
+    "Trauma likely requiring professional intervention"
+  ]},
+  { label:"Community impact", d:[
+    "Contained \u2014 no disruption",
+    "One or two bystanders aware",
+    "Small group affected or unsettled",
+    "Wider community disrupted or divided",
+    "Event-level disruption or safety concern",
+    "Organizational reputation or viability threatened"
+  ]},
+  { label:"Structural power gap", d:[
+    "Peers \u2014 no meaningful gap",
+    "Minor social advantage (experience, connections)",
+    "Moderate social leverage (popularity, tenure)",
+    "Role-based authority (organizer, lead, mentor)",
+    "Direct supervisory or gatekeeping authority",
+    "Institutional authority with control over access or standing"
+  ]},
+  { label:"Situational vulnerability", d:[
+    "Both parties fully capable and aware",
+    "Target slightly unfamiliar with norms or context",
+    "Target mildly impaired or socially isolated at event",
+    "Target significantly impaired or in an isolated setting",
+    "Target unable to effectively resist or leave",
+    "Target incapacitated \u2014 no capacity to consent or protect self"
   ]},
   { label:"Accountability", d:[
-    "Immediate acknowledgment, genuine repair.",
-    "Acknowledged with minor defensiveness.",
-    "Partial acknowledgment, excuses offered.",
-    "Deflection, minimizing, reluctant engagement.",
-    "Denial or blame-shifting.",
-    "Retaliation, intimidation, refusal to engage."
+    "Full ownership, genuine and immediate repair effort",
+    "Quick acknowledgment with minor defensiveness",
+    "Acknowledged but offered excuses or minimized",
+    "Deflection \u2014 shifted focus, engaged reluctantly",
+    "Denied responsibility or blamed target",
+    "Retaliated, intimidated, or refused all engagement"
   ]},
   { label:"Intent", d:[
-    "Accidental, no foreseeable harm.",
-    "Ignorant but should have known better.",
-    "Careless disregard for foreseeable impact.",
-    "Reckless: aware of risk, proceeded anyway.",
-    "Deliberate targeting or malicious action.",
-    "Predatory, premeditated, or calculated harm."
+    "Genuine accident, unforeseeable outcome",
+    "Thoughtless but no malice \u2014 should have paused",
+    "Careless disregard for known norms or risks",
+    "Reckless \u2014 aware of risk, chose to proceed",
+    "Deliberate targeting or malicious action",
+    "Premeditated, calculated, or predatory"
   ]},
-  { label:"Pattern", d:[
-    "Isolated, first-time, uncharacteristic.",
-    "Prior informal feedback on related behavior.",
-    "Repeated despite verbal warnings.",
-    "Documented prior incidents.",
-    "Escalating pattern across events or contexts.",
-    "Ongoing predatory behavior, multiple targets."
+  { label:"Prior history", d:[
+    "No prior incidents known",
+    "Vague or unconfirmed prior concerns",
+    "Informal feedback given previously on related behavior",
+    "Prior formal warning on record",
+    "Multiple documented incidents",
+    "Documented pattern across events or contexts"
+  ]},
+  { label:"Post-incident behavior", d:[
+    "Fully cooperative, respectful of process",
+    "Cooperative but anxious or uncertain",
+    "Reluctant, needed prompting to engage",
+    "Obstructive, evasive, or manipulative",
+    "Attempted to intimidate witnesses or target",
+    "Threatened, retaliated, or fled accountability"
   ]}
 ];
 
-const tiers = [
-  { max:5, label:"Minimal", color:"#E8F5E9", tc:"#2E7D32", resp:"Check-in conversation. No formal action unless pattern emerges." },
-  { max:10, label:"Low", color:"#F1F8E9", tc:"#558B2F", resp:"Verbal warning, education, self-correction acknowledged. Informal record." },
-  { max:15, label:"Moderate", color:"#FFF8E1", tc:"#F57F17", resp:"Formal warning, mediated conversation, required training or restorative process. Documented." },
-  { max:20, label:"Elevated", color:"#FFF3E0", tc:"#E65100", resp:"Restricted access, temporary suspension from roles or spaces. Review before reinstatement." },
-  { max:25, label:"High", color:"#FFEBEE", tc:"#C62828", resp:"Removal from event. Ban consideration. Documented for cross-event sharing." },
-  { max:30, label:"Severe", color:"#FFCDD2", tc:"#B71C1C", resp:"Immediate removal and ban. Referral to external authorities if warranted." }
+var LEVELS = 6;
+
+var tiers = [
+  { max:8,  label:"Minimal",  color:"#E8F5E9", tc:"#2E7D32", resp:"Check-in conversation. No formal action unless pattern emerges." },
+  { max:15, label:"Low",      color:"#F1F8E9", tc:"#558B2F", resp:"Verbal warning, education, self-correction acknowledged. Informal record." },
+  { max:22, label:"Moderate", color:"#FFF8E1", tc:"#F57F17", resp:"Formal warning, mediated conversation, required training or restorative process. Documented." },
+  { max:32, label:"Elevated", color:"#FFF3E0", tc:"#E65100", resp:"Restricted access, temporary suspension from roles or spaces. Review before reinstatement." },
+  { max:42, label:"High",     color:"#FFEBEE", tc:"#C62828", resp:"Removal from event. Ban consideration. Documented for cross-event sharing." },
+  { max:50, label:"Severe",   color:"#FFCDD2", tc:"#B71C1C", resp:"Immediate removal and ban. Referral to external authorities if warranted." }
 ];
 
-const scores = {};
-const container = document.getElementById("categories");
+var flags = {};
+var scores = {};
 
-cats.forEach((cat, ci) => {
-  const div = document.createElement("div");
+var flagBox = document.getElementById("flagBox");
+flagDefs.forEach(function(f, i) {
+  var el = document.createElement("div");
+  el.className = "flag";
+  el.id = "fl"+i;
+  el.innerHTML = '<div class="box">\u2713</div><span>'+f+'</span>';
+  el.onclick = function() { flags[i] = !flags[i]; el.className = flags[i] ? "flag checked" : "flag"; update(); };
+  flagBox.appendChild(el);
+});
+
+var catBox = document.getElementById("catBox");
+catDefs.forEach(function(cat, ci) {
+  var div = document.createElement("div");
   div.className = "category";
-  div.innerHTML = `<div class="cat-header"><span class="cat-label">${cat.label}</span><span class="cat-score" id="cs${ci}"></span></div><div class="options" id="opts${ci}"></div>`;
-  container.appendChild(div);
-  const grid = document.getElementById("opts"+ci);
-  cat.d.forEach((desc, si) => {
-    const btn = document.createElement("div");
+  div.innerHTML = '<div class="cat-header"><span class="cat-label">'+cat.label+'</span><span class="cat-badge" id="cb'+ci+'"></span></div><div class="options" id="opts'+ci+'"></div>';
+  catBox.appendChild(div);
+  var grid = document.getElementById("opts"+ci);
+  cat.d.forEach(function(desc, si) {
+    var btn = document.createElement("div");
     btn.className = "opt";
-    btn.innerHTML = `<span class="score-num">${si}</span>${desc}`;
-    btn.onclick = () => pick(ci, si);
-    btn.id = `o${ci}_${si}`;
+    btn.id = "o"+ci+"_"+si;
+    btn.innerHTML = '<span class="sn">'+si+'</span>'+desc;
+    btn.onclick = function() { if(scores[ci]===si) delete scores[ci]; else scores[ci]=si; renderCat(ci); update(); };
     grid.appendChild(btn);
   });
 });
 
-function pick(ci, si) {
-  if (scores[ci] === si) {
-    delete scores[ci];
-  } else {
-    scores[ci] = si;
-  }
-  renderCat(ci);
-  renderTally();
-}
-
 function renderCat(ci) {
-  for (let s = 0; s < 6; s++) {
-    const el = document.getElementById(`o${ci}_${s}`);
-    el.className = scores[ci] === s ? `opt selected s${s}` : "opt";
+  for(var s=0;s<LEVELS;s++){
+    var el=document.getElementById("o"+ci+"_"+s);
+    el.className=scores[ci]===s?"opt sel"+s:"opt";
   }
-  const badge = document.getElementById("cs"+ci);
-  if (scores[ci] !== undefined) {
-    badge.style.display = "inline-block";
-    badge.textContent = scores[ci];
-    const colors = ["#E8F5E9","#F1F8E9","#FFF8E1","#FFF3E0","#FFEBEE","#FFCDD2"];
-    badge.style.background = colors[scores[ci]];
-    badge.style.color = "#333";
-  } else {
-    badge.style.display = "none";
-  }
+  var b=document.getElementById("cb"+ci);
+  if(scores[ci]!==undefined){
+    b.style.display="inline-block";
+    b.textContent=scores[ci];
+    var bgs=["#E8F5E9","#F1F8E9","#FFF8E1","#FFF3E0","#FFEBEE","#FFCDD2"];
+    b.style.background=bgs[scores[ci]];
+    b.style.color="#333";
+  } else b.style.display="none";
 }
 
-function renderTally() {
-  const total = Object.values(scores).reduce((a,b) => a+b, 0);
-  const count = Object.keys(scores).length;
-  document.getElementById("totalNum").textContent = total;
-  const bar = document.getElementById("tallyBar");
-  const tierBox = document.getElementById("tierBox");
+function getTierByScore(total) {
+  for(var i=0;i<tiers.length;i++) if(total<=tiers[i].max) return tiers[i];
+  return tiers[tiers.length-1];
+}
 
-  if (count === 6) {
-    const tier = tiers.find(t => total <= t.max);
-    bar.style.background = tier.color;
-    bar.style.borderColor = tier.tc+"33";
-    tierBox.innerHTML = `<div class="tier-name" style="color:${tier.tc}">${tier.label}</div><div class="tier-response">${tier.resp}</div>`;
+function getTierIndex(label) {
+  for(var i=0;i<tiers.length;i++) if(tiers[i].label===label) return i;
+  return 0;
+}
+
+function update() {
+  var flagCount = 0;
+  for(var k in flags) if(flags[k]) flagCount++;
+
+  var fc = document.getElementById("flagCount");
+  if(flagCount>0){
+    fc.textContent = flagCount + " escalator" + (flagCount>1?"s":"") + " checked \u2014 minimum response: " + (flagCount>=2?"Severe":"Elevated");
+    fc.className = "flag-count active";
+  } else {
+    fc.textContent = "";
+    fc.className = "flag-count";
+  }
+
+  var scoredCount = Object.keys(scores).length;
+  var total = 0;
+  var count5 = 0;
+  var count4plus = 0;
+  for(var k in scores) {
+    total += scores[k];
+    if(scores[k] === 5) count5++;
+    if(scores[k] >= 4) count4plus++;
+  }
+
+  document.getElementById("totalNum").textContent = total;
+
+  var sumTier = getTierByScore(total);
+  var finalTierIndex = getTierIndex(sumTier.label);
+  var reasons = [];
+
+  // Any single 5 = minimum Elevated
+  if(count5 >= 1) {
+    var elevIdx = getTierIndex("Elevated");
+    if(finalTierIndex < elevIdx) { finalTierIndex = elevIdx; reasons.push(count5 + " factor" + (count5>1?"s":"") + " at 5 \u2192 floor: Elevated"); }
+  }
+
+  // Two or more at 4+ = minimum Elevated
+  if(count4plus >= 2) {
+    var elevIdx2 = getTierIndex("Elevated");
+    if(finalTierIndex < elevIdx2) { finalTierIndex = elevIdx2; reasons.push(count4plus + " factors at 4+ \u2192 floor: Elevated"); }
+  }
+  // Single 4 = minimum Moderate
+  else if(count4plus === 1 && count5 === 0) {
+    var modIdx = getTierIndex("Moderate");
+    if(finalTierIndex < modIdx) { finalTierIndex = modIdx; reasons.push("1 factor at 4 \u2192 floor: Moderate"); }
+  }
+
+  // Boolean escalators override everything
+  if(flagCount >= 2) {
+    var sevIdx = getTierIndex("Severe");
+    if(finalTierIndex < sevIdx) { finalTierIndex = sevIdx; reasons.push(flagCount + " automatic escalators \u2192 floor: Severe"); }
+  } else if(flagCount === 1) {
+    var elevIdx3 = getTierIndex("Elevated");
+    if(finalTierIndex < elevIdx3) { finalTierIndex = elevIdx3; reasons.push("1 automatic escalator \u2192 floor: Elevated"); }
+  }
+
+  var finalTier = tiers[finalTierIndex];
+  var bar = document.getElementById("tallyBar");
+  var tierBlock = document.getElementById("tierBlock");
+  var escNote = document.getElementById("escNote");
+
+  if(scoredCount === 10 || flagCount > 0) {
+    bar.style.background = finalTier.color;
+    bar.style.borderColor = finalTier.tc + "33";
+    tierBlock.innerHTML = '<div class="tier-name" style="color:'+finalTier.tc+'">'+finalTier.label+'</div><div class="tier-response">'+finalTier.resp+'</div>';
   } else {
     bar.style.background = "#fff";
     bar.style.borderColor = "#ddd";
-    tierBox.innerHTML = `<span class="remaining">${6-count} categor${6-count===1?"y":"ies"} remaining</span>`;
+    var rem = 10 - scoredCount;
+    tierBlock.innerHTML = '<span class="remaining">'+rem+' factor'+(rem===1?"":"s")+' remaining</span>';
   }
 
-  const bd = document.getElementById("breakdown");
-  bd.innerHTML = "";
-  cats.forEach((cat, ci) => {
-    const pip = document.createElement("span");
-    pip.className = "pip" + (scores[ci] !== undefined ? " scored" : "");
-    if (scores[ci] !== undefined) {
-      const colors = ["#E8F5E9","#F1F8E9","#FFF8E1","#FFF3E0","#FFEBEE","#FFCDD2"];
-      pip.style.background = colors[scores[ci]];
-      pip.style.color = "#333";
+  if(reasons.length > 0) {
+    escNote.style.display = "block";
+    escNote.innerHTML = "<strong>Escalation override:</strong> " + reasons.join(" &middot; ");
+  } else {
+    escNote.style.display = "none";
+  }
+
+  var pipsEl = document.getElementById("pips");
+  pipsEl.innerHTML = "";
+  catDefs.forEach(function(cat, ci) {
+    var p = document.createElement("span");
+    var v = scores[ci];
+    var cls = "pip";
+    if(v!==undefined) cls += " has";
+    if(v===5) cls += " max";
+    else if(v===4) cls += " high";
+    p.className = cls;
+    if(v!==undefined && v<=3){
+      var bgs=["#E8F5E9","#F1F8E9","#FFF8E1","#FFF3E0"];
+      p.style.background=bgs[v]; p.style.color="#333";
     }
-    pip.textContent = cat.label + (scores[ci] !== undefined ? ": "+scores[ci] : ": —");
-    bd.appendChild(pip);
+    p.textContent = cat.label + (v!==undefined?": "+v:": \u2014");
+    pipsEl.appendChild(p);
   });
 }
 
 function resetAll() {
-  Object.keys(scores).forEach(k => delete scores[k]);
-  cats.forEach((_, ci) => renderCat(ci));
-  renderTally();
+  for(var k in flags) { flags[k]=false; document.getElementById("fl"+k).className="flag"; }
+  for(var k in scores) delete scores[k];
+  catDefs.forEach(function(_,ci) { renderCat(ci); });
+  update();
 }
 
-renderTally();
+update();
 </script>
 </body>
 </html>
