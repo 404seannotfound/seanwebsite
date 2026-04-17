@@ -67,6 +67,77 @@
         .today-event .summary { flex: 1; }
         .today-empty { color: #888; font-style: italic; }
 
+        .exam-warning {
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 1.2rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+        }
+        .exam-warning .exam-icon {
+            font-size: 1.6rem;
+            flex-shrink: 0;
+        }
+        .exam-warning .exam-body { flex: 1; }
+        .exam-warning .exam-title { font-size: 1.05rem; }
+        .exam-warning .exam-sub { font-weight: 500; opacity: 0.9; font-size: 0.9rem; margin-top: 2px; }
+        .exam-warning.level-today {
+            background: linear-gradient(135deg, #b71c1c 0%, #7f0000 100%);
+            color: #fff;
+            animation: pulseWarn 1.5s infinite;
+        }
+        .exam-warning.level-soon {
+            background: linear-gradient(135deg, #e53935 0%, #c62828 100%);
+            color: #fff;
+        }
+        .exam-warning.level-upcoming {
+            background: linear-gradient(135deg, #fb8c00 0%, #ef6c00 100%);
+            color: #fff;
+        }
+        .exam-warning.level-far {
+            background: #fffbe6;
+            color: #7a5c00;
+            border: 1px solid #ffe082;
+        }
+        @keyframes pulseWarn {
+            0%, 100% { box-shadow: 0 4px 10px rgba(183, 28, 28, 0.45); }
+            50% { box-shadow: 0 4px 20px rgba(183, 28, 28, 0.85); }
+        }
+
+        .week-nav {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+        .week-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px 14px;
+            border: 2px solid #c2185b;
+            background: #fff;
+            color: #c2185b;
+            font-weight: 700;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .week-btn:hover {
+            background: #fce4ec;
+        }
+        .week-btn-primary {
+            background: #c2185b;
+            color: #fff;
+        }
+        .week-btn-primary:hover {
+            background: #880e4f;
+            color: #fff;
+        }
+
         #calendar {
             background: #fff;
             padding: 1.5rem;
@@ -154,6 +225,14 @@
         <h2 id="today-heading">Today</h2>
         <div id="today-list"><div class="today-empty">Loading…</div></div>
     </section>
+
+    <div id="exam-warning" class="exam-warning" hidden></div>
+
+    <div class="week-nav">
+        <button type="button" id="week-prev" class="week-btn">← Previous week</button>
+        <button type="button" id="week-now" class="week-btn week-btn-primary">This week</button>
+        <button type="button" id="week-next" class="week-btn">Next week →</button>
+    </div>
 
     <div id="calendar"></div>
 
@@ -332,18 +411,78 @@
             }).join('');
         }
 
+        function renderExamWarning(events) {
+            const el = document.getElementById('exam-warning');
+            const now = new Date();
+            const todayMid = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+            const exams = events
+                .filter(e => (e.categories || '').toUpperCase().includes('EXAM') && e.start)
+                .map(e => ({
+                    ev: e,
+                    date: new Date(e.start)
+                }))
+                .filter(x => x.date >= todayMid)
+                .sort((a, b) => a.date - b.date);
+
+            if (exams.length === 0) {
+                el.hidden = true;
+                return;
+            }
+
+            const next = exams[0];
+            const examMid = new Date(next.date.getFullYear(), next.date.getMonth(), next.date.getDate());
+            const daysUntil = Math.round((examMid - todayMid) / 86400000);
+
+            let level = 'level-far';
+            let headline;
+            if (daysUntil === 0) {
+                level = 'level-today';
+                headline = `⚠️ EXAM TODAY: ${next.ev.summary}`;
+            } else if (daysUntil === 1) {
+                level = 'level-soon';
+                headline = `⚠️ Exam TOMORROW: ${next.ev.summary}`;
+            } else if (daysUntil <= 3) {
+                level = 'level-soon';
+                headline = `⚠️ Exam in ${daysUntil} days: ${next.ev.summary}`;
+            } else if (daysUntil <= 7) {
+                level = 'level-upcoming';
+                headline = `📚 Exam in ${daysUntil} days: ${next.ev.summary}`;
+            } else {
+                level = 'level-far';
+                headline = `📚 Next exam in ${daysUntil} days: ${next.ev.summary}`;
+            }
+
+            const dateStr = next.date.toLocaleDateString([], {
+                weekday: 'long', month: 'long', day: 'numeric'
+            });
+            const timeStr = next.date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+            el.className = 'exam-warning ' + level;
+            el.innerHTML = `
+                <div class="exam-icon">🔴</div>
+                <div class="exam-body">
+                    <div class="exam-title">${headline}</div>
+                    <div class="exam-sub">${dateStr} at ${timeStr}${next.ev.location ? ' · ' + next.ev.location : ''}</div>
+                </div>
+            `;
+            el.hidden = false;
+        }
+
         fetch(ICS_PATH)
             .then(r => r.text())
             .then(text => {
                 const events = parseIcs(text);
                 renderToday(events);
+                renderExamWarning(events);
 
                 const calendarEl = document.getElementById('calendar');
                 const today = new Date();
                 const fcEvents = events.map(toFullCalendarEvent);
 
+                const isNarrow = window.innerWidth < 700;
                 const calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: window.innerWidth < 700 ? 'listWeek' : 'dayGridMonth',
+                    initialView: isNarrow ? 'listWeek' : 'timeGridWeek',
                     initialDate: today,
                     headerToolbar: {
                         left: 'prev,next today',
@@ -356,6 +495,9 @@
                         week: 'Week',
                         list: 'List'
                     },
+                    scrollTime: '07:30:00',
+                    slotMinTime: '07:00:00',
+                    slotMaxTime: '18:00:00',
                     nowIndicator: true,
                     height: 'auto',
                     events: fcEvents,
@@ -369,6 +511,16 @@
                     }
                 });
                 calendar.render();
+
+                document.getElementById('week-prev').addEventListener('click', function() {
+                    calendar.prev();
+                });
+                document.getElementById('week-next').addEventListener('click', function() {
+                    calendar.next();
+                });
+                document.getElementById('week-now').addEventListener('click', function() {
+                    calendar.today();
+                });
             })
             .catch(err => {
                 document.getElementById('calendar').innerHTML =
