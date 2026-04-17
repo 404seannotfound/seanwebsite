@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nico — Pink Team Schedule (Spring 2026)</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="alternate" type="text/calendar" title="Nico Pink Schedule" href="nico-spring-schedule-26.ics">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <style>
+        .hero {
+            background: linear-gradient(135deg, #ff5fa2 0%, #c2185b 100%);
+            color: #fff;
+            padding: 1.8rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 8px 20px rgba(194, 24, 91, 0.25);
+        }
+        .hero h1 { font-size: 2rem; margin-bottom: 0.3rem; }
+        .hero p { opacity: 0.95; }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 1rem;
+        }
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            color: #c2185b;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .action-btn:hover { background: #fce4ec; color: #c2185b; text-decoration: none; }
+
+        .today-card {
+            background: #fff;
+            padding: 1.2rem 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border-left: 5px solid #ff5fa2;
+        }
+        .today-card h2 { color: #c2185b; margin-bottom: 0.7rem; font-size: 1.2rem; }
+        .today-event {
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+            display: flex;
+            gap: 12px;
+            align-items: baseline;
+        }
+        .today-event:last-child { border-bottom: none; }
+        .today-event .time {
+            font-weight: 700;
+            color: #ad1457;
+            font-variant-numeric: tabular-nums;
+            min-width: 130px;
+            font-size: 0.95rem;
+        }
+        .today-event .summary { flex: 1; }
+        .today-empty { color: #888; font-style: italic; }
+
+        #calendar {
+            background: #fff;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 1.5rem;
+        }
+        .fc-event.exam-event {
+            background-color: #d32f2f !important;
+            border-color: #b71c1c !important;
+            color: #fff !important;
+            font-weight: 700;
+        }
+        .fc-event.holiday-event {
+            background-color: #7b1fa2 !important;
+            border-color: #4a148c !important;
+            color: #fff !important;
+        }
+        .fc-event.grad-event {
+            background-color: #00796b !important;
+            border-color: #004d40 !important;
+            color: #fff !important;
+        }
+        .fc .fc-daygrid-day.fc-day-today,
+        .fc .fc-timegrid-col.fc-day-today {
+            background-color: rgba(255, 95, 162, 0.12) !important;
+        }
+        .fc .fc-button-primary {
+            background-color: #c2185b;
+            border-color: #c2185b;
+        }
+        .fc .fc-button-primary:hover,
+        .fc .fc-button-primary:not(:disabled):active,
+        .fc .fc-button-primary:not(:disabled).fc-button-active {
+            background-color: #880e4f;
+            border-color: #880e4f;
+        }
+
+        .instructions h2 {
+            color: var(--secondary-color);
+            border-bottom: 2px solid #ff5fa2;
+            padding-bottom: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        .instructions h3 { margin-top: 1.2rem; margin-bottom: 0.4rem; color: #c2185b; }
+        .instructions ol { margin-left: 1.4rem; margin-top: 0.3rem; }
+        .instructions li { margin-bottom: 0.3rem; }
+        .instructions .note {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+            padding: 10px 14px;
+            border-radius: 4px;
+            margin-top: 1rem;
+            font-size: 0.95rem;
+        }
+        code.subscribe-url {
+            display: inline-block;
+            background: #f5f5f5;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.88rem;
+            word-break: break-all;
+        }
+
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 1.5rem; }
+            .today-event { flex-direction: column; gap: 2px; }
+            .today-event .time { min-width: 0; }
+            .fc .fc-toolbar { flex-direction: column; gap: 10px; }
+            .fc .fc-toolbar-chunk { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <header class="hero">
+        <h1>🌸 Nico — Pink Team</h1>
+        <p>Wenatchee Valley College Nursing · Spring 2026</p>
+        <div class="actions">
+            <a class="action-btn" href="nico-spring-schedule-26.ics" download>⬇️ Download .ics file</a>
+            <a class="action-btn" href="#subscribe">📲 How to add to your phone</a>
+        </div>
+    </header>
+
+    <section class="today-card">
+        <h2 id="today-heading">Today</h2>
+        <div id="today-list"><div class="today-empty">Loading…</div></div>
+    </section>
+
+    <div id="calendar"></div>
+
+    <section class="instructions" id="subscribe">
+        <h2>📲 How to load this schedule</h2>
+        <p>You have two options. <strong>Subscribing</strong> is better — if the schedule is updated here, your calendar updates automatically. <strong>Importing</strong> is a one-time snapshot.</p>
+
+        <h3>🍏 iPhone / iPad (subscribe — recommended)</h3>
+        <ol>
+            <li>Open the <strong>Settings</strong> app.</li>
+            <li>Go to <strong>Calendar → Accounts → Add Account → Other</strong>.</li>
+            <li>Tap <strong>Add Subscribed Calendar</strong>.</li>
+            <li>Paste this URL into the <em>Server</em> field: <br>
+                <code class="subscribe-url" id="ics-url-1"></code>
+            </li>
+            <li>Tap <strong>Next</strong>, then <strong>Save</strong>.</li>
+        </ol>
+        <p>Or the quick way: tap the <strong>Download .ics file</strong> button above in Safari — iOS will offer to add the events to your calendar (this is a one-time import, not a subscription).</p>
+
+        <h3>🤖 Android (Google Calendar — subscribe)</h3>
+        <p>Google Calendar subscriptions have to be added from a computer, not the Android app:</p>
+        <ol>
+            <li>On a computer, open <a href="https://calendar.google.com" target="_blank" rel="noopener">calendar.google.com</a>.</li>
+            <li>On the left, next to <strong>Other calendars</strong>, click <strong>+</strong> → <strong>From URL</strong>.</li>
+            <li>Paste this URL: <br>
+                <code class="subscribe-url" id="ics-url-2"></code>
+            </li>
+            <li>Click <strong>Add calendar</strong>. It will sync to the Google Calendar app on your Android within a few minutes.</li>
+        </ol>
+        <p>One-time import instead: tap <strong>Download .ics file</strong> above, then open the file with Google Calendar to import events.</p>
+
+        <h3>💻 Apple Calendar (Mac)</h3>
+        <ol>
+            <li>Open <strong>Calendar</strong>.</li>
+            <li>Menu bar: <strong>File → New Calendar Subscription…</strong></li>
+            <li>Paste this URL:<br>
+                <code class="subscribe-url" id="ics-url-3"></code>
+            </li>
+            <li>Click <strong>Subscribe</strong>, then <strong>OK</strong>.</li>
+        </ol>
+
+        <h3>📧 Outlook (Microsoft 365 / Outlook.com)</h3>
+        <ol>
+            <li>Open Outlook on the web.</li>
+            <li>Go to <strong>Calendar</strong>, then <strong>Add calendar → Subscribe from web</strong>.</li>
+            <li>Paste the URL above and give it a name like "Nico Pink Team".</li>
+            <li>Click <strong>Import</strong>.</li>
+        </ol>
+
+        <h3>📬 Gmail (one-time import)</h3>
+        <p>Gmail itself doesn't hold calendars — it hands them to Google Calendar. Click <strong>Download .ics file</strong>, then on a computer go to <a href="https://calendar.google.com" target="_blank" rel="noopener">calendar.google.com</a> → gear icon → <strong>Settings</strong> → <strong>Import & export</strong> → select the file → <strong>Import</strong>.</p>
+
+        <div class="note">
+            <strong>Note:</strong> All times are <strong>Pacific (America/Los_Angeles)</strong>. When you subscribe or import, your calendar app will convert them to whatever time zone your device is set to.
+        </div>
+    </section>
+
+    <footer>
+        <p><a href="index.html">← Back to home</a></p>
+        <p>&copy; 2026 Derek Sean Spratt.</p>
+    </footer>
+
+    <script>
+    (function() {
+        const ICS_PATH = 'nico-spring-schedule-26.ics';
+
+        const subscribeUrl = new URL(ICS_PATH, window.location.href).href;
+        document.querySelectorAll('#ics-url-1, #ics-url-2, #ics-url-3').forEach(function(el) {
+            el.textContent = subscribeUrl;
+        });
+
+        function parseIcsDateTime(value) {
+            // value like 20260401T080000 (floating local time, TZID=America/Los_Angeles)
+            // Produce an ISO-style local string FullCalendar treats as wall-clock.
+            const m = value.match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})(\d{2})$/);
+            if (!m) return null;
+            return `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}:${m[6]}`;
+        }
+
+        function unfold(text) {
+            // iCal line folding: a line starting with space/tab continues the previous line.
+            return text.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
+        }
+
+        function parseIcs(text) {
+            const lines = unfold(text).split(/\r?\n/);
+            const events = [];
+            let current = null;
+            for (const line of lines) {
+                if (line === 'BEGIN:VEVENT') {
+                    current = {};
+                } else if (line === 'END:VEVENT') {
+                    if (current) events.push(current);
+                    current = null;
+                } else if (current) {
+                    const colon = line.indexOf(':');
+                    if (colon === -1) continue;
+                    const keyPart = line.substring(0, colon);
+                    const value = line.substring(colon + 1);
+                    const [name] = keyPart.split(';');
+                    if (name === 'DTSTART') current.start = parseIcsDateTime(value);
+                    else if (name === 'DTEND') current.end = parseIcsDateTime(value);
+                    else if (name === 'SUMMARY') current.summary = value;
+                    else if (name === 'LOCATION') current.location = value;
+                    else if (name === 'DESCRIPTION') current.description = value;
+                    else if (name === 'CATEGORIES') current.categories = value;
+                    else if (name === 'UID') current.uid = value;
+                }
+            }
+            return events;
+        }
+
+        function classify(ev) {
+            const summary = ev.summary || '';
+            if ((ev.categories || '').toUpperCase().includes('EXAM')) return 'exam-event';
+            if (summary.includes('🎓')) return 'grad-event';
+            if (summary.includes('🇺🇸') || summary.includes('📢') || summary.includes('📊')) return 'holiday-event';
+            return '';
+        }
+
+        function isAllDay(ev) {
+            // Treat 00:00:00–23:59:00 spans as all-day.
+            return /T00:00:00$/.test(ev.start) && /T23:59:00$/.test(ev.end);
+        }
+
+        function toFullCalendarEvent(ev) {
+            const allDay = isAllDay(ev);
+            return {
+                title: ev.summary || '(untitled)',
+                start: allDay ? ev.start.substring(0, 10) : ev.start,
+                end: allDay ? ev.start.substring(0, 10) : ev.end,
+                allDay: allDay,
+                classNames: classify(ev),
+                extendedProps: {
+                    location: ev.location || '',
+                    description: ev.description || ''
+                }
+            };
+        }
+
+        function formatTime(iso) {
+            const d = new Date(iso);
+            return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+        }
+
+        function renderToday(events) {
+            const list = document.getElementById('today-list');
+            const heading = document.getElementById('today-heading');
+            const now = new Date();
+            const yyyy = now.getFullYear();
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const dd = String(now.getDate()).padStart(2, '0');
+            const todayPrefix = `${yyyy}-${mm}-${dd}`;
+
+            heading.textContent = `Today · ${now.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' })}`;
+
+            const todays = events
+                .filter(e => e.start && e.start.startsWith(todayPrefix))
+                .sort((a, b) => a.start.localeCompare(b.start));
+
+            if (todays.length === 0) {
+                list.innerHTML = '<div class="today-empty">Nothing on the schedule today. 🎉</div>';
+                return;
+            }
+
+            list.innerHTML = todays.map(e => {
+                const allDay = isAllDay(e);
+                const timeStr = allDay
+                    ? 'All day'
+                    : `${formatTime(e.start)} – ${formatTime(e.end)}`;
+                const loc = e.location ? ` · <span style="color:#666;">${e.location}</span>` : '';
+                return `<div class="today-event">
+                    <div class="time">${timeStr}</div>
+                    <div class="summary">${e.summary}${loc}</div>
+                </div>`;
+            }).join('');
+        }
+
+        fetch(ICS_PATH)
+            .then(r => r.text())
+            .then(text => {
+                const events = parseIcs(text);
+                renderToday(events);
+
+                const calendarEl = document.getElementById('calendar');
+                const today = new Date();
+                const fcEvents = events.map(toFullCalendarEvent);
+
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: window.innerWidth < 700 ? 'listWeek' : 'dayGridMonth',
+                    initialDate: today,
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,listWeek'
+                    },
+                    buttonText: {
+                        today: 'Today',
+                        month: 'Month',
+                        week: 'Week',
+                        list: 'List'
+                    },
+                    nowIndicator: true,
+                    height: 'auto',
+                    events: fcEvents,
+                    eventClick: function(info) {
+                        const p = info.event.extendedProps;
+                        const parts = [info.event.title];
+                        if (p.location) parts.push('📍 ' + p.location);
+                        if (p.description) parts.push(p.description);
+                        alert(parts.join('\n\n'));
+                        info.jsEvent.preventDefault();
+                    }
+                });
+                calendar.render();
+            })
+            .catch(err => {
+                document.getElementById('calendar').innerHTML =
+                    '<p style="color:#c2185b;">Could not load the schedule file. You can still <a href="' + ICS_PATH + '">download it here</a>.</p>';
+                console.error(err);
+            });
+    })();
+    </script>
+</body>
+</html>
