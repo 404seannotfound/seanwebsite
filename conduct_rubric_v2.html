@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Conduct Committee — Incident Scoring Rubric</title>
-<meta name="description" content="A worksheet for conduct committees: red-flag escalators, ten scored factors, and a tier-keyed response playbook. Built to be deliberated over, not rubber-stamped.">
+<title>Conduct Committee — Picture-Book Rubric</title>
+<meta name="description" content="A picture-book version of the conduct-committee incident scoring rubric. Every score level on every factor is a cartoon panel — committee members literally pick a picture.">
 <style>
 :root{
   --paper:#FBF5E4;
@@ -25,7 +25,7 @@
   --font-body:Georgia,'Iowan Old Style','Palatino Linotype',serif;
 }
 *{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
+html{scroll-behavior:smooth;scroll-padding-top:140px}
 body{
   font-family:var(--font-body);
   background:var(--paper);
@@ -35,10 +35,8 @@ body{
     radial-gradient(circle at 42% 88%, rgba(192,178,122,0.16) 0.8px, transparent 1.6px);
   background-size:140px 140px, 90px 90px, 110px 110px;
   color:var(--ink-soft);
-  padding:0;
-  margin:0;
 }
-.page{max-width:1280px;margin:0 auto;padding:24px 28px 80px}
+.page{max-width:1320px;margin:0 auto;padding:24px 28px 80px}
 
 /* ---------- Hero ---------- */
 .hero{
@@ -74,7 +72,49 @@ body{
 }
 .version-toggle a.current{background:var(--red);color:#fff;border-color:var(--red-deep);box-shadow:2px 2px 0 var(--red-deep)}
 
-/* ---------- Top intro band ---------- */
+/* ---------- TOC sticky nav ---------- */
+.toc{
+  position:sticky;
+  top:0;
+  z-index:40;
+  background:var(--paper);
+  border:2.5px solid var(--ink);
+  border-radius:var(--radius);
+  padding:10px 14px;
+  margin:0 0 22px;
+  box-shadow:var(--shadow);
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.toc .label{
+  font-family:var(--font-display);
+  font-size:13px;
+  letter-spacing:0.5px;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+.toc a{
+  font-family:var(--font-display);
+  font-size:12.5px;
+  letter-spacing:0.3px;
+  padding:3px 9px;
+  border:1.5px dashed var(--rule);
+  background:var(--paper-deep);
+  border-radius:12px;
+  color:var(--ink);
+  text-decoration:none;
+  transition:all .12s;
+}
+.toc a:hover{border-color:var(--ink);background:#fff;border-style:solid}
+.toc a.scored{background:var(--green);color:#fff;border-color:var(--green);border-style:solid}
+.toc a.high{background:#E65100;color:#fff;border-color:#E65100;border-style:solid}
+.toc a.max{background:var(--red);color:#fff;border-color:var(--red-deep);border-style:solid}
+.toc a.flag-link{background:#FFEFEC;color:var(--red-deep);border-color:var(--red)}
+.toc a.flag-link.scored{background:var(--red);color:#fff;border-color:var(--red-deep)}
+
+/* ---------- Intro ---------- */
 .intro{
   display:grid;
   grid-template-columns:1.4fr 1fr;
@@ -86,7 +126,7 @@ body{
   border:2.5px solid var(--ink);
   border-radius:var(--radius);
   background:var(--paper);
-  padding:18px 20px 20px;
+  padding:18px 20px;
   box-shadow:var(--shadow);
   position:relative;
 }
@@ -151,7 +191,6 @@ body{
   font-size:13px;
 }
 
-/* ---------- Reset / header row ---------- */
 .toolbar{
   display:flex;
   justify-content:space-between;
@@ -211,9 +250,7 @@ button.btn--ghost{background:transparent;box-shadow:none;border-style:dashed}
 }
 
 /* ---------- Section headers ---------- */
-.section{
-  margin:34px 0 12px;
-}
+.section{margin:34px 0 12px}
 .section-banner{
   border:2.5px solid var(--ink);
   border-radius:var(--radius);
@@ -226,250 +263,189 @@ button.btn--ghost{background:transparent;box-shadow:none;border-style:dashed}
 }
 @media(max-width:780px){.section-banner{grid-template-columns:1fr}}
 .section-banner .text{padding:18px 22px;border-right:2px dashed var(--rule)}
-.section-banner .text h2{
-  font-family:var(--font-display);
-  color:var(--ink);
-  font-size:24px;
-  letter-spacing:0.6px;
-  margin-bottom:4px;
-}
+.section-banner .text h2{font-family:var(--font-display);color:var(--ink);font-size:24px;letter-spacing:0.6px;margin-bottom:4px}
 .section-banner .text h2 .num{color:var(--red);margin-right:8px}
 .section-banner .text .desc{font-size:14px;color:var(--ink-soft);line-height:1.55}
-.section-banner .text .rules{
-  margin-top:10px;
-  padding:10px 12px;
-  background:var(--paper);
-  border:1.5px dashed var(--rule);
-  border-radius:6px;
-  font-size:12.5px;
-  color:var(--muted);
-  line-height:1.5;
-}
+.section-banner .text .rules{margin-top:10px;padding:10px 12px;background:var(--paper);border:1.5px dashed var(--rule);border-radius:6px;font-size:12.5px;color:var(--muted);line-height:1.5}
 .section-banner .text .rules strong{font-family:var(--font-display);color:var(--ink);letter-spacing:0.4px}
 .section-banner .img{background:var(--paper-deep);display:flex;align-items:center;justify-content:center}
-.section-banner .img img{display:block;width:100%;height:100%;object-fit:cover;border-left:none}
+.section-banner .img img{display:block;width:100%;height:100%;object-fit:cover}
 @media(max-width:780px){.section-banner .img img{max-height:200px}}
 
 /* ---------- Section 1: Flags ---------- */
 .flags{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-bottom:6px}
 .flag{
-  display:flex;
-  align-items:flex-start;
-  gap:10px;
-  padding:12px 14px;
-  border-radius:8px;
-  border:2px solid var(--rule);
-  background:#fff;
-  cursor:pointer;
-  font-size:14px;
-  color:var(--ink-soft);
-  transition:all .12s;
-  user-select:none;
-  line-height:1.4;
+  display:flex;align-items:flex-start;gap:10px;
+  padding:12px 14px;border-radius:8px;
+  border:2px solid var(--rule);background:#fff;cursor:pointer;
+  font-size:14px;color:var(--ink-soft);
+  transition:all .12s;user-select:none;line-height:1.4;
 }
 .flag:hover{border-color:var(--ink);transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}
-.flag.checked{
-  border-color:var(--red);
-  background:#FFEFEC;
-  color:var(--red-deep);
-}
+.flag.checked{border-color:var(--red);background:#FFEFEC;color:var(--red-deep)}
 .flag.checked .box{background:var(--red);border-color:var(--red);color:#fff}
-.flag .box{
-  width:22px;height:22px;
-  border-radius:5px;
-  border:2px solid var(--rule);
-  display:flex;align-items:center;justify-content:center;
-  font-size:14px;font-weight:700;
-  color:transparent;
-  transition:all .12s;
-  flex-shrink:0;
-  margin-top:1px;
-  background:var(--paper);
-}
+.flag .box{width:22px;height:22px;border-radius:5px;border:2px solid var(--rule);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:transparent;transition:all .12s;flex-shrink:0;margin-top:1px;background:var(--paper)}
 .flag .label{flex:1}
 .flag .label strong{display:block;font-family:var(--font-display);color:var(--ink);font-size:14.5px;letter-spacing:0.3px;margin-bottom:2px}
 .flag.checked .label strong{color:var(--red-deep)}
 .flag .label .hint{font-size:12px;color:var(--muted);line-height:1.4}
-.flag-count{
-  font-size:13.5px;
-  font-family:var(--font-display);
-  color:var(--muted);
-  margin:8px 2px 4px;
-  min-height:20px;
-  letter-spacing:0.4px;
-}
+.flag-count{font-size:13.5px;font-family:var(--font-display);color:var(--muted);margin:8px 2px 4px;min-height:20px;letter-spacing:0.4px}
 .flag-count.active{color:var(--red-deep)}
 
-/* ---------- Section 2: Categories ---------- */
-.category{
-  margin:18px 0;
-  border:2px solid var(--ink);
+/* ---------- Picture-book factors (always expanded) ---------- */
+.factor{
+  margin:30px 0 8px;
+  border:2.5px solid var(--ink);
   border-radius:var(--radius);
   background:#fff;
   overflow:hidden;
   box-shadow:var(--shadow);
+  scroll-margin-top:140px;
 }
-.cat-head{
+.factor-head{
   display:grid;
-  grid-template-columns:60px 1fr 180px auto;
+  grid-template-columns:80px 1fr 220px;
+  gap:18px;
   align-items:center;
-  gap:14px;
-  padding:12px 16px;
+  padding:14px 18px;
   background:var(--paper-deep);
   border-bottom:2px dashed var(--rule);
-  cursor:pointer;
-  transition:background .15s;
 }
-.cat-head:hover{background:var(--paper-deeper)}
-.cat-head .icon{
-  width:54px;height:54px;
-  border:2px solid var(--ink);
+@media(max-width:780px){.factor-head{grid-template-columns:60px 1fr;gap:12px}.factor-head .badge{display:none}}
+.factor-head .icon{
+  width:72px;height:72px;
+  border:2.4px solid var(--ink);
   border-radius:50%;
-  background:var(--paper);
+  background:#fff;
   display:flex;align-items:center;justify-content:center;
   flex-shrink:0;
 }
-.cat-head .icon svg{width:38px;height:38px}
-.cat-head .title{display:flex;flex-direction:column;gap:2px}
-.cat-head .title .label{font-family:var(--font-display);font-size:18px;color:var(--ink);letter-spacing:0.4px}
-.cat-head .title .summary{font-size:12.5px;color:var(--muted);font-style:italic}
-.cat-head .badge{
+.factor-head .icon svg{width:52px;height:52px}
+.factor-head .title{display:flex;flex-direction:column;gap:4px}
+.factor-head .title .n{
   font-family:var(--font-display);
-  font-size:13px;
-  letter-spacing:0.4px;
-  padding:4px 12px;
-  border-radius:14px;
-  border:1.5px solid var(--rule);
+  font-size:14px;
+  letter-spacing:1px;
+  color:var(--muted);
+  text-transform:uppercase;
+}
+.factor-head .title .label{
+  font-family:var(--font-display);
+  font-size:24px;
+  letter-spacing:0.5px;
+  color:var(--ink);
+}
+.factor-head .title .summary{font-size:13px;color:var(--ink-soft);font-style:italic;line-height:1.4}
+.factor-head .badge{
+  font-family:var(--font-display);
+  font-size:14px;
+  letter-spacing:0.5px;
+  padding:6px 14px;
+  border-radius:16px;
+  border:2px solid var(--rule);
   background:#fff;
   color:var(--muted);
   text-align:center;
   white-space:nowrap;
 }
-.cat-head .badge.scored{
-  border-color:var(--ink);
-  color:var(--ink);
-  background:var(--paper);
-}
-.cat-head .badge.high{border-color:var(--red);background:#FFEFEC;color:var(--red-deep)}
-.cat-head .badge.max{border-color:var(--red-deep);background:var(--red);color:#fff}
-.cat-head .chev{
-  font-size:18px;
-  color:var(--muted);
-  transition:transform .2s;
-  font-family:var(--font-display);
-}
-.category.open .cat-head .chev{transform:rotate(180deg)}
+.factor-head .badge.scored{border-color:var(--ink);color:var(--ink);background:var(--paper)}
+.factor-head .badge.high{border-color:#E65100;background:#FFF1DD;color:#E65100}
+.factor-head .badge.max{border-color:var(--red-deep);background:var(--red);color:#fff}
 
-.cat-body{
-  padding:0;
-  max-height:0;
-  overflow:hidden;
-  transition:max-height .35s ease;
-}
-.category.open .cat-body{max-height:3000px}
-.cat-body-inner{padding:14px 16px 16px;display:grid;grid-template-columns:1fr 220px;gap:16px}
-@media(max-width:900px){.cat-body-inner{grid-template-columns:1fr}}
-
-.cat-help{
+.factor-help{
+  padding:12px 18px;
   background:var(--paper);
-  border:1.5px dashed var(--rule);
-  border-radius:6px;
-  padding:10px 12px;
-  font-size:13px;
+  border-bottom:1px dashed var(--rule);
+  font-size:13.5px;
   line-height:1.55;
   color:var(--ink-soft);
-  margin-bottom:12px;
 }
-.cat-help strong{font-family:var(--font-display);color:var(--ink);letter-spacing:0.3px}
-.cat-help .ask{
-  display:block;
-  margin-top:6px;
-  font-style:italic;
-  color:var(--muted);
-}
+.factor-help strong{font-family:var(--font-display);color:var(--ink);letter-spacing:0.3px}
+.factor-help .ask{display:block;margin-top:4px;font-style:italic;color:var(--muted)}
 
-.options{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
-@media(max-width:1100px){.options{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:600px){.options{grid-template-columns:repeat(2,1fr)}}
-.opt{
-  text-align:left;
-  cursor:pointer;
-  padding:10px;
-  border-radius:6px;
-  border:2px solid var(--rule);
-  background:#fff;
-  font-size:12.5px;
-  line-height:1.4;
-  color:var(--ink-soft);
-  transition:all .12s;
-  font-family:var(--font-body);
-  min-height:84px;
+/* The PICTURE-CARD grid */
+.picture-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:14px;
+  padding:16px 18px;
+}
+@media(max-width:1000px){.picture-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:560px){.picture-grid{grid-template-columns:1fr}}
+.pcard{
   display:flex;
   flex-direction:column;
-  gap:4px;
+  border:2.4px solid var(--rule);
+  border-radius:8px;
+  background:var(--paper);
+  cursor:pointer;
+  overflow:hidden;
+  transition:all .14s;
+  position:relative;
 }
-.opt:hover{border-color:var(--ink);transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--ink)}
-.opt .sn{
-  font-family:var(--font-display);
-  font-weight:bold;
-  font-size:14px;
-  color:var(--muted);
-  letter-spacing:0.5px;
-}
-.opt.sel0{border-color:#7CB87D;background:#EAF6E9}.opt.sel0 .sn{color:#2E7D32}
-.opt.sel1{border-color:#A4C77A;background:#F1F8E9}.opt.sel1 .sn{color:#558B2F}
-.opt.sel2{border-color:#E8C467;background:#FFF8E1}.opt.sel2 .sn{color:#F57F17}
-.opt.sel3{border-color:#E8A467;background:#FFF1DD}.opt.sel3 .sn{color:#E65100}
-.opt.sel4{border-color:#D77A6A;background:#FFE6E0}.opt.sel4 .sn{color:#C62828}
-.opt.sel5{border-color:#B53A2A;background:#FFD2C8}.opt.sel5 .sn{color:#9A1A1A}
-
-.cat-side{display:flex;flex-direction:column;gap:10px}
-.cat-side .panel-img{
-  border:2px solid var(--ink);
-  border-radius:6px;
+.pcard:hover{border-color:var(--ink);transform:translate(-2px,-2px);box-shadow:4px 4px 0 var(--ink)}
+.pcard .pimg-wrap{
+  position:relative;
+  border-bottom:1.5px solid var(--rule);
+  aspect-ratio:16/9;
   background:#fff;
   overflow:hidden;
-  box-shadow:var(--shadow);
 }
-.cat-side .panel-img img{display:block;width:100%;height:auto}
-.cat-side .panel-img figcaption{
-  padding:6px 10px;
-  font-size:11.5px;
-  color:var(--muted);
-  font-style:italic;
-  border-top:1px dashed var(--rule);
-  background:var(--paper);
+.pcard .pimg{
+  width:100%;height:100%;
+  object-fit:cover;
+  display:block;
 }
-
-.cat-notes{
-  margin-top:12px;
-  display:flex;
-  flex-direction:column;
-  gap:4px;
+.pcard .pn{
+  position:absolute;
+  top:6px;left:6px;
+  font-family:var(--font-display);
+  font-size:24px;
+  font-weight:900;
+  width:42px;height:42px;
+  background:#fff;
+  border:2.2px solid var(--ink);
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--ink);
+  letter-spacing:1px;
+  box-shadow:2px 2px 0 var(--ink);
 }
-.cat-notes label{
+.pcard .pdesc{
+  padding:10px 12px;
+  font-size:13px;
+  line-height:1.45;
+  color:var(--ink-soft);
+  flex:1;
+  background:#fff;
+}
+.pcard .pchosen{
+  position:absolute;
+  top:8px;right:8px;
   font-family:var(--font-display);
   font-size:12px;
-  letter-spacing:0.5px;
-  color:var(--muted);
-  text-transform:uppercase;
-}
-.cat-notes textarea{
-  width:100%;
-  min-height:50px;
-  padding:8px 10px;
-  border:1.5px dashed var(--rule);
+  letter-spacing:1px;
+  padding:4px 10px;
+  background:#fff;
+  border:2px solid;
   border-radius:6px;
-  background:var(--paper);
-  font-family:var(--font-body);
-  font-size:13px;
-  color:var(--ink-soft);
-  resize:vertical;
-  line-height:1.5;
+  transform:rotate(-6deg);
+  display:none;
+  box-shadow:2px 2px 0 currentColor;
 }
-.cat-notes textarea:focus{outline:none;border-color:var(--ink);border-style:solid;background:#fff}
+.pcard.sel0{border-color:#2D7A45;background:#EAF6E9}.pcard.sel0 .pn{background:#EAF6E9;border-color:#2D7A45;color:#1F5530}.pcard.sel0 .pchosen{display:block;border-color:#2D7A45;color:#1F5530}
+.pcard.sel1{border-color:#7CB87D;background:#F1F8E9}.pcard.sel1 .pn{background:#F1F8E9;border-color:#558B2F;color:#3F6722}.pcard.sel1 .pchosen{display:block;border-color:#558B2F;color:#3F6722}
+.pcard.sel2{border-color:#E8C467;background:#FFF8E1}.pcard.sel2 .pn{background:#FFF8E1;border-color:#F57F17;color:#A95800}.pcard.sel2 .pchosen{display:block;border-color:#F57F17;color:#A95800}
+.pcard.sel3{border-color:#E8A467;background:#FFF1DD}.pcard.sel3 .pn{background:#FFF1DD;border-color:#E65100;color:#A23800}.pcard.sel3 .pchosen{display:block;border-color:#E65100;color:#A23800}
+.pcard.sel4{border-color:#D77A6A;background:#FFE6E0}.pcard.sel4 .pn{background:#FFE6E0;border-color:#C62828;color:#8A1A1A}.pcard.sel4 .pchosen{display:block;border-color:#C62828;color:#8A1A1A}
+.pcard.sel5{border-color:#9A1A1A;background:#FFD2C8}.pcard.sel5 .pn{background:var(--red);border-color:#9A1A1A;color:#fff}.pcard.sel5 .pchosen{display:block;border-color:#9A1A1A;color:#9A1A1A;background:var(--red);color:#fff}
 
-/* ---------- Sticky tally ---------- */
+.factor-notes{padding:0 18px 16px;display:flex;flex-direction:column;gap:4px}
+.factor-notes label{font-family:var(--font-display);font-size:12px;letter-spacing:0.5px;color:var(--muted);text-transform:uppercase}
+.factor-notes textarea{width:100%;min-height:54px;padding:8px 10px;border:1.5px dashed var(--rule);border-radius:6px;background:var(--paper);font-family:var(--font-body);font-size:13px;color:var(--ink-soft);resize:vertical;line-height:1.5}
+.factor-notes textarea:focus{outline:none;border-color:var(--ink);border-style:solid;background:#fff}
+
+/* ---------- Tally + ladder + decision (shared) ---------- */
 .tally{
   position:sticky;
   bottom:0;
@@ -480,220 +456,52 @@ button.btn--ghost{background:transparent;box-shadow:none;border-style:dashed}
   box-shadow:0 -6px 20px rgba(26,26,26,0.08);
   z-index:50;
 }
-.tally-inner{
-  display:grid;
-  grid-template-columns:auto 1fr auto;
-  align-items:center;
-  gap:18px;
-  padding:14px 18px;
-  border-radius:10px;
-  border:2.5px solid var(--ink);
-  background:#fff;
-  transition:background .25s, border-color .25s;
-}
+.tally-inner{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:18px;padding:14px 18px;border-radius:10px;border:2.5px solid var(--ink);background:#fff;transition:background .25s, border-color .25s}
 @media(max-width:780px){.tally-inner{grid-template-columns:1fr;gap:10px}}
 .tally-total{display:flex;flex-direction:column;align-items:flex-start;gap:2px;min-width:140px}
-.tally-total .label{
-  font-family:var(--font-display);
-  font-size:11px;
-  letter-spacing:1px;
-  color:var(--muted);
-  text-transform:uppercase;
-}
-.tally-total .num{
-  font-family:var(--font-display);
-  font-size:38px;
-  color:var(--ink);
-  letter-spacing:1px;
-  line-height:1;
-}
+.tally-total .label{font-family:var(--font-display);font-size:11px;letter-spacing:1px;color:var(--muted);text-transform:uppercase}
+.tally-total .num{font-family:var(--font-display);font-size:38px;color:var(--ink);letter-spacing:1px;line-height:1}
 .tally-total .denom{font-size:13px;color:var(--muted);font-weight:normal}
 .tally-tier{display:flex;flex-direction:column;gap:4px;align-items:flex-start}
-.tier-name{
-  font-family:var(--font-display);
-  font-size:24px;
-  letter-spacing:1.2px;
-  line-height:1;
-}
+.tier-name{font-family:var(--font-display);font-size:24px;letter-spacing:1.2px;line-height:1}
 .tier-resp{font-size:13px;color:var(--ink-soft);line-height:1.4}
 .tier-empty{font-family:var(--font-display);color:var(--muted);font-size:14px}
 .tally-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.esc-note{
-  margin-top:8px;
-  padding:8px 12px;
-  border-radius:6px;
-  background:#FFEFEC;
-  color:var(--red-deep);
-  font-size:12.5px;
-  line-height:1.5;
-  display:none;
-  border:1.5px dashed var(--red);
-}
+.esc-note{margin-top:8px;padding:8px 12px;border-radius:6px;background:#FFEFEC;color:var(--red-deep);font-size:12.5px;line-height:1.5;display:none;border:1.5px dashed var(--red)}
 .esc-note.show{display:block}
 .esc-note strong{font-family:var(--font-display);letter-spacing:0.4px}
-
 .pips{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px dashed var(--rule)}
-.pip{
-  font-family:var(--font-display);
-  font-size:11.5px;
-  letter-spacing:0.4px;
-  padding:3px 9px;
-  border-radius:11px;
-  background:var(--paper-deep);
-  color:var(--muted);
-  border:1px solid var(--rule);
-}
+.pip{font-family:var(--font-display);font-size:11.5px;letter-spacing:0.4px;padding:3px 9px;border-radius:11px;background:var(--paper-deep);color:var(--muted);border:1px solid var(--rule)}
 .pip.has{color:var(--ink);background:#fff;border-color:var(--ink)}
 .pip.high{background:#FFEFEC;color:var(--red-deep);border-color:var(--red)}
 .pip.max{background:var(--red);color:#fff;border-color:var(--red-deep)}
 
-/* ---------- Tier ladder reference ---------- */
-.ladder{
-  margin-top:30px;
-  border:2.5px solid var(--ink);
-  border-radius:var(--radius);
-  background:#fff;
-  overflow:hidden;
-  box-shadow:var(--shadow);
-}
-.ladder h3{
-  font-family:var(--font-display);
-  font-size:22px;
-  letter-spacing:0.5px;
-  padding:14px 20px;
-  background:var(--paper-deep);
-  border-bottom:2px dashed var(--rule);
-  color:var(--ink);
-}
+.ladder{margin-top:30px;border:2.5px solid var(--ink);border-radius:var(--radius);background:#fff;overflow:hidden;box-shadow:var(--shadow)}
+.ladder h3{font-family:var(--font-display);font-size:22px;letter-spacing:0.5px;padding:14px 20px;background:var(--paper-deep);border-bottom:2px dashed var(--rule);color:var(--ink)}
 .rungs{display:flex;flex-direction:column}
-.rung{
-  display:grid;
-  grid-template-columns:140px 1fr auto;
-  gap:16px;
-  align-items:center;
-  padding:14px 20px;
-  border-bottom:1px dashed var(--rule);
-  transition:background .2s;
-}
+.rung{display:grid;grid-template-columns:140px 1fr auto;gap:16px;align-items:center;padding:14px 20px;border-bottom:1px dashed var(--rule);transition:background .2s}
 .rung:last-child{border-bottom:none}
 .rung.current{background:var(--paper-deep)}
-.rung .stamp{
-  font-family:var(--font-display);
-  font-size:17px;
-  letter-spacing:1.5px;
-  padding:6px 14px;
-  border:2.4px solid;
-  text-align:center;
-  transform:rotate(-3deg);
-  display:inline-block;
-  white-space:nowrap;
-}
+.rung .stamp{font-family:var(--font-display);font-size:17px;letter-spacing:1.5px;padding:6px 14px;border:2.4px solid;text-align:center;transform:rotate(-3deg);display:inline-block;white-space:nowrap}
 .rung-text{display:flex;flex-direction:column;gap:2px}
-.rung-text .range{
-  font-family:var(--font-display);
-  font-size:13px;
-  color:var(--muted);
-  letter-spacing:0.4px;
-}
+.rung-text .range{font-family:var(--font-display);font-size:13px;color:var(--muted);letter-spacing:0.4px}
 .rung-text .desc{font-size:14px;color:var(--ink-soft);line-height:1.5}
-.rung .marker{
-  font-family:var(--font-display);
-  font-size:13px;
-  color:var(--red);
-  letter-spacing:0.5px;
-  opacity:0;
-  transition:opacity .25s;
-}
+.rung .marker{font-family:var(--font-display);font-size:13px;color:var(--red);letter-spacing:0.5px;opacity:0;transition:opacity .25s}
 .rung.current .marker{opacity:1}
 
-/* ---------- Decision summary ---------- */
-.decision{
-  margin-top:28px;
-  border:2.5px solid var(--ink);
-  border-radius:var(--radius);
-  background:var(--paper-deep);
-  padding:18px 22px;
-  box-shadow:var(--shadow);
-}
-.decision h3{
-  font-family:var(--font-display);
-  font-size:22px;
-  letter-spacing:0.5px;
-  color:var(--red);
-  margin-bottom:8px;
-}
+.decision{margin-top:28px;border:2.5px solid var(--ink);border-radius:var(--radius);background:var(--paper-deep);padding:18px 22px;box-shadow:var(--shadow)}
+.decision h3{font-family:var(--font-display);font-size:22px;letter-spacing:0.5px;color:var(--red);margin-bottom:8px}
 .decision .sub{font-size:13px;color:var(--muted);margin-bottom:12px}
-.decision-out{
-  background:#fff;
-  border:1.5px dashed var(--rule);
-  border-radius:6px;
-  padding:14px 18px;
-  font-family:'Courier New',Courier,monospace;
-  font-size:13px;
-  white-space:pre-wrap;
-  color:var(--ink);
-  line-height:1.6;
-  min-height:140px;
-  max-height:380px;
-  overflow:auto;
-}
+.decision-out{background:#fff;border:1.5px dashed var(--rule);border-radius:6px;padding:14px 18px;font-family:'Courier New',Courier,monospace;font-size:13px;white-space:pre-wrap;color:var(--ink);line-height:1.6;min-height:140px;max-height:380px;overflow:auto}
 .decision-actions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 
-/* ---------- Floating side margin (large screens) ---------- */
-.margin-art{
-  margin:24px 0;
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:12px;
-}
-.margin-art figure{
-  margin:0;
-  border:2.4px solid var(--ink);
-  border-radius:6px;
-  background:#fff;
-  overflow:hidden;
-  box-shadow:var(--shadow);
-}
-.margin-art img{display:block;width:100%;height:auto;border-bottom:1.5px dashed var(--rule)}
-.margin-art figcaption{
-  padding:6px 10px 8px;
-  font-size:12px;
-  color:var(--muted);
-  font-style:italic;
-  text-align:center;
-}
-.margin-art figcaption strong{font-family:var(--font-display);color:var(--red);font-style:normal;letter-spacing:0.4px}
+.divider-doodle{text-align:center;margin:18px 0 8px;font-family:var(--font-display);color:var(--rule);letter-spacing:8px;font-size:14px}
 
-/* ---------- Print ---------- */
 @media print{
   body{background:#fff;color:#000}
-  .toolbar button,.tally-actions,.decision-actions,.cat-head .chev,.toast{display:none !important}
-  .category{break-inside:avoid;page-break-inside:avoid}
-  .category .cat-body{max-height:none !important}
+  .toolbar button,.tally-actions,.decision-actions,.toast,.version-toggle,.toc{display:none !important}
+  .factor,.section-banner,.ladder,.decision{break-inside:avoid;page-break-inside:avoid}
   .tally{position:static;box-shadow:none;border-top:1px solid #000}
-  .hero,.section-banner,.category,.ladder,.decision{box-shadow:none}
-}
-
-/* ---------- Misc ---------- */
-.divider-doodle{
-  text-align:center;
-  margin:18px 0 8px;
-  font-family:var(--font-display);
-  color:var(--rule);
-  letter-spacing:8px;
-  font-size:14px;
-}
-.tip-pill{
-  display:inline-block;
-  font-family:var(--font-display);
-  font-size:11.5px;
-  letter-spacing:0.5px;
-  padding:2px 9px;
-  margin-left:6px;
-  border-radius:10px;
-  background:var(--yellow);
-  color:var(--ink);
-  border:1.5px solid var(--ink);
 }
 </style>
 </head>
@@ -703,65 +511,45 @@ button.btn--ghost{background:transparent;box-shadow:none;border-style:dashed}
 <!-- ====================== HERO ====================== -->
 <div class="hero">
 <div class="version-toggle">
-  <a href="conduct_rubric.html" class="current">v1 · classic</a>
-  <a href="conduct_rubric_v2.html">v2 · picture book</a>
+  <a href="conduct_rubric.html">v1 · classic</a>
+  <a href="conduct_rubric_v2.html" class="current">v2 · picture book</a>
 </div>
 <svg class="hero-svg" viewBox="0 0 1200 220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
   <defs>
-    <pattern id="paper" width="6" height="6" patternUnits="userSpaceOnUse">
+    <pattern id="paperBg" width="6" height="6" patternUnits="userSpaceOnUse">
       <rect width="6" height="6" fill="#FBF5E4"/>
       <circle cx="1" cy="3" r="0.35" fill="#C0B27A" opacity="0.35"/>
       <circle cx="4" cy="1.5" r="0.25" fill="#A89456" opacity="0.3"/>
       <circle cx="3" cy="5" r="0.3"  fill="#C0B27A" opacity="0.25"/>
     </pattern>
-    <filter id="rough" x="-2%" y="-2%" width="104%" height="104%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="11"/>
-      <feDisplacementMap in="SourceGraphic" scale="1.6"/>
-    </filter>
-    <filter id="roughBig" x="-2%" y="-2%" width="104%" height="104%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="9"/>
-      <feDisplacementMap in="SourceGraphic" scale="2.6"/>
-    </filter>
-    <filter id="roughTiny" x="-2%" y="-2%" width="104%" height="104%">
-      <feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="2" seed="3"/>
-      <feDisplacementMap in="SourceGraphic" scale="0.8"/>
-    </filter>
+    <filter id="rough" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="2" seed="11"/><feDisplacementMap in="SourceGraphic" scale="1.6"/></filter>
+    <filter id="roughBig" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="9"/><feDisplacementMap in="SourceGraphic" scale="2.6"/></filter>
+    <filter id="roughTiny" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="0.8"/></filter>
   </defs>
-
-  <rect width="100%" height="100%" fill="url(#paper)"/>
-
-  <!-- inner ghost frame -->
+  <rect width="100%" height="100%" fill="url(#paperBg)"/>
   <rect x="10" y="10" width="1180" height="200" fill="none" stroke="#1A1A1A" stroke-width="1" opacity="0.4" filter="url(#rough)"/>
-
-  <!-- title block -->
   <g filter="url(#rough)">
-    <text x="36" y="68" font-family="'Marker Felt','Comic Sans MS',cursive" font-size="44" font-weight="900" fill="#1A1A1A" letter-spacing="2">CONDUCT COMMITTEE</text>
-    <text x="36" y="108" font-family="'Marker Felt','Comic Sans MS',cursive" font-size="30" fill="#C04D3A" letter-spacing="3">· Incident Scoring Rubric ·</text>
-    <text x="36" y="142" font-family="Georgia,serif" font-style="italic" font-size="16" fill="#3D352A">A worksheet for thinking, not a calculator for blaming.</text>
-    <text x="36" y="162" font-family="Georgia,serif" font-style="italic" font-size="14" fill="#6C6033">Work top to bottom. Score is a floor, not a verdict.</text>
+    <text x="36" y="68" font-family="'Marker Felt','Comic Sans MS',cursive" font-size="42" font-weight="900" fill="#1A1A1A" letter-spacing="2">CONDUCT COMMITTEE</text>
+    <text x="36" y="108" font-family="'Marker Felt','Comic Sans MS',cursive" font-size="28" fill="#C04D3A" letter-spacing="3">· Picture-Book Edition ·</text>
+    <text x="36" y="142" font-family="Georgia,serif" font-style="italic" font-size="16" fill="#3D352A">Sixty cartoons. Pick the one that matches what happened.</text>
+    <text x="36" y="162" font-family="Georgia,serif" font-style="italic" font-size="14" fill="#6C6033">Same rules, same tier math — but illustrated, rung by rung.</text>
   </g>
-
-  <!-- left-margin: scale of justice -->
-  <g transform="translate(720, 130)" filter="url(#rough)">
-    <line x1="0" y1="-60" x2="0" y2="40" stroke="#1A1A1A" stroke-width="2.4"/>
-    <path d="M -40,-50 Q -60,-30 -50,-10" stroke="#1A1A1A" stroke-width="2" fill="none"/>
-    <path d="M 40,-50 Q 60,-30 50,-10" stroke="#1A1A1A" stroke-width="2" fill="none"/>
-    <line x1="-60" y1="-30" x2="-40" y2="-50" stroke="#1A1A1A" stroke-width="1.4"/>
-    <ellipse cx="-55" cy="-8" rx="14" ry="4" fill="none" stroke="#1A1A1A" stroke-width="1.6"/>
-    <ellipse cx="55" cy="-8" rx="14" ry="4" fill="none" stroke="#1A1A1A" stroke-width="1.6"/>
-    <rect x="-12" y="40" width="24" height="6" fill="#1A1A1A"/>
+  <!-- six little tier-rung cards stacked -->
+  <g transform="translate(770, 110)" filter="url(#rough)">
+    <rect x="-90" y="-50" width="50" height="32" fill="#EAF6E9" stroke="#1A1A1A" stroke-width="1.6"/>
+    <text x="-65" y="-30" font-family="'Marker Felt',cursive" font-size="20" font-weight="900" fill="#2E7D32" text-anchor="middle">0</text>
+    <rect x="-30" y="-50" width="50" height="32" fill="#FFF8E1" stroke="#1A1A1A" stroke-width="1.6"/>
+    <text x="-5" y="-30" font-family="'Marker Felt',cursive" font-size="20" font-weight="900" fill="#F57F17" text-anchor="middle">2</text>
+    <rect x="30" y="-50" width="50" height="32" fill="#FFE6E0" stroke="#1A1A1A" stroke-width="1.6"/>
+    <text x="55" y="-30" font-family="'Marker Felt',cursive" font-size="20" font-weight="900" fill="#C62828" text-anchor="middle">4</text>
+    <rect x="-60" y="-10" width="50" height="32" fill="#F1F8E9" stroke="#1A1A1A" stroke-width="1.6"/>
+    <text x="-35" y="10" font-family="'Marker Felt',cursive" font-size="20" font-weight="900" fill="#558B2F" text-anchor="middle">1</text>
+    <rect x="0" y="-10" width="50" height="32" fill="#FFF1DD" stroke="#1A1A1A" stroke-width="1.6"/>
+    <text x="25" y="10" font-family="'Marker Felt',cursive" font-size="20" font-weight="900" fill="#E65100" text-anchor="middle">3</text>
+    <rect x="60" y="-10" width="50" height="32" fill="#FFD2C8" stroke="#1A1A1A" stroke-width="1.6"/>
+    <text x="85" y="10" font-family="'Marker Felt',cursive" font-size="20" font-weight="900" fill="#9A1A1A" text-anchor="middle">5</text>
   </g>
-
-  <!-- magnifying glass -->
-  <g transform="translate(840, 80)" filter="url(#rough)">
-    <circle cx="0" cy="0" r="28" fill="none" stroke="#1A1A1A" stroke-width="3"/>
-    <circle cx="0" cy="0" r="22" fill="#F5C84B" opacity="0.25"/>
-    <line x1="20" y1="20" x2="46" y2="50" stroke="#1A1A1A" stroke-width="4"/>
-    <text x="0" y="4" font-family="'Marker Felt',cursive" font-size="14" fill="#1A1A1A" text-anchor="middle">FACTS</text>
-  </g>
-
-  <!-- clipboard -->
-  <g transform="translate(940, 90)" filter="url(#rough)">
+  <g transform="translate(960, 95)" filter="url(#rough)">
     <rect x="-30" y="-50" width="60" height="80" fill="#FBF5E4" stroke="#1A1A1A" stroke-width="2.2"/>
     <rect x="-14" y="-58" width="28" height="14" fill="#6C6033" stroke="#1A1A1A" stroke-width="1.6"/>
     <line x1="-22" y1="-32" x2="22" y2="-32" stroke="#6C6033" stroke-width="1"/>
@@ -770,55 +558,64 @@ button.btn--ghost{background:transparent;box-shadow:none;border-style:dashed}
     <line x1="-22" y1="4" x2="22" y2="4" stroke="#6C6033" stroke-width="1"/>
     <line x1="-22" y1="16" x2="14" y2="16" stroke="#6C6033" stroke-width="1"/>
   </g>
-
-  <!-- gavel -->
-  <g transform="translate(1040, 110)" filter="url(#rough)">
-    <rect x="-22" y="-10" width="44" height="22" rx="4" fill="#A86A3A" stroke="#1A1A1A" stroke-width="2"/>
-    <rect x="-6" y="-2" width="50" height="6" fill="#A86A3A" stroke="#1A1A1A" stroke-width="1.6"/>
-    <rect x="-50" y="22" width="80" height="10" rx="2" fill="#A86A3A" stroke="#1A1A1A" stroke-width="2"/>
-    <line x1="-20" y1="-22" x2="-26" y2="-32" stroke="#1A1A1A" stroke-width="1.6"/>
-    <line x1="0" y1="-22" x2="0" y2="-34" stroke="#1A1A1A" stroke-width="1.6"/>
-    <line x1="20" y1="-22" x2="26" y2="-32" stroke="#1A1A1A" stroke-width="1.6"/>
+  <g transform="translate(1080, 105)" filter="url(#rough)">
+    <circle cx="0" cy="0" r="28" fill="none" stroke="#1A1A1A" stroke-width="3"/>
+    <circle cx="0" cy="0" r="22" fill="#F5C84B" opacity="0.25"/>
+    <line x1="20" y1="20" x2="46" y2="50" stroke="#1A1A1A" stroke-width="4"/>
   </g>
-
-  <!-- rubber stamp top-right -->
   <g transform="translate(1110, 50) rotate(-12)" filter="url(#roughBig)">
     <rect x="-60" y="-20" width="120" height="40" fill="none" stroke="#C04D3A" stroke-width="3"/>
-    <text x="0" y="3" font-family="'Marker Felt',cursive" font-size="14" font-weight="900" fill="#C04D3A" text-anchor="middle" letter-spacing="2">FAIR · CONSISTENT</text>
-    <text x="0" y="16" font-family="'Marker Felt',cursive" font-size="11" fill="#C04D3A" text-anchor="middle" letter-spacing="2">DOCUMENTED</text>
+    <text x="0" y="3" font-family="'Marker Felt',cursive" font-size="14" font-weight="900" fill="#C04D3A" text-anchor="middle" letter-spacing="2">PICK · A · PICTURE</text>
+    <text x="0" y="16" font-family="'Marker Felt',cursive" font-size="11" fill="#C04D3A" text-anchor="middle" letter-spacing="2">v2 EDITION</text>
   </g>
-
-  <!-- outer frame -->
   <rect x="4" y="4" width="1192" height="212" fill="none" stroke="#1A1A1A" stroke-width="2.6" filter="url(#roughBig)"/>
 </svg>
 <img class="hero-img" src="art/conduct_rubric/cartoon/hero-committee.jpeg" alt="The committee at the long table">
 </div>
 
+<!-- ====================== TOC ====================== -->
+<nav class="toc">
+  <span class="label">Jump to:</span>
+  <a href="#section1" class="flag-link" id="tocFlags">§1 escalators</a>
+  <a href="#cat0">consent</a>
+  <a href="#cat1">harm</a>
+  <a href="#cat2">emotion</a>
+  <a href="#cat3">community</a>
+  <a href="#cat4">power</a>
+  <a href="#cat5">vulnerability</a>
+  <a href="#cat6">accountability</a>
+  <a href="#cat7">intent</a>
+  <a href="#cat8">history</a>
+  <a href="#cat9">after</a>
+  <a href="#ladder" style="background:var(--paper);border-style:solid">tier ladder</a>
+  <a href="#decision" style="background:var(--paper);border-style:solid">summary</a>
+</nav>
+
 <!-- ====================== INTRO ====================== -->
 <div class="intro">
   <div class="howto">
-    <div class="corner-stamp">USE ME</div>
-    <h2>How to use this rubric</h2>
-    <div class="sub">A scoring tool — not a judgment. Use it to slow down, line up the facts, and make sure the response is proportional and documented.</div>
+    <div class="corner-stamp">PICK A PIC</div>
+    <h2>How to use the picture-book rubric</h2>
+    <div class="sub">A version of the conduct rubric where every score level is a Sergio panel. Pick the picture that most closely matches what actually happened. The math is the same; the choosing is a little less abstract.</div>
     <ol>
-      <li><strong>Check the automatic escalators first.</strong> Any single flag puts the response floor at Elevated. These override scoring.</li>
-      <li><strong>Score each of the 10 factors 0–5.</strong> Pick the rung that best matches what actually happened, not what could've happened. When in doubt between two, go lower and write a note explaining why.</li>
-      <li><strong>Read the tier the rubric returns — then deliberate.</strong> The number is a starting line. The committee still owns the decision. Adjust upward (never downward) if context demands it, and document why.</li>
+      <li><strong>Check the automatic escalators first.</strong> They override the scored total. One flag → floor of Elevated. Two or more → Severe.</li>
+      <li><strong>For each of the 10 factors, pick the panel that fits.</strong> Click a card to score. Click it again to clear. When two panels both feel close, pick the lower one and write a note explaining why.</li>
+      <li><strong>Deliberate. The score is a floor — never a ceiling.</strong> The committee can adjust up. The rubric never adjusts you down.</li>
     </ol>
   </div>
   <div class="principles">
-    <h3>Three things to remember</h3>
+    <h3>About this edition</h3>
     <ul>
-      <li><strong>Score the incident, not the person.</strong> Prior history is its own factor — don't double-count it elsewhere.</li>
-      <li><strong>Severity floors are one-way.</strong> A 5 anywhere, or any escalator, raises the response. Nothing in this rubric lowers it.</li>
-      <li><strong>Write notes as you go.</strong> The score is the easy part; the deliberation record is the work product.</li>
+      <li><strong>Same math, more art.</strong> Section 1, the 0–5 grid, severity floors, and tier thresholds are identical to v1. Hash-links from v1 still work here.</li>
+      <li><strong>The pictures aren't the rubric.</strong> The text under each panel is the rubric. The art is to make it easier to recognize what you're looking at.</li>
+      <li><strong>Slow down.</strong> A picture is a stronger commitment than a checkbox. That's the feature.</li>
     </ul>
   </div>
 </div>
 
 <div class="toolbar">
   <div class="left">
-    Section 1: boolean escalators override everything. Section 2: scored 0–5 with severity floors.
+    Section 1 (escalators) overrides scoring. Section 2 (scored 0–5) below.
     <span class="progress" id="progressPill">0 / 10 factors scored</span>
   </div>
   <div>
@@ -829,48 +626,43 @@ button.btn--ghost{background:transparent;box-shadow:none;border-style:dashed}
 <div class="toast" id="toast"></div>
 
 <!-- ====================== SECTION 1 ====================== -->
-<div class="section">
+<div class="section" id="section1">
   <div class="section-banner">
     <div class="text">
       <h2><span class="num">§1</span> Automatic escalators</h2>
-      <div class="desc">Eight conditions that bypass the scoring grid entirely. They're the kind of facts that, once present, change the conversation from "how bad" to "how fast."</div>
-      <div class="rules">
-        <strong>Rules.</strong> Any one checked → minimum response: <em>Elevated</em>. Two or more → minimum: <em>Severe</em>. These floors override the Section 2 total.
-      </div>
+      <div class="desc">Eight conditions that bypass the scoring grid entirely. Once any of these are present, the conversation changes from "how bad" to "how fast."</div>
+      <div class="rules"><strong>Rules.</strong> Any one checked → minimum response: <em>Elevated</em>. Two or more → minimum: <em>Severe</em>. These floors override the Section 2 total.</div>
     </div>
-    <div class="img"><img src="art/conduct_rubric/cartoon/section1-redflags.jpeg" alt="Eight red flags raised in a row"></div>
+    <div class="img"><img src="art/conduct_rubric/cartoon/section1-redflags.jpeg" alt="Red flags raised in a row" loading="lazy"></div>
   </div>
-
   <div class="flags" id="flagBox"></div>
   <div class="flag-count" id="flagCount"></div>
 </div>
 
-<!-- ====================== SECTION 2 ====================== -->
+<!-- ====================== SECTION 2 INTRO ====================== -->
 <div class="section">
   <div class="section-banner">
     <div class="text">
-      <h2><span class="num">§2</span> Scored factors</h2>
-      <div class="desc">Ten dimensions of the incident, each scored 0–5. Click a card to open the rung descriptions, a glossary panel, and a notes field. The summary at the bottom updates as you score.</div>
-      <div class="rules">
-        <strong>Severity floors.</strong> Any single factor at <em>5</em> → minimum Elevated. A single factor at <em>4</em> → minimum Moderate. Two or more at <em>4+</em> → minimum Elevated. Floors stack with Section 1.
-      </div>
+      <h2><span class="num">§2</span> Pick a picture, score the factor</h2>
+      <div class="desc">Each factor below is a panel of six cartoons — score 0 through score 5. Click the card that best fits what actually happened (not what could have happened). Use the notes field to record disagreement, caveats, or evidence.</div>
+      <div class="rules"><strong>Severity floors.</strong> Any single factor at <em>5</em> → minimum Elevated. A single factor at <em>4</em> → minimum Moderate. Two or more at <em>4+</em> → minimum Elevated. Floors stack with Section 1.</div>
     </div>
-    <div class="img"><img src="art/conduct_rubric/cartoon/section2-scoring.jpeg" alt="Ranger drawing the 0-5 scoring grid"></div>
+    <div class="img"><img src="art/conduct_rubric/cartoon/section2-scoring.jpeg" alt="Ranger drawing the 0-5 scoring grid" loading="lazy"></div>
   </div>
-
-  <div id="catBox"></div>
 </div>
 
+<div id="catBox"></div>
+
 <!-- ====================== TIER LADDER ====================== -->
-<div class="ladder">
+<div class="ladder" id="ladder">
   <h3>Response tiers — what each tier means in practice</h3>
   <div class="rungs" id="ladderRungs"></div>
 </div>
 
 <!-- ====================== DECISION SUMMARY ====================== -->
-<div class="decision">
+<div class="decision" id="decision">
   <h3>Committee decision summary</h3>
-  <div class="sub">Paste this into your committee log. Fill the deliberation gap by hand — the rubric supplies the skeleton; the committee supplies the reasoning.</div>
+  <div class="sub">Paste this into your committee log. The rubric supplies the skeleton; the committee supplies the reasoning.</div>
   <div class="decision-out" id="decisionOut">Score the rubric to populate this summary.</div>
   <div class="decision-actions">
     <button class="btn btn--red" onclick="copySummary()">Copy summary</button>
@@ -879,34 +671,7 @@ button.btn--ghost{background:transparent;box-shadow:none;border-style:dashed}
   </div>
 </div>
 
-<!-- ====================== MARGIN ART STRIP ====================== -->
 <div class="divider-doodle">· · · · ·</div>
-<div class="margin-art">
-  <figure>
-    <img src="art/conduct_rubric/cartoon/deliberation-notes.jpeg" alt="Clerk writing the record">
-    <figcaption><strong>Document.</strong> The decision is the artifact. Write down what you saw, what you weighed, why you landed where you landed.</figcaption>
-  </figure>
-  <figure>
-    <img src="art/conduct_rubric/cartoon/tier-minimal-low.jpeg" alt="Two figures with coffee, a check-in conversation">
-    <figcaption><strong>Tier 1–2.</strong> Quiet, low-stakes correction. Mark it; keep it informal unless a pattern emerges.</figcaption>
-  </figure>
-  <figure>
-    <img src="art/conduct_rubric/cartoon/tier-moderate.jpeg" alt="Mediation circle with three chairs">
-    <figcaption><strong>Tier 3.</strong> Formal warning + mediated conversation. Written agreement, documented record.</figcaption>
-  </figure>
-  <figure>
-    <img src="art/conduct_rubric/cartoon/tier-elevated.jpeg" alt="Restricted access rope across a gate">
-    <figcaption><strong>Tier 4.</strong> Suspension. Roles or spaces are restricted. Review before reinstatement.</figcaption>
-  </figure>
-  <figure>
-    <img src="art/conduct_rubric/cartoon/tier-high-severe.jpeg" alt="Removal and ban stamp">
-    <figcaption><strong>Tier 5–6.</strong> Removal &amp; ban. Cross-event documentation; referral to authorities if warranted.</figcaption>
-  </figure>
-  <figure>
-    <img src="art/conduct_rubric/cartoon/how-to-use.jpeg" alt="Ranger opens the rubric book">
-    <figcaption><strong>Re-read this.</strong> Each session: the rubric helps least when it's filled out fastest. Slow down.</figcaption>
-  </figure>
-</div>
 
 <!-- ====================== STICKY TALLY ====================== -->
 <div class="tally">
@@ -916,10 +681,10 @@ button.btn--ghost{background:transparent;box-shadow:none;border-style:dashed}
       <span class="num"><span id="totalNum">0</span><span class="denom"> / 50</span></span>
     </div>
     <div class="tally-tier" id="tierBlock">
-      <div class="tier-empty" id="tierEmpty">10 factors remaining — score them to see the tier</div>
+      <div class="tier-empty" id="tierEmpty">10 factors remaining — pick pictures to see the tier</div>
     </div>
     <div class="tally-actions">
-      <button class="btn" onclick="document.querySelector('.decision').scrollIntoView({behavior:'smooth'})">Jump to summary</button>
+      <button class="btn" onclick="document.getElementById('decision').scrollIntoView({behavior:'smooth'})">Jump to summary</button>
     </div>
   </div>
   <div class="esc-note" id="escNote"></div>
@@ -929,7 +694,7 @@ button.btn--ghost{background:transparent;box-shadow:none;border-style:dashed}
 </div>
 
 <script>
-// ============================ DATA ============================
+// ============================ DATA (shared with v1) ============================
 
 var flagDefs = [
   { label:"Non-consensual sexual contact", hint:"Sexual contact without affirmative consent, regardless of relationship or context." },
@@ -943,205 +708,72 @@ var flagDefs = [
 ];
 
 var catDefs = [
-  {
-    label:"Consent",
-    summary:"Was consent sought, given, respected?",
-    icon:"consent",
+  { slug:"consent",        label:"Consent",                          summary:"Was consent sought, given, respected?", icon:"consent",
     help:"How clearly was consent established, communicated, and respected? Look for affirmative agreement — silence, intoxication, or compliance under pressure are not consent.",
-    ask:"Ask: Did the responding party check in? Did they hear and respect the answer?",
-    panelImg:"factor-consent.jpeg",
-    d:[
-      "Sought and respected — no issue",
-      "Minor misunderstanding, quickly clarified",
-      "Not clearly established but no harm resulted",
-      "Ignored a stated boundary",
-      "Proceeded without asking despite opportunity to",
-      "Coerced or forced participation"
-    ]
-  },
-  {
-    label:"Physical harm",
-    summary:"What injury, if any?",
-    icon:"harm",
+    ask:"Did the responding party check in? Did they hear and respect the answer?",
+    d:["Sought and respected — no issue","Minor misunderstanding, quickly clarified","Not clearly established but no harm resulted","Ignored a stated boundary","Proceeded without asking despite opportunity to","Coerced or forced participation"]},
+  { slug:"harm",           label:"Physical harm",                    summary:"What injury, if any?", icon:"harm",
     help:"Concrete bodily injury caused by the incident. Score the harm that actually occurred, not the harm that was risked (use Intent for risked harm).",
-    ask:"Ask: Was first aid called? Did anyone leave for medical care?",
-    panelImg:"factor-physical-harm.jpeg",
-    d:[
-      "None",
-      "Trivial (bumped, jostled, no mark)",
-      "Minor (bruise, scrape, no aid needed)",
-      "Moderate (first aid required on-site)",
-      "Significant (medical attention needed)",
-      "Serious injury (hospitalization, lasting damage)"
-    ]
-  },
-  {
-    label:"Emotional / psychological harm",
-    summary:"Distress, fear, lasting impact?",
-    icon:"heart",
+    ask:"Was first aid called? Did anyone leave for medical care?",
+    d:["None","Trivial (bumped, jostled, no mark)","Minor (bruise, scrape, no aid needed)","Moderate (first aid required on-site)","Significant (medical attention needed)","Serious injury (hospitalization, lasting damage)"]},
+  { slug:"emotion",        label:"Emotional / psychological harm",   summary:"Distress, fear, lasting impact?", icon:"heart",
     help:"Psychological impact on the target. Hard to measure from outside — listen to what the target is telling you. Discount harm only when there is good reason to.",
-    ask:"Ask: Is the target sleeping, working, attending events? What did they say at intake?",
-    panelImg:"factor-emotional-harm.jpeg",
-    d:[
-      "None",
-      "Momentary discomfort, self-resolved",
-      "Brief distress, resolved with on-site support",
-      "Significant distress lasting beyond event",
-      "Severe emotional harm, daily functioning affected",
-      "Trauma likely requiring professional intervention"
-    ]
-  },
-  {
-    label:"Community impact",
-    summary:"How far did the ripple spread?",
-    icon:"ripple",
+    ask:"Is the target sleeping, working, attending events? What did they say at intake?",
+    d:["None","Momentary discomfort, self-resolved","Brief distress, resolved with on-site support","Significant distress lasting beyond event","Severe emotional harm, daily functioning affected","Trauma likely requiring professional intervention"]},
+  { slug:"community",      label:"Community impact",                 summary:"How far did the ripple spread?", icon:"ripple",
     help:"Beyond the people directly involved — who else saw, heard, or was affected? Consider whether the event itself, or the org's reputation, is materially harmed.",
-    ask:"Ask: How many people know? Are camps, leads, or partner orgs talking about it?",
-    panelImg:"factor-community.jpeg",
-    d:[
-      "Contained — no disruption",
-      "One or two bystanders aware",
-      "Small group affected or unsettled",
-      "Wider community disrupted or divided",
-      "Event-level disruption or safety concern",
-      "Organizational reputation or viability threatened"
-    ]
-  },
-  {
-    label:"Structural power gap",
-    summary:"Who held the keys?",
-    icon:"scale",
+    ask:"How many people know? Are camps, leads, or partner orgs talking about it?",
+    d:["Contained — no disruption","One or two bystanders aware","Small group affected or unsettled","Wider community disrupted or divided","Event-level disruption or safety concern","Organizational reputation or viability threatened"]},
+  { slug:"power",          label:"Structural power gap",             summary:"Who held the keys?", icon:"scale",
     help:"Power asymmetry between parties — role authority, gatekeeping, institutional position. Score the gap as it existed in the moment of the incident.",
-    ask:"Ask: Could the responding party hire, schedule, ban, promote, or restrict the target? Were they a known authority figure?",
-    panelImg:"factor-power-gap.jpeg",
-    d:[
-      "Peers — no meaningful gap",
-      "Minor social advantage (experience, connections)",
-      "Moderate social leverage (popularity, tenure)",
-      "Role-based authority (organizer, lead, mentor)",
-      "Direct supervisory or gatekeeping authority",
-      "Institutional authority with control over access or standing"
-    ]
-  },
-  {
-    label:"Situational vulnerability",
-    summary:"How able was the target to refuse or leave?",
-    icon:"vuln",
+    ask:"Could the responding party hire, schedule, ban, promote, or restrict the target? Were they a known authority figure?",
+    d:["Peers — no meaningful gap","Minor social advantage (experience, connections)","Moderate social leverage (popularity, tenure)","Role-based authority (organizer, lead, mentor)","Direct supervisory or gatekeeping authority","Institutional authority with control over access or standing"]},
+  { slug:"vulnerability",  label:"Situational vulnerability",        summary:"How able was the target to refuse or leave?", icon:"vuln",
     help:"Situation-specific vulnerability: intoxication, isolation, unfamiliarity, physical capacity. Not about the target's history — about the conditions during the incident.",
-    ask:"Ask: Could they leave? Did they have allies nearby? Were they sober, oriented, safe?",
-    panelImg:"factor-vulnerability.jpeg",
-    d:[
-      "Both parties fully capable and aware",
-      "Target slightly unfamiliar with norms or context",
-      "Target mildly impaired or socially isolated at event",
-      "Target significantly impaired or in an isolated setting",
-      "Target unable to effectively resist or leave",
-      "Target incapacitated — no capacity to consent or protect self"
-    ]
-  },
-  {
-    label:"Accountability",
-    summary:"How did they respond when confronted?",
-    icon:"reflect",
+    ask:"Could they leave? Did they have allies nearby? Were they sober, oriented, safe?",
+    d:["Both parties fully capable and aware","Target slightly unfamiliar with norms or context","Target mildly impaired or socially isolated at event","Target significantly impaired or in an isolated setting","Target unable to effectively resist or leave","Target incapacitated — no capacity to consent or protect self"]},
+  { slug:"accountability", label:"Accountability",                   summary:"How did they respond when confronted?", icon:"reflect",
     help:"How the responding party engaged once the harm was raised — ownership, defensiveness, or evasion. Score from the first conversation, not the formal hearing.",
-    ask:"Ask: Did they ask what they could do? Did they minimize? Did they blame the target?",
-    panelImg:"factor-accountability.jpeg",
-    d:[
-      "Full ownership, genuine and immediate repair effort",
-      "Quick acknowledgment with minor defensiveness",
-      "Acknowledged but offered excuses or minimized",
-      "Deflection — shifted focus, engaged reluctantly",
-      "Denied responsibility or blamed target",
-      "Retaliated, intimidated, or refused all engagement"
-    ]
-  },
-  {
-    label:"Intent",
-    summary:"Accident, carelessness, or aim?",
-    icon:"intent",
+    ask:"Did they ask what they could do? Did they minimize? Did they blame the target?",
+    d:["Full ownership, genuine and immediate repair effort","Quick acknowledgment with minor defensiveness","Acknowledged but offered excuses or minimized","Deflection — shifted focus, engaged reluctantly","Denied responsibility or blamed target","Retaliated, intimidated, or refused all engagement"]},
+  { slug:"intent",         label:"Intent",                           summary:"Accident, carelessness, or aim?", icon:"intent",
     help:"What did the responding party mean to do? Score what's evidenced — not what they say now. Watch for retconned innocence.",
-    ask:"Ask: What did they know, when did they know it, and did they have time to choose differently?",
-    panelImg:"factor-intent.jpeg",
-    d:[
-      "Genuine accident, unforeseeable outcome",
-      "Thoughtless but no malice — should have paused",
-      "Careless disregard for known norms or risks",
-      "Reckless — aware of risk, chose to proceed",
-      "Deliberate targeting or malicious action",
-      "Premeditated, calculated, or predatory"
-    ]
-  },
-  {
-    label:"Prior history",
-    summary:"What's the record?",
-    icon:"history",
+    ask:"What did they know, when did they know it, and did they have time to choose differently?",
+    d:["Genuine accident, unforeseeable outcome","Thoughtless but no malice — should have paused","Careless disregard for known norms or risks","Reckless — aware of risk, chose to proceed","Deliberate targeting or malicious action","Premeditated, calculated, or predatory"]},
+  { slug:"history",        label:"Prior history",                    summary:"What's the record?", icon:"history",
     help:"Documented or credibly reported prior conduct. Vague rumor scores low; documented patterns score high. Be careful: do not score this if there is genuinely no record — that is what 0 is for.",
-    ask:"Ask: Have we received reports about this person before? Are they on file with another event?",
-    panelImg:"factor-history.jpeg",
-    d:[
-      "No prior incidents known",
-      "Vague or unconfirmed prior concerns",
-      "Informal feedback given previously on related behavior",
-      "Prior formal warning on record",
-      "Multiple documented incidents",
-      "Documented pattern across events or contexts"
-    ]
-  },
-  {
-    label:"Post-incident behavior",
-    summary:"How are they engaging with the process now?",
-    icon:"after",
+    ask:"Have we received reports about this person before? Are they on file with another event?",
+    d:["No prior incidents known","Vague or unconfirmed prior concerns","Informal feedback given previously on related behavior","Prior formal warning on record","Multiple documented incidents","Documented pattern across events or contexts"]},
+  { slug:"after",          label:"Post-incident behavior",           summary:"How are they engaging with the process now?", icon:"after",
     help:"From the time the report was filed to right now. Cooperation can offset intent; obstruction compounds it. Threats or retaliation flip this to max.",
-    ask:"Ask: Are they showing up, answering questions, respecting interim restrictions? Have witnesses been contacted?",
-    panelImg:"factor-postincident.jpeg",
-    d:[
-      "Fully cooperative, respectful of process",
-      "Cooperative but anxious or uncertain",
-      "Reluctant, needed prompting to engage",
-      "Obstructive, evasive, or manipulative",
-      "Attempted to intimidate witnesses or target",
-      "Threatened, retaliated, or fled accountability"
-    ]
-  }
+    ask:"Are they showing up, answering questions, respecting interim restrictions? Have witnesses been contacted?",
+    d:["Fully cooperative, respectful of process","Cooperative but anxious or uncertain","Reluctant, needed prompting to engage","Obstructive, evasive, or manipulative","Attempted to intimidate witnesses or target","Threatened, retaliated, or fled accountability"]}
 ];
 
 var LEVELS = 6;
 
 var tiers = [
-  {
-    max:8,  label:"Minimal",  color:"#EAF6E9", tc:"#2E7D32", stamp:"#2E7D32",
+  { max:8,  label:"Minimal",  color:"#EAF6E9", tc:"#2E7D32", stamp:"#2E7D32",
     resp:"Check-in conversation. No formal action unless pattern emerges.",
-    details:"Conduct a brief, supportive conversation with the responding party. Note the incident in the informal record. No restrictions, no warning letter, but the report exists. If a similar report comes in, escalate."
-  },
-  {
-    max:15, label:"Low",      color:"#F1F8E9", tc:"#558B2F", stamp:"#558B2F",
+    details:"Brief, supportive conversation with the responding party. Note in the informal record. No restrictions; report exists. Escalate if a similar report comes in." },
+  { max:15, label:"Low",      color:"#F1F8E9", tc:"#558B2F", stamp:"#558B2F",
     resp:"Verbal warning, education, self-correction acknowledged. Informal record.",
-    details:"Verbal warning delivered in person by a committee member. Specific behaviors named. Educational resources offered. Responding party acknowledges receipt — initial on a brief record. No event restrictions."
-  },
-  {
-    max:22, label:"Moderate", color:"#FFF8E1", tc:"#F57F17", stamp:"#F57F17",
+    details:"Verbal warning in person. Specific behaviors named. Educational resources offered. Responding party initials a brief record. No event restrictions." },
+  { max:22, label:"Moderate", color:"#FFF8E1", tc:"#F57F17", stamp:"#F57F17",
     resp:"Formal warning, mediated conversation, required training or restorative process. Documented.",
-    details:"Formal written warning. Mediated conversation between responding party and either the target (if target consents) or a proxy. Required training or restorative process; written agreement on next-event behavior. Full record kept on file."
-  },
-  {
-    max:32, label:"Elevated", color:"#FFF1DD", tc:"#E65100", stamp:"#E65100",
+    details:"Formal written warning. Mediated conversation. Required training or restorative process; written agreement on next-event behavior. Record kept on file." },
+  { max:32, label:"Elevated", color:"#FFF1DD", tc:"#E65100", stamp:"#E65100",
     resp:"Restricted access, temporary suspension from roles or spaces. Review before reinstatement.",
-    details:"Removal from any leadership, gatekeeping, or contact-with-public role. Restrictions on physical spaces or sub-events where target may be present. Suspension of event privileges for a set period. Reinstatement requires committee review and demonstrated progress."
-  },
-  {
-    max:42, label:"High",     color:"#FFE6E0", tc:"#C62828", stamp:"#C62828",
+    details:"Removal from leadership, gatekeeping, or contact-with-public roles. Spatial restrictions where target may be present. Suspension for a set period. Reinstatement requires committee review." },
+  { max:42, label:"High",     color:"#FFE6E0", tc:"#C62828", stamp:"#C62828",
     resp:"Removal from event. Ban consideration. Documented for cross-event sharing.",
-    details:"Immediate removal from the current event. Ban from future events considered (default: 1–3 years). Documentation prepared for cross-event information-sharing with peer organizations. Target informed of outcome on a defined timeline."
-  },
-  {
-    max:50, label:"Severe",   color:"#FFD2C8", tc:"#9A1A1A", stamp:"#9A1A1A",
+    details:"Immediate removal from the current event. Ban considered (default 1–3 years). Documentation prepared for peer-org sharing. Target informed of outcome on a defined timeline." },
+  { max:50, label:"Severe",   color:"#FFD2C8", tc:"#9A1A1A", stamp:"#9A1A1A",
     resp:"Immediate removal and ban. Referral to external authorities if warranted.",
-    details:"Immediate removal and indefinite ban. Referral to law enforcement, licensing bodies, or civil authorities if facts warrant. Public statement coordinated with legal counsel where appropriate. Full incident package shared with peer event networks."
-  }
+    details:"Immediate removal, indefinite ban. Referral to law enforcement or licensing/civil authorities if facts warrant. Public statement coordinated with counsel. Full package shared with peer event networks." }
 ];
 
-// ============================ CHARMS (per-factor SVG icons) ============================
-
+// ---------- CHARMS (per-factor SVG icons) ----------
 var charms = {
   consent: '<svg viewBox="-20 -20 40 40" xmlns="http://www.w3.org/2000/svg"><g filter="url(#charm-rough)"><circle cx="-6" cy="-2" r="6" fill="none" stroke="#1A1A1A" stroke-width="1.6"/><circle cx="6" cy="-2" r="6" fill="none" stroke="#1A1A1A" stroke-width="1.6"/><path d="M -10 6 L 10 6" stroke="#1A1A1A" stroke-width="1.6" fill="none"/><path d="M -3 -3 L -1 -1 L 3 -5" stroke="#2D7A45" stroke-width="2" fill="none"/></g></svg>',
   harm: '<svg viewBox="-20 -20 40 40" xmlns="http://www.w3.org/2000/svg"><g filter="url(#charm-rough)"><path d="M -10 12 L -10 -10 L 10 -10 L 10 12 Z" fill="none" stroke="#1A1A1A" stroke-width="1.6"/><rect x="-7" y="6" width="14" height="4" fill="#2D7A45"/><rect x="-7" y="2" width="14" height="4" fill="#F5C84B"/><rect x="-7" y="-2" width="14" height="4" fill="#E65100"/><rect x="-7" y="-6" width="14" height="4" fill="#C04D3A"/></g></svg>',
@@ -1155,9 +787,7 @@ var charms = {
   after: '<svg viewBox="-20 -20 40 40" xmlns="http://www.w3.org/2000/svg"><g filter="url(#charm-rough)"><path d="M -14 8 L -6 8 L -6 -10 L 6 -10 L 6 8 L 14 8" fill="none" stroke="#1A1A1A" stroke-width="1.6"/><polygon points="14,8 10,5 10,11" fill="#1A1A1A"/><text x="0" y="-1" font-family="Marker Felt,cursive" font-size="9" fill="#C04D3A" text-anchor="middle" font-weight="900">?</text></g></svg>'
 };
 
-// shared charm filter
 var charmFilterSVG = '<svg width="0" height="0" style="position:absolute"><defs><filter id="charm-rough" x="-2%" y="-2%" width="104%" height="104%"><feTurbulence type="fractalNoise" baseFrequency="0.08" numOctaves="2" seed="3"/><feDisplacementMap in="SourceGraphic" scale="0.8"/></filter></defs></svg>';
-
 document.body.insertAdjacentHTML('afterbegin', charmFilterSVG);
 
 // ============================ STATE ============================
@@ -1178,42 +808,48 @@ flagDefs.forEach(function(f, i) {
   flagBox.appendChild(el);
 });
 
-// ============================ RENDER: CATEGORIES ============================
+// ============================ RENDER: PICTURE-CARD GRIDS ============================
 
 var catBox = document.getElementById("catBox");
 catDefs.forEach(function(cat, ci) {
   var div = document.createElement("div");
-  div.className = "category";
+  div.className = "factor";
   div.id = "cat"+ci;
+  var cardsHTML = "";
+  cat.d.forEach(function(desc, si) {
+    var img = "art/conduct_rubric/cartoon/rung-"+cat.slug+"-"+si+".jpeg";
+    cardsHTML +=
+      '<div class="pcard" id="o'+ci+'_'+si+'" data-ci="'+ci+'" data-si="'+si+'">' +
+        '<div class="pimg-wrap">' +
+          '<img class="pimg" src="'+img+'" alt="'+cat.label+' score '+si+'" loading="lazy">' +
+          '<div class="pn">'+si+'</div>' +
+          '<div class="pchosen">✓ CHOSEN</div>' +
+        '</div>' +
+        '<div class="pdesc">'+desc+'</div>' +
+      '</div>';
+  });
   div.innerHTML =
-    '<div class="cat-head" onclick="toggleCat('+ci+')">' +
+    '<div class="factor-head">' +
       '<div class="icon">'+charms[cat.icon]+'</div>' +
-      '<div class="title"><span class="label">'+cat.label+'</span><span class="summary">'+cat.summary+'</span></div>' +
+      '<div class="title"><span class="n">Factor '+(ci+1)+' of 10</span><span class="label">'+cat.label+'</span><span class="summary">'+cat.summary+'</span></div>' +
       '<div class="badge" id="cb'+ci+'">Not scored</div>' +
-      '<div class="chev">▾</div>' +
     '</div>' +
-    '<div class="cat-body"><div class="cat-body-inner">' +
-      '<div class="cat-main">' +
-        '<div class="cat-help"><strong>What this means.</strong> '+cat.help+'<span class="ask">'+cat.ask+'</span></div>' +
-        '<div class="options" id="opts'+ci+'"></div>' +
-        '<div class="cat-notes"><label for="note'+ci+'">Deliberation notes (optional)</label>' +
-        '<textarea id="note'+ci+'" placeholder="Why did you land on this score? Disagreements? Caveats?" oninput="notes['+ci+']=this.value;updateSummary()"></textarea></div>' +
-      '</div>' +
-      '<div class="cat-side">' +
-        '<figure class="panel-img"><img src="art/conduct_rubric/cartoon/'+cat.panelImg+'" alt="'+cat.label+' illustration"><figcaption>'+cat.label+'</figcaption></figure>' +
-      '</div>' +
-    '</div></div>';
+    '<div class="factor-help"><strong>'+cat.help+'</strong><span class="ask">Ask: '+cat.ask+'</span></div>' +
+    '<div class="picture-grid">'+cardsHTML+'</div>' +
+    '<div class="factor-notes"><label for="note'+ci+'">Deliberation notes (optional)</label>' +
+    '<textarea id="note'+ci+'" placeholder="Why this picture? Disagreements? Caveats? Evidence?"></textarea></div>';
   catBox.appendChild(div);
 
-  var grid = div.querySelector("#opts"+ci);
-  cat.d.forEach(function(desc, si) {
-    var btn = document.createElement("div");
-    btn.className = "opt";
-    btn.id = "o"+ci+"_"+si;
-    btn.innerHTML = '<span class="sn">'+si+'</span>'+desc;
-    btn.onclick = function() { if(scores[ci]===si) delete scores[ci]; else scores[ci]=si; renderCat(ci); update(); };
-    grid.appendChild(btn);
+  cat.d.forEach(function(_, si) {
+    var card = div.querySelector("#o"+ci+"_"+si);
+    card.onclick = function() {
+      if(scores[ci]===si) delete scores[ci]; else scores[ci]=si;
+      renderCat(ci);
+      update();
+    };
   });
+  var nt = div.querySelector("#note"+ci);
+  nt.oninput = function() { notes[ci] = nt.value; updateSummary(); };
 });
 
 // ============================ RENDER: LADDER ============================
@@ -1233,15 +869,10 @@ tiers.forEach(function(t, i) {
 
 // ============================ HELPERS ============================
 
-function toggleCat(ci) {
-  var c = document.getElementById("cat"+ci);
-  c.classList.toggle("open");
-}
-
 function renderCat(ci) {
   for(var s=0;s<LEVELS;s++){
     var el=document.getElementById("o"+ci+"_"+s);
-    el.className=scores[ci]===s?"opt sel"+s:"opt";
+    el.className=scores[ci]===s?"pcard sel"+s:"pcard";
   }
   var b=document.getElementById("cb"+ci);
   if(scores[ci]!==undefined){
@@ -1253,13 +884,22 @@ function renderCat(ci) {
     b.textContent="Not scored";
     b.className="badge";
   }
+  // TOC link state
+  var tocLink = document.querySelector('.toc a[href="#cat'+ci+'"]');
+  if(tocLink) {
+    tocLink.className = "";
+    if(scores[ci]!==undefined) {
+      tocLink.className = "scored";
+      if(scores[ci]===5) tocLink.className = "max";
+      else if(scores[ci]===4) tocLink.className = "high";
+    }
+  }
 }
 
 function getTierByScore(total) {
   for(var i=0;i<tiers.length;i++) if(total<=tiers[i].max) return tiers[i];
   return tiers[tiers.length-1];
 }
-
 function getTierIndex(label) {
   for(var i=0;i<tiers.length;i++) if(tiers[i].label===label) return i;
   return 0;
@@ -1268,7 +908,6 @@ function getTierIndex(label) {
 function computeTier() {
   var flagCount = 0;
   for(var k in flags) if(flags[k]) flagCount++;
-
   var scoredCount = Object.keys(scores).length;
   var total = 0, count5=0, count4plus=0;
   for(var k in scores) {
@@ -1276,63 +915,48 @@ function computeTier() {
     if(scores[k] === 5) count5++;
     if(scores[k] >= 4) count4plus++;
   }
-
   var reasons = [];
   var sumTier = getTierByScore(total);
   var finalTierIndex = getTierIndex(sumTier.label);
-
   if(count5 >= 1) {
     var elevIdx = getTierIndex("Elevated");
-    if(finalTierIndex < elevIdx) { finalTierIndex = elevIdx; reasons.push(count5 + " factor"+(count5>1?"s":"")+" at 5 → floor: Elevated"); }
+    if(finalTierIndex < elevIdx) { finalTierIndex = elevIdx; reasons.push(count5+" factor"+(count5>1?"s":"")+" at 5 → floor: Elevated"); }
   }
   if(count4plus >= 2) {
     var elevIdx2 = getTierIndex("Elevated");
-    if(finalTierIndex < elevIdx2) { finalTierIndex = elevIdx2; reasons.push(count4plus + " factors at 4+ → floor: Elevated"); }
+    if(finalTierIndex < elevIdx2) { finalTierIndex = elevIdx2; reasons.push(count4plus+" factors at 4+ → floor: Elevated"); }
   } else if(count4plus === 1 && count5 === 0) {
     var modIdx = getTierIndex("Moderate");
     if(finalTierIndex < modIdx) { finalTierIndex = modIdx; reasons.push("1 factor at 4 → floor: Moderate"); }
   }
   if(flagCount >= 2) {
     var sevIdx = getTierIndex("Severe");
-    if(finalTierIndex < sevIdx) { finalTierIndex = sevIdx; reasons.push(flagCount + " automatic escalators → floor: Severe"); }
+    if(finalTierIndex < sevIdx) { finalTierIndex = sevIdx; reasons.push(flagCount+" automatic escalators → floor: Severe"); }
   } else if(flagCount === 1) {
     var elevIdx3 = getTierIndex("Elevated");
     if(finalTierIndex < elevIdx3) { finalTierIndex = elevIdx3; reasons.push("1 automatic escalator → floor: Elevated"); }
   }
-
-  return {
-    flagCount:flagCount,
-    scoredCount:scoredCount,
-    total:total,
-    count5:count5,
-    count4plus:count4plus,
-    finalTierIndex:finalTierIndex,
-    finalTier:tiers[finalTierIndex],
-    reasons:reasons,
-    isActive:(scoredCount>0||flagCount>0)
-  };
+  return { flagCount:flagCount, scoredCount:scoredCount, total:total, count5:count5, count4plus:count4plus, finalTierIndex:finalTierIndex, finalTier:tiers[finalTierIndex], reasons:reasons, isActive:(scoredCount>0||flagCount>0) };
 }
 
 function update() {
   var state = computeTier();
-
-  // progress pill
   document.getElementById("progressPill").textContent = state.scoredCount + " / 10 factors scored";
 
-  // flag count
   var fc = document.getElementById("flagCount");
+  var tocFlags = document.getElementById("tocFlags");
   if(state.flagCount>0){
     fc.textContent = state.flagCount + " escalator" + (state.flagCount>1?"s":"") + " checked — minimum response: " + (state.flagCount>=2?"Severe":"Elevated");
     fc.className = "flag-count active";
+    tocFlags.className = "flag-link scored";
   } else {
     fc.textContent = "No escalators checked — proceed to Section 2.";
     fc.className = "flag-count";
+    tocFlags.className = "flag-link";
   }
 
-  // total
   document.getElementById("totalNum").textContent = state.total;
 
-  // tier block
   var bar = document.getElementById("tallyBar");
   var tierBlock = document.getElementById("tierBlock");
   var escNote = document.getElementById("escNote");
@@ -1344,10 +968,9 @@ function update() {
   } else {
     bar.style.background = "#fff";
     bar.style.borderColor = "#1A1A1A";
-    tierBlock.innerHTML = '<div class="tier-empty">10 factors remaining — score them to see the tier</div>';
+    tierBlock.innerHTML = '<div class="tier-empty">10 factors remaining — pick pictures to see the tier</div>';
   }
 
-  // escalation note
   if(state.reasons.length > 0) {
     escNote.className = "esc-note show";
     escNote.innerHTML = "<strong>Severity floors applied:</strong> " + state.reasons.join(" &middot; ");
@@ -1355,7 +978,6 @@ function update() {
     escNote.className = "esc-note";
   }
 
-  // pips
   var pipsEl = document.getElementById("pips");
   pipsEl.innerHTML = "";
   catDefs.forEach(function(cat, ci) {
@@ -1370,7 +992,6 @@ function update() {
     pipsEl.appendChild(p);
   });
 
-  // ladder current
   tiers.forEach(function(_, i) {
     var r = document.getElementById("rung"+i);
     if(r) r.className = (state.isActive && i === state.finalTierIndex) ? "rung current" : "rung";
@@ -1382,34 +1003,26 @@ function update() {
 function updateSummary() {
   var state = computeTier();
   var out = document.getElementById("decisionOut");
-
-  if(!state.isActive) {
-    out.textContent = "Score the rubric to populate this summary.";
-    return;
-  }
-
+  if(!state.isActive) { out.textContent = "Score the rubric to populate this summary."; return; }
   var lines = [];
-  lines.push("CONDUCT COMMITTEE — DECISION SUMMARY");
-  lines.push("=".repeat(44));
+  lines.push("CONDUCT COMMITTEE — DECISION SUMMARY  (v2 picture-book)");
+  lines.push("=".repeat(54));
   lines.push("");
   lines.push("Date: " + new Date().toISOString().slice(0,10));
   lines.push("Tier: " + state.finalTier.label.toUpperCase() + "  (Section 2 total: " + state.total + " / 50)");
   lines.push("");
-
   lines.push("RESPONSE");
   lines.push("--------");
   lines.push(state.finalTier.resp);
   lines.push("");
   lines.push(state.finalTier.details);
   lines.push("");
-
   if(state.reasons.length) {
     lines.push("SEVERITY FLOORS APPLIED");
     lines.push("-----------------------");
     state.reasons.forEach(function(r){ lines.push("• " + r); });
     lines.push("");
   }
-
   var checkedFlags = [];
   flagDefs.forEach(function(f,i){ if(flags[i]) checkedFlags.push(f.label); });
   if(checkedFlags.length) {
@@ -1421,7 +1034,6 @@ function updateSummary() {
     lines.push("§1 AUTOMATIC ESCALATORS: none checked");
     lines.push("");
   }
-
   lines.push("§2 SCORED FACTORS");
   lines.push("-----------------");
   catDefs.forEach(function(cat, ci) {
@@ -1439,7 +1051,6 @@ function updateSummary() {
   lines.push("[Add committee discussion summary, dissenting views, and ratified action here.]");
   lines.push("");
   lines.push("Signed: __________________  Date: _______________");
-
   out.textContent = lines.join("\n");
 }
 
@@ -1467,6 +1078,8 @@ function encodeState() {
 function loadFromHash() {
   var hash = window.location.hash.replace("#","");
   if(!hash) return;
+  // ignore anchor-only hashes (like #cat3)
+  if(hash.indexOf("=") === -1) return;
   var params = {};
   hash.split("&").forEach(function(p){ var kv=p.split("="); params[kv[0]]=kv[1]; });
   if(params.f) {
@@ -1476,7 +1089,7 @@ function loadFromHash() {
   }
   if(params.s) {
     for(var i=0;i<params.s.length&&i<catDefs.length;i++){
-      if(params.s[i]!=="-"){ scores[i]=parseInt(params.s[i]); renderCat(i); document.getElementById("cat"+i).classList.add("open"); }
+      if(params.s[i]!=="-"){ scores[i]=parseInt(params.s[i]); renderCat(i); }
     }
   }
   update();
@@ -1503,9 +1116,7 @@ function copySummary() {
 function copyText(text, msg) {
   if(navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(function(){ showToast(msg); }, function(){ fallbackCopy(text, msg); });
-  } else {
-    fallbackCopy(text, msg);
-  }
+  } else { fallbackCopy(text, msg); }
 }
 
 function fallbackCopy(text, msg) {
